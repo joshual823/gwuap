@@ -1,0 +1,98 @@
+import { createClient } from '@/lib/supabaseServer'
+import PostCard from '@/components/PostCard'
+import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
+
+export default async function FeedPage() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return (
+      <div style={{ marginTop: 60, textAlign: 'center' }}>
+        <h1 className="display" style={{ fontSize: 26 }}>Track your picks. Follow the sharps.</h1>
+        <p style={{ color: 'var(--ink-dim)', margin: '12px 0 24px' }}>
+          Post your picks, build a public record, and see who's actually winning.
+        </p>
+        <Link href="/signup" className="btn">Get started</Link>
+      </div>
+    )
+  }
+
+  const { data: posts } = await supabase
+    .from('posts')
+    .select(`
+      id, caption, slip_image_url, odds, stake, currency, status, tag, sentiment, created_at,
+      author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
+      category:categories ( name ),
+      likes ( user_id ),
+      comments ( id )
+    `)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  const shaped = (posts ?? []).map((p: any) => ({
+    ...p,
+    like_count: p.likes?.length ?? 0,
+    comment_count: p.comments?.length ?? 0,
+    liked_by_me: !!p.likes?.find((l: any) => l.user_id === user.id),
+  }))
+
+  // Ticker: most recent picks that have a tag, newest first.
+  const tickerItems = shaped.filter((p: any) => p.tag).slice(0, 10)
+
+  // Trending: group by tag, count backing vs fading mentions, take top 3 by volume.
+  const tagCounts: Record<string, { backing: number; fading: number }> = {}
+  for (const p of shaped) {
+    if (!p.tag) continue
+    if (!tagCounts[p.tag]) tagCounts[p.tag] = { backing: 0, fading: 0 }
+    tagCounts[p.tag][p.sentiment as 'backing' | 'fading']++
+  }
+  const trending = Object.entries(tagCounts)
+    .map(([tag, counts]) => {
+      const total = counts.backing + counts.fading
+      const leader = counts.backing >= counts.fading ? 'backing' : 'fading'
+      const pct = Math.round((100 * Math.max(counts.backing, counts.fading)) / total)
+      return { tag, total, leader, pct }
+    })
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 3)
+
+  return (
+    <div>
+      {tickerItems.length > 0 && (
+        <div className="ticker-strip">
+          {tickerItems.map((p: any) => (
+            <span key={p.id} className="ticker-item">
+              {p.tag} <span className={p.sentiment}>{p.sentiment}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div style={{ padding: '0 4px' }}>
+        {trending.length > 0 && (
+          <div className="trending-card">
+            <div className="trending-title">Trending on Gwuap</div>
+            {trending.map((t, i) => (
+              <div className="trend-row" key={t.tag}>
+                <span className="trend-rank">{i + 1}</span>
+                <span className="cashtag" style={{ fontSize: 12 }}>{t.tag}</span>
+                <span style={{ flex: 1, color: 'var(--ink-dim)' }}>{t.total} picks</span>
+                <span className="mono" style={{ color: t.leader === 'backing' ? 'var(--brand)' : 'var(--bear)', fontWeight: 700 }}>
+                  {t.pct}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {shaped.length === 0 && (
+          <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>No picks yet. Be the first to post one.</p>
+        )}
+        {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
+      </div>
+    </div>
+  )
+}
