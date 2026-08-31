@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
 import GradeButtons from './GradeButtons'
+import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +29,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
   const { data: rawPosts } = await supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, odds, stake, status, created_at,
+      id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
       likes ( user_id ),
@@ -48,6 +49,14 @@ export default async function ProfilePage({ params }: { params: { username: stri
   const losses = posts.filter((p: any) => p.status === 'loss').length
   const winPct = wins + losses > 0 ? Math.round((100 * wins) / (wins + losses)) : null
 
+  // Lifetime $ result. Picks graded before Session 5 have no stored profit,
+  // so recompute those from their odds and stake.
+  const graded = posts.filter((p: any) => p.status !== 'pending')
+  const totalProfit = graded.reduce(
+    (sum: number, p: any) => sum + (p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0),
+    0,
+  )
+
   return (
     <div style={{ marginTop: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -60,9 +69,12 @@ export default async function ProfilePage({ params }: { params: { username: stri
         )}
       </div>
 
-      <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14 }}>
+      <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14, flexWrap: 'wrap' }}>
         <span><strong>{wins}-{losses}</strong> record</span>
         {winPct !== null && <span>{winPct}% win rate</span>}
+        {graded.length > 0 && (
+          <span className={`amt ${totalProfit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(totalProfit)}</span>
+        )}
         <span>{followerCount ?? 0} followers</span>
         <span>{followingCount ?? 0} following</span>
       </div>
@@ -73,7 +85,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
         <div key={post.id}>
           <PostCard post={post} />
           {user?.id === profile.id && post.status === 'pending' && (
-            <GradeButtons postId={post.id} />
+            <GradeButtons postId={post.id} odds={post.odds} stake={post.stake} />
           )}
         </div>
       ))}

@@ -66,8 +66,11 @@ a { color: inherit; text-decoration: none; }
 .post-img { width: 100%; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--line); }
 
 .stat-row { display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 8px; flex-wrap: wrap; }
-.stat-row .amt.pos { color: var(--brand); font-weight: 700; }
-.stat-row .amt.neg { color: var(--bear); font-weight: 700; }
+.amt { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+.amt.pos { color: var(--brand); }
+.amt.neg { color: var(--bear); }
+.stat-key { color: var(--ink-dim); }
+.stat-val { color: var(--ink); font-weight: 700; }
 .unverified { font-size: 10.5px; color: var(--ink-faint); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-family: 'Inter', sans-serif; }
 
 .action-row { display: flex; gap: 22px; align-items: center; }
@@ -123,15 +126,29 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .sentiment-toggle button.active.backing { background: rgba(0,200,5,0.14); border-color: var(--brand); color: var(--brand); }
 .sentiment-toggle button.active.fading { background: rgba(240,66,77,0.14); border-color: var(--bear); color: var(--bear); }
 
-/* Scroll-and-snap number picker */
-.scroll-picker-wrap { position: relative; height: 120px; margin-bottom: 12px; flex: 1; }
-.scroll-picker { height: 120px; overflow-y: scroll; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
-.scroll-picker::-webkit-scrollbar { display: none; }
-.scroll-picker-item { display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 16px; color: var(--ink-faint); scroll-snap-align: center; transition: color 0.1s, font-size 0.1s; }
-.scroll-picker-item.active { color: var(--ink); font-weight: 700; font-size: 19px; }
-.scroll-picker-highlight { position: absolute; top: 40px; left: 0; right: 0; height: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); pointer-events: none; background: rgba(255,255,255,0.03); border-radius: 4px; }
-.scroll-picker-col { flex: 1; display: flex; flex-direction: column; }
-.scroll-picker-manual { margin-bottom: 6px !important; text-align: center; }
+/* Post-form controls: segmented pickers + quick-select stake chips */
+.form-label { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin: 2px 0 6px; }
+
+.segment { display: flex; gap: 6px; margin-bottom: 12px; }
+.segment button { flex: 1; padding: 10px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 12.5px; cursor: pointer; }
+.segment button.active { background: var(--card-2); border-color: var(--ink-dim); color: var(--ink); }
+.segment.compact button { flex: 0 0 auto; padding: 10px 12px; }
+
+.odds-row { display: flex; gap: 8px; align-items: stretch; margin-bottom: 12px; }
+.odds-row .field { margin-bottom: 0; }
+.odds-input { flex: 1; font-size: 17px; font-weight: 700; letter-spacing: 0.02em; }
+.currency-prefix { display: flex; align-items: center; padding: 0 4px 0 2px; font-size: 17px; font-weight: 700; color: var(--ink-dim); }
+
+.stake-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.stake-chips .chip { cursor: pointer; padding: 9px 14px; font-size: 13px; }
+
+.bet-preview { font-size: 13px; color: var(--ink); margin: 0 0 16px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+.bet-preview .pos { color: var(--brand); }
+.bet-preview-dim { color: var(--ink-faint); }
+
+/* Leaderboard row: name over record + profit, win % on the right */
+.lb-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lb-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-dim); }
 
 .icon-btn { background: none; border: none; color: var(--ink-dim); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
 .pill { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; padding: 3px 9px; border-radius: 999px; background: var(--card-2); border: 1px solid var(--line); color: var(--ink); }

@@ -46,10 +46,12 @@ create table posts (
   slip_image_url text,        -- uploaded betting slip screenshot (Supabase Storage)
   tag text,                   -- short cashtag-style label, e.g. "$LAL -4.5"
   sentiment text default 'backing' check (sentiment in ('backing','fading')),
-  odds text,                  -- e.g. "+150", "-110"
-  stake numeric,               -- units or dollars, user's choice
-  currency text default '$',  -- '$', '€', '£', '¥', or 'u' for units
+  bet_type text default 'moneyline' check (bet_type in ('moneyline','spread','total')),
+  odds text,                  -- American odds as entered, e.g. "+150", "-110"
+  stake numeric,              -- dollars risked
+  currency text default '$',  -- USD only as of Session 5; kept for old rows
   potential_payout numeric,
+  profit numeric,             -- dollars won (+) / lost (-) once graded; NULL while pending
   status text default 'pending' check (status in ('pending','win','loss','push','void')), -- feature 9
   created_at timestamptz default now()
 );
@@ -96,8 +98,8 @@ create table blocks (
 );
 
 -- ============================================================
--- LEADERBOARD VIEW (feature 10) — win rate + record per user,
--- last 30 days, minimum 5 graded picks to qualify.
+-- LEADERBOARD VIEW (feature 10) — win rate, record, and total $
+-- profit per user, last 30 days, minimum 5 graded picks to qualify.
 -- ============================================================
 create or replace view leaderboard as
 select
@@ -111,7 +113,10 @@ select
   round(
     100.0 * count(*) filter (where posts.status = 'win')
     / nullif(count(*) filter (where posts.status in ('win','loss')), 0), 1
-  ) as win_pct
+  ) as win_pct,
+  round(
+    coalesce(sum(posts.profit) filter (where posts.status <> 'pending'), 0), 2
+  ) as total_profit
 from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'

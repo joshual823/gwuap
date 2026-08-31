@@ -23,7 +23,7 @@ export default async function FeedPage() {
   const { data: posts } = await supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, odds, stake, currency, status, tag, sentiment, created_at,
+      id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
       likes ( user_id ),

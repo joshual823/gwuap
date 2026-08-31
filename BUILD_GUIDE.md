@@ -100,15 +100,48 @@ actually use the site, on their phone, and it looks the way it's supposed to.
 
 ---
 
-## Session 5 — Dollar amounts + form polish
+## Session 5 — Dollar amounts + form polish — CODE DONE, DB STEP PENDING
 
-- [ ] Add dollar fields to picks (amount risked, amount won/lost)
-- [ ] Update the leaderboard to show total $ profit alongside win %
-- [ ] Update the post card UI to show the $ amount
-- [ ] Replace the free-text odds field with a structured picker
-      (Moneyline / Spread / Total, +/-, number input)
-- [ ] Replace the free-text stake field with a quick-select dropdown
+**Do this first, by hand:** open the Supabase SQL editor and run
+`supabase/migrations/001_session5_dollars.sql`. Nothing below works until
+you do — the app now reads two columns (`bet_type`, `profit`) that don't
+exist in your database yet. The script is safe to run more than once, and
+it backfills the dollar result of any pick you already graded.
+
+- [x] Add dollar fields to picks — `posts.profit` holds the realized
+      dollar result (+ won / − lost), `posts.stake` is the amount risked.
+      Profit is **computed at grading time** from the odds and stake
+      already on the post, never typed in, so the number can never
+      disagree with the posted price. Math lives in `lib/odds.ts` and is
+      unit-checked against real sportsbook prices (-110 on $50 → $45.45).
+- [x] Update the leaderboard to show total $ profit alongside win %
+      (new `total_profit` column on the `leaderboard` view; the row now
+      shows record + profit under the username, win % on the right)
+- [x] Update the post card UI to show the $ amount — graded picks show
+      the signed result in green/red, pending picks show TO WIN instead
+- [x] Replace the odds field with a structured picker
+      (Moneyline / Spread / Total selector, − fav / + dog toggle, number
+      input). Rejects magnitudes under 100, which aren't valid American
+      odds — the old wheel happily accepted "-7" and mis-priced it.
+- [x] Replace the stake field with quick-select chips
       ($10 / $25 / $50 / $100 / $250 / Custom)
+- [x] Retired the Session 3 scroll wheel (`components/ScrollPicker.tsx`
+      deleted — it's still in git history if you ever want it back)
+- [x] Fixed: the Unverified badge was nested inside the odds/stake block,
+      so a pick posted without either showed no badge at all. It now
+      renders on every pick card, always.
+- [x] Fixed: the profile page wasn't fetching `tag` or `sentiment`, so
+      cashtags and Backing/Fading were invisible on profiles
+
+**Decided this session:** every pick is US dollars. The currency selector
+(€/£/¥/units) is gone — a leaderboard that adds up mixed currencies isn't
+a real number. The `currency` column is still there holding '$' so no data
+was destroyed; there's a commented-out DROP at the bottom of the migration
+for whenever you want to retire it.
+
+**How to check it worked:** post a pick at -110 for $50, confirm the form
+says "Risking $50 to win $45.45", then grade it a win on your profile and
+confirm the card shows +$45.45 in green.
 
 ---
 
@@ -152,6 +185,9 @@ actually use the site, on their phone, and it looks the way it's supposed to.
   pick tags, backing/fading sentiment, live ticker strip, trending
   module), Twitter/X (compact timeline, repost icon), and Instagram
   (avatar/image treatment) — bottom tab bar instead of a top nav
+- **Money:** all amounts are US dollars. Dollar profit is derived from
+  American odds × stake at grading time, never entered by hand, so a
+  user's posted record always matches the prices they posted
 - **Verification:** picks are self-reported for now, marked "Unverified."
   Real verification (SharpSports API, connects to actual sportsbook
   accounts) is a paid, later-stage feature — not free, not urgent

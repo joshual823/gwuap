@@ -2,15 +2,20 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseClient'
+import {
+  BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
+  formatUsd, formatSignedUsd, type BetType, type PickStatus,
+} from '@/lib/odds'
 
 type Post = {
   id: string
   caption: string | null
   slip_image_url: string | null
+  bet_type: BetType | null
   odds: string | null
   stake: number | null
-  currency: string | null
-  status: 'pending' | 'win' | 'loss' | 'push' | 'void'
+  profit: number | null
+  status: PickStatus
   tag: string | null
   sentiment: 'backing' | 'fading'
   created_at: string
@@ -34,6 +39,18 @@ export default function PostCard({ post }: { post: Post }) {
   const supabase = createClient()
   const [liked, setLiked] = useState(post.liked_by_me)
   const [likeCount, setLikeCount] = useState(post.like_count)
+
+  const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
+
+  // Graded picks show what actually happened. Older picks graded before
+  // Session 5 have no stored profit, so fall back to recomputing it.
+  const settled = post.profit ?? profitForStatus(post.status, post.odds, post.stake)
+
+  // Pending picks show what's on the line instead.
+  const oddsValue = parseAmericanOdds(post.odds)
+  const toWin = post.status === 'pending' && oddsValue !== null && post.stake != null
+    ? profitOnWin(oddsValue, post.stake)
+    : null
 
   async function toggleLike() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -60,7 +77,7 @@ export default function PostCard({ post }: { post: Post }) {
           {post.status !== 'pending' && <span className={`stamp ${post.status}`}>{post.status}</span>}
         </div>
 
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>
           {post.tag && <span className="cashtag">{post.tag}</span>}
           {post.category && <span className="pill">{post.category.name}</span>}
           <span className={`sentiment ${post.sentiment}`}>{post.sentiment}</span>
@@ -72,13 +89,20 @@ export default function PostCard({ post }: { post: Post }) {
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
 
-        {(post.odds || post.stake != null) && (
-          <div className="stat-row">
-            {post.odds && <span style={{ color: 'var(--ink-dim)' }}>ODDS {post.odds}</span>}
-            {post.stake != null && <span style={{ color: 'var(--ink-dim)' }}>STAKE {post.currency ?? '$'}{post.stake}</span>}
-            <span className="unverified">Unverified</span>
-          </div>
-        )}
+        {/* Always rendered: every pick carries the Unverified badge, even
+            one posted without odds or a stake. */}
+        <div className="stat-row">
+          {betLabel && <span className="stat-key">{betLabel}</span>}
+          {post.odds && <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
+          {post.stake != null && <span className="stat-key">RISK <span className="stat-val">{formatUsd(post.stake)}</span></span>}
+          {settled != null && (
+            <span className={`amt ${settled >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(settled)}</span>
+          )}
+          {toWin != null && (
+            <span className="stat-key">TO WIN <span className="stat-val">{formatUsd(toWin)}</span></span>
+          )}
+          <span className="unverified">Unverified</span>
+        </div>
 
         <div className="action-row">
           <button className={`action-btn ${liked ? 'liked' : ''}`} onClick={toggleLike} aria-pressed={liked}>

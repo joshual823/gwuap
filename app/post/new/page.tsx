@@ -1,16 +1,12 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
-import ScrollPicker from '@/components/ScrollPicker'
-
-const CURRENCIES = [
-  { symbol: '$', label: 'USD ($)' },
-  { symbol: '€', label: 'EUR (€)' },
-  { symbol: '£', label: 'GBP (£)' },
-  { symbol: '¥', label: 'JPY (¥)' },
-  { symbol: 'u', label: 'Units (u)' },
-]
+import {
+  BET_TYPES, STAKE_PRESETS, MAX_STAKE,
+  parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
+  type BetType,
+} from '@/lib/odds'
 
 export default function NewPostPage() {
   const supabase = createClient()
@@ -21,11 +17,15 @@ export default function NewPostPage() {
   const [sentiment, setSentiment] = useState<'backing' | 'fading'>('backing')
   const [caption, setCaption] = useState('')
 
+  const [betType, setBetType] = useState<BetType>('moneyline')
   const [oddsSign, setOddsSign] = useState<'+' | '-'>('-')
-  const [oddsValue, setOddsValue] = useState(110)   // scroll picker: 1–10,000
+  const [oddsInput, setOddsInput] = useState('110')
 
-  const [stake, setStake] = useState(50)            // scroll picker: 1–1,000,000, step 5
-  const [currency, setCurrency] = useState('$')
+  // Stake is a quick-select chip unless "Custom" is chosen, in which case
+  // the typed value in customStake takes over.
+  const [presetStake, setPresetStake] = useState<number>(50)
+  const [customMode, setCustomMode] = useState(false)
+  const [customStake, setCustomStake] = useState('')
 
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
@@ -33,13 +33,42 @@ export default function NewPostPage() {
 
   useEffect(() => {
     supabase.from('categories').select('id, name').then(({ data }) => setCategories(data ?? []))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const oddsText = `${oddsSign}${oddsInput}`
+  const oddsValue = parseAmericanOdds(oddsText)
+  const stake = customMode ? Number(customStake) : presetStake
+  const stakeValid = Number.isFinite(stake) && stake > 0 && stake <= MAX_STAKE
+
+  // Live "risk this, win that" line under the stake row.
+  const preview = useMemo(() => {
+    if (oddsValue === null || !stakeValid) return null
+    return {
+      win: profitOnWin(oddsValue, stake),
+      payout: payoutOnWin(oddsValue, stake),
+    }
+  }, [oddsValue, stake, stakeValid])
+
+  function selectPreset(amount: number) {
+    setCustomMode(false)
+    setPresetStake(amount)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     setError(null)
 
+    if (oddsValue === null) {
+      setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/- buttons set it.')
+      return
+    }
+    if (!stakeValid) {
+      setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
+      return
+    }
+
+    setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
@@ -52,17 +81,16 @@ export default function NewPostPage() {
       slip_image_url = data.publicUrl
     }
 
-    const odds = `${oddsSign}${oddsValue}`
-
     const { error: insertError } = await supabase.from('posts').insert({
       author_id: user.id,
       category_id: categoryId || null,
       tag: tag || null,
       sentiment,
       caption,
-      odds,
+      bet_type: betType,
+      odds: oddsText,
       stake,
-      currency,
+      potential_payout: payoutOnWin(oddsValue, stake),
       slip_image_url,
     })
 
@@ -93,32 +121,58 @@ export default function NewPostPage() {
         <textarea className="field" placeholder="What's the pick? Any reasoning?" rows={3}
           value={caption} onChange={e => setCaption(e.target.value)} />
 
-        <label style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint)', marginBottom: 6 }}>
-          Odds — type or scroll
-        </label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select className="field" style={{ marginBottom: 0, flex: '0 0 90px', height: 120 }}
-            value={oddsSign} onChange={e => setOddsSign(e.target.value as '+' | '-')}>
-            <option value="-">− fav</option>
-            <option value="+">+ dog</option>
-          </select>
-          <ScrollPicker min={1} max={10000} step={1} value={oddsValue} onChange={setOddsValue} />
+        <label className="form-label">Bet type</label>
+        <div className="segment">
+          {BET_TYPES.map(b => (
+            <button key={b.value} type="button" aria-pressed={betType === b.value}
+              className={betType === b.value ? 'active' : ''}
+              onClick={() => setBetType(b.value)}>{b.label}</button>
+          ))}
         </div>
 
-        <label style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint)', margin: '4px 0 6px' }}>
-          Stake — type or scroll
-        </label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <select className="field" style={{ marginBottom: 0, flex: '0 0 120px', height: 120 }}
-            value={currency} onChange={e => setCurrency(e.target.value)}>
-            {CURRENCIES.map(c => <option key={c.symbol} value={c.symbol}>{c.label}</option>)}
-          </select>
-          <ScrollPicker min={1} max={1000000} step={5} value={stake} onChange={setStake} />
+        <label className="form-label" htmlFor="odds-input">Odds</label>
+        <div className="odds-row">
+          <div className="segment compact" style={{ flex: '0 0 auto' }}>
+            <button type="button" aria-pressed={oddsSign === '-'}
+              className={oddsSign === '-' ? 'active' : ''}
+              onClick={() => setOddsSign('-')}>− fav</button>
+            <button type="button" aria-pressed={oddsSign === '+'}
+              className={oddsSign === '+' ? 'active' : ''}
+              onClick={() => setOddsSign('+')}>+ dog</button>
+          </div>
+          <input id="odds-input" className="field mono odds-input" inputMode="numeric"
+            value={oddsInput} placeholder="110"
+            onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
         </div>
 
-        <label style={{ display: 'block', fontSize: 13, color: 'var(--ink-dim)', margin: '4px 0 6px' }}>
-          Betting slip screenshot (optional)
-        </label>
+        <label className="form-label">Stake</label>
+        <div className="stake-chips">
+          {STAKE_PRESETS.map(amount => (
+            <button key={amount} type="button" aria-pressed={!customMode && presetStake === amount}
+              className={`chip ${!customMode && presetStake === amount ? 'active' : ''}`}
+              onClick={() => selectPreset(amount)}>{formatUsd(amount)}</button>
+          ))}
+          <button type="button" aria-pressed={customMode}
+            className={`chip ${customMode ? 'active' : ''}`}
+            onClick={() => setCustomMode(true)}>Custom</button>
+        </div>
+        {customMode && (
+          <div className="odds-row">
+            <span className="currency-prefix mono">$</span>
+            <input className="field mono" inputMode="decimal" autoFocus
+              value={customStake} placeholder="Amount risked"
+              onChange={e => setCustomStake(e.target.value.replace(/[^0-9.]/g, ''))} />
+          </div>
+        )}
+
+        <p className="bet-preview mono">
+          {preview
+            ? <>Risking <strong>{formatUsd(stake)}</strong> to win <strong className="pos">{formatUsd(preview.win)}</strong>
+                <span className="bet-preview-dim"> · returns {formatUsd(preview.payout)}</span></>
+            : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
+        </p>
+
+        <label className="form-label">Betting slip screenshot (optional)</label>
         <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)}
           style={{ marginBottom: 12, color: 'var(--ink-dim)' }} />
 
@@ -126,8 +180,9 @@ export default function NewPostPage() {
         <button className="btn" disabled={loading} type="submit">{loading ? 'Posting…' : 'Post pick'}</button>
       </form>
       <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 16 }}>
-        Every pick is marked Unverified for now — real verification (synced
-        to your actual sportsbook account) is a planned future feature.
+        Every pick is marked Unverified — real verification (synced to your
+        actual sportsbook account) is a planned future feature. Amounts are
+        in US dollars.
       </p>
     </div>
   )
