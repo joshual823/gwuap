@@ -97,9 +97,10 @@ with five features that real people are using.
 - [x] Deployed. Five successful production deploys.
 - [x] **The site is live: https://gwuap.vercel.app**
       (`/`, `/feed`, and `/leaderboard` all confirmed serving.)
-- [ ] Still to check by hand on the live URL: signup, posting, and likes
-      end-to-end. Loading the pages proves the deploy is healthy; it
-      doesn't prove the write paths work against Supabase from Vercel.
+- [x] Posting verified end-to-end on the live URL (Session 5) — writes
+      do reach Supabase from Vercel
+- [ ] Still unverified live: signup as a brand-new user, and likes.
+      Worth doing before you invite anyone.
 - [ ] Also revisit: re-enable "Confirm email" in Supabase with a real
       email provider (or make a deliberate decision to leave it off) —
       it's currently OFF for local testing only
@@ -109,18 +110,20 @@ actually use the site, on their phone, and it looks the way it's supposed to.
 
 ---
 
-## Session 5 — Dollar amounts + form polish — CODE DONE, DB STEP PENDING
+## Session 5 — Dollar amounts + form polish ✅ DONE
 
-**Do this first, by hand:** open the Supabase SQL editor and run
-`supabase/migrations/001_session5_dollars.sql`. Nothing below works until
-you do — the app now reads two columns (`bet_type`, `profit`) that don't
-exist in your database yet. The script is safe to run more than once, and
-it backfills the dollar result of any pick you already graded.
+- [x] Ran `supabase/migrations/001_session5_dollars.sql` in Supabase and
+      confirmed `posts.bet_type`, `posts.profit`, and
+      `leaderboard.total_profit` all exist
+- [x] Pushed, deployed to production, and **verified live on a phone**:
+      posted -110 for $50, form read "Risking $50 to win $45.45", graded
+      it a win, card showed **+$45.45 in green**
 
-> **Order matters now that the site is live.** Pushing to `main` deploys
-> to production automatically. If you push Session 5 before running the
-> migration, the live feed breaks for everyone — it will ask Supabase for
-> columns that don't exist. Run the SQL first, *then* push.
+> **Lesson worth keeping:** now that the site is live, pushing to `main`
+> deploys to production automatically. When a change needs a database
+> migration, run the SQL **first**, then push. Push first and the live
+> site asks Supabase for columns that don't exist yet, and the feed
+> breaks for everyone until the migration catches up.
 
 - [x] Add dollar fields to picks — `posts.profit` holds the realized
       dollar result (+ won / − lost), `posts.stake` is the amount risked.
