@@ -16,10 +16,13 @@ where we left off.
 2. Sign up, post, verify the loop works ✅
 3. Restyle to the mobile-first hybrid design (current step)
 4. Deploy it live (Vercel)
-5. Dollar amounts, odds/stake dropdowns, unverified badge
-6. DM requests (permission-based)
-7. League chat rooms + the moderated Vent room
-8. Polish + invite real testers
+5. Dollar amounts, odds/stake dropdowns, unverified badge ✅
+6. Make it not broken — dead links + cashtag autocomplete (current step)
+7. Seed the feed, then invite the first real testers
+8. Sports news tab, with a "post a pick on this" button
+9. DM requests (permission-based)
+10. League chat rooms + the moderated Vent room
+11. Polish round two, then a wider invite
 
 Do not skip ahead before earlier steps are done and working. An empty,
 un-launched site with every feature built is worth less than a live site
@@ -162,58 +165,131 @@ confirm the card shows +$45.45 in green.
 
 ---
 
-## YOU ARE HERE — picking back up after a break
+## YOU ARE HERE
 
-**Everything through Session 5 is done, deployed, and verified live.**
-Nothing is broken. Local `main` is 1 commit ahead of GitHub (a
-work-in-progress commit, see below) — that commit is safe to leave
-unpushed for as long as you like.
+**Sessions 1-5 are done, deployed, and verified live at
+https://gwuap.vercel.app.** Nothing is broken in what shipped.
 
-**Work already started, not finished — the comment thread page:**
-`app/post/[id]/` has `CommentForm.tsx` and `DeleteComment.tsx` written,
-plus a shared `lib/time.ts`. The `page.tsx` that ties them together is
-NOT written yet, so no `/post/[id]` route exists and none of it is live.
-The build passes. Just say "finish the comment page" to resume.
+**Paused mid-build — the comment thread page.** `app/post/[id]/` has
+`CommentForm.tsx` and `DeleteComment.tsx` written, plus a shared
+`lib/time.ts`. The `page.tsx` that ties them together is NOT written, so
+no `/post/[id]` route exists and none of it is live. The build passes.
+Say "finish the comment page" to resume.
 
-**Proposed resequencing — read this before starting Session 6.**
-The guide's next listed step is DM requests, but building a private
-messaging feature for a site with one user is the exact trap this guide
-warns about on page one. Two things argue for doing comments first:
-
-- Every post card has a comment icon linking to `/post/[id]`. That route
-  doesn't exist. It returns **404 on the live site right now.** It's been
-  broken since launch and it's the first thing a tester will tap.
-- The header also links to `/chat` and `/dm`, which are **also 404**, and
-  both show hardcoded fake notification badges ("2" and "1"). Those need
-  to either get built or get removed before anyone else sees the site.
-
-Suggested order instead:
-  1. Comment thread page (fixes the dead link, and replies are the actual
-     social loop — DMs are a side channel)
-  2. Remove or build the `/chat` and `/dm` header links + fake badges
-  3. Seed the feed with 15-20 of your own real picks
-  4. Invite 3-5 friends who actually bet, and watch them use it
-  5. THEN decide whether DMs are what people actually want
-
-Still outstanding from earlier sessions, in rough priority order:
-  - Signup-as-a-new-user and likes have never been tested on the live URL
-  - "Confirm email" is still OFF in Supabase — fine for friends, not fine
-    before strangers
-  - Next.js 14.2.x stopped getting security backports in May 2026; the
-    upgrade to 15.x/16.x is breaking and deserves its own session, before
-    any wider public audience
+**The order changed, and here's why.** The original plan put DM requests
+next. Building private messaging for a site with one account is the exact
+trap this guide warns about on page one — you can't test it, and neither
+can your first testers, because there's nobody to message. Worse, three
+links in the shipped UI are 404 right now and a tester will tap all three
+in their first minute. So Session 6 became "make it not broken," seeding
+and inviting moved up, and DMs moved back behind the point where there
+are actually people to message.
 
 ---
 
-## Session 6 — DM requests
+## Session 6 — Make it not broken (current step)
+
+**Goal:** nothing a first-time visitor touches is broken or fake.
+
+- [ ] **Finish the comment thread page** (`/post/[id]`). Every post card
+      has a comment icon linking here and it 404s on the live site today.
+      Half-built already, see above.
+- [ ] **Deal with `/chat` and `/dm` in the header.** Both 404, and both
+      display hardcoded fake notification badges ("2" and "1"). Either
+      build them or strip the links — but fake badges have to go before
+      anyone else sees the site.
+- [ ] **Cashtag auto-uppercase.** One line in the post form's onChange.
+- [ ] **Cashtag autocomplete**, StockTwits-style: type `$L`, get a
+      dropdown of matching teams with full names. Static file of the 124
+      teams in NBA/NFL/MLB/NHL — no API, no database, no monthly cost.
+      Filter the list by the league already selected on the form, which
+      also resolves the `LAC` = Clippers *and* Chargers collision.
+      College and soccer stay free-text for now; that's a long tail worth
+      filling in only once someone actually posts those picks.
+- [ ] Test **signup as a brand-new user** and **likes** on the live URL —
+      neither has ever been exercised against production.
+
+**Why the cashtag work belongs here and not in "polish":** the Trending
+module groups picks by the exact tag string (`app/feed/page.tsx`), so
+`$LAL`, `$lal`, and `$Lakers` count as three different things today. Left
+alone, Trending fragments into noise as soon as more than one person
+posts. Constraining tags to a fixed list is what makes Trending, and any
+future per-team page, actually work.
+
+**It also has to happen before Session 7.** Seeding creates 15-20 picks.
+Seed first and those picks get tagged inconsistently, and you'd be
+cleaning up your own data afterward. Constrain the tags, then create the
+data.
+
+---
+
+## Session 7 — Seed the feed, then invite real testers
+
+**Goal:** five people who post without being reminded.
+
+- [ ] Seed 15-20 of your own real picks. An empty feed gives a visitor
+      nothing to react to, and you don't get a second first impression
+      from the same person.
+- [ ] Recruit 3-5 friends who **already bet and already text each other
+      picks.** You're replacing an existing group chat, not creating a
+      new habit. Five people posting daily beats 500 signups who never
+      return.
+- [ ] The pitch is the argument they're already having: every betting
+      group has someone who claims they're up on the year and can't prove
+      it. Gwuap is a public timestamped record where profit is computed
+      from the odds posted *before* the game. "Post your picks, settle
+      who's actually winning."
+- [ ] Watch them use it. Take notes on where they hesitate and what they
+      never touch. That's the real output of this session.
+
+**Timing:** the NFL season opens the Thursday after Labor Day — the
+single biggest betting moment of the American year. If the site is
+working and seeded by opening weekend, you're launching into peak
+interest. Miss it and the next comparable window is March Madness.
+
+---
+
+## Session 8 — Sports news tab
+
+- [ ] Toggle on the feed: **Home** (user picks, current behavior) vs
+      **News** (headlines for a chosen league). The `.chip-row` / `.chip`
+      styles for the league picker already exist, unused, from Session 3.
+- [ ] Pull headlines from free per-league **RSS feeds** (ESPN, CBS,
+      Yahoo). No API key, no account, no monthly cost. Cache with Next's
+      `revalidate: 900` — no database table, no cron.
+- [ ] Show headline, source, timestamp, link out. **Do not** republish
+      article body text.
+- [ ] **The whole point of the feature:** a "Post a pick on this" button
+      on every headline that opens the post form with the league
+      pre-filled and the headline quoted. Otherwise a news tab is just an
+      exit ramp to ESPN — you'd be paying attention to send traffic to a
+      competitor. This turns reading into posting, and hands someone with
+      nothing to say nine reasons to post.
+
+**Budget boundary to hold:** headlines via RSS are free. *Structured*
+sports data — live scores, odds, injury reports, player props — is a
+different product with real pricing ($50-500/month, and some vendors
+charge more for betting use). Decide deliberately before crossing that
+line.
+
+---
+
+## Session 9 — DM requests
 
 - [ ] Build the conversations/messages tables
 - [ ] Build the request → accept/decline flow
 - [ ] Build the actual message thread UI
+- [ ] Rate-limit outbound requests (e.g. 10 pending per day)
+
+**Decided:** StockTwits uses an open inbox — anyone can message anyone.
+We're deliberately not copying that. On a site where people post losses
+and get mouthy, an open inbox is a harassment vector and you're
+moderating solo. Permission-based requests plus a rate limit stops spam
+better than a paywall would, and costs users nothing.
 
 ---
 
-## Session 7 — Chat rooms + Vent room
+## Session 10 — Chat rooms + Vent room
 
 - [ ] Build the realtime chat room feature for league categories
 - [ ] Build the Vent room specifically:
@@ -225,12 +301,18 @@ Still outstanding from earlier sessions, in rough priority order:
 
 ---
 
-## Session 8 — Polish + invite real testers
+## Session 11 — Polish round two, then a wider invite
 
-- [ ] Fix rough edges from the previous sessions
-- [ ] Seed the feed with 15–20 of your own real picks before inviting anyone
-- [ ] Recruit 3–5 friends who actually bet to post too
-- [ ] Invite testers, actually watch how they use it, take notes
+- [ ] Fix whatever the first testers tripped over
+- [ ] Re-enable "Confirm email" in Supabase with a real email provider —
+      currently OFF, which is fine for five friends and not fine for
+      strangers
+- [ ] **Upgrade Next.js off 14.2.x.** That line stopped receiving
+      security backports in May 2026, so `npm audit` will keep flagging
+      issues no matter what. The jump to 15.x/16.x is a real breaking
+      change (cookie/session handling API), not a quick bump — it needs
+      its own session, and it needs to happen before any wider public
+      audience.
 
 ---
 
@@ -257,6 +339,16 @@ Still outstanding from earlier sessions, in rough priority order:
   sportsbook account, never just a paid subscription — paid tiers (if
   added later) should be named and framed separately so money never buys
   the appearance of a trustworthy track record
+- **Cashtags:** constrained to a fixed team list, not free text, so
+  Trending and per-team views actually aggregate. Team codes are not
+  canonical the way stock tickers are — we're picking a standard, so
+  pick once and don't change it; every historical pick carries whatever
+  we chose
+- **No paywalls on access:** money must never buy a trustworthy-looking
+  record, and it must never buy access to other users either. Paywalling
+  DMs would select *for* touts selling picks, not against them — they're
+  the only ones with an ROI case for paying. Monetization stays deferred
+  until there's traction and we can see what people actually value
 - **Moderation:** you're moderating everything yourself at first,
   especially the Vent room, until it's proven out
 
