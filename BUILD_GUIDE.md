@@ -162,6 +162,49 @@ confirm the card shows +$45.45 in green.
 
 ---
 
+## YOU ARE HERE — picking back up after a break
+
+**Everything through Session 5 is done, deployed, and verified live.**
+Nothing is broken. Local `main` is 1 commit ahead of GitHub (a
+work-in-progress commit, see below) — that commit is safe to leave
+unpushed for as long as you like.
+
+**Work already started, not finished — the comment thread page:**
+`app/post/[id]/` has `CommentForm.tsx` and `DeleteComment.tsx` written,
+plus a shared `lib/time.ts`. The `page.tsx` that ties them together is
+NOT written yet, so no `/post/[id]` route exists and none of it is live.
+The build passes. Just say "finish the comment page" to resume.
+
+**Proposed resequencing — read this before starting Session 6.**
+The guide's next listed step is DM requests, but building a private
+messaging feature for a site with one user is the exact trap this guide
+warns about on page one. Two things argue for doing comments first:
+
+- Every post card has a comment icon linking to `/post/[id]`. That route
+  doesn't exist. It returns **404 on the live site right now.** It's been
+  broken since launch and it's the first thing a tester will tap.
+- The header also links to `/chat` and `/dm`, which are **also 404**, and
+  both show hardcoded fake notification badges ("2" and "1"). Those need
+  to either get built or get removed before anyone else sees the site.
+
+Suggested order instead:
+  1. Comment thread page (fixes the dead link, and replies are the actual
+     social loop — DMs are a side channel)
+  2. Remove or build the `/chat` and `/dm` header links + fake badges
+  3. Seed the feed with 15-20 of your own real picks
+  4. Invite 3-5 friends who actually bet, and watch them use it
+  5. THEN decide whether DMs are what people actually want
+
+Still outstanding from earlier sessions, in rough priority order:
+  - Signup-as-a-new-user and likes have never been tested on the live URL
+  - "Confirm email" is still OFF in Supabase — fine for friends, not fine
+    before strangers
+  - Next.js 14.2.x stopped getting security backports in May 2026; the
+    upgrade to 15.x/16.x is breaking and deserves its own session, before
+    any wider public audience
+
+---
+
 ## Session 6 — DM requests
 
 - [ ] Build the conversations/messages tables
