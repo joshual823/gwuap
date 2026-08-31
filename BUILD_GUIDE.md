@@ -68,7 +68,7 @@ with five features that real people are using.
 
 ---
 
-## Session 4 — Deploy it live
+## Session 4 — Deploy it live ✅ DONE (site is live)
 
 **Goal by end of session:** a real public URL anyone can visit.
 
@@ -86,11 +86,20 @@ with five features that real people are using.
       existed (fixed by wiping and redoing git history before anything
       reached GitHub — no secrets were ever actually exposed publicly),
       and a stale remote connection after the history reset
-- [ ] Create a free Vercel account, import the repo
-- [ ] Add the same 3 environment variables in Vercel's project settings
-- [ ] Deploy
-- [ ] Visit the `*.vercel.app` URL and confirm everything still works
-      (signup, posting, likes — all pointed at the same Supabase project)
+- [x] Created the Vercel account and imported the repo — project is
+      `gwuap`, and the GitHub integration is connected, so **pushing to
+      `main` automatically deploys to production**. You don't run a
+      deploy command; you push and Vercel does the rest.
+- [x] Added all 3 environment variables in Vercel (Production, Preview,
+      and Development). `SUPABASE_SERVICE_ROLE_KEY` is stored as a
+      Secret and is Production/Preview only, which is correct — locally
+      it comes from `.env.local`.
+- [x] Deployed. Five successful production deploys.
+- [x] **The site is live: https://gwuap.vercel.app**
+      (`/`, `/feed`, and `/leaderboard` all confirmed serving.)
+- [ ] Still to check by hand on the live URL: signup, posting, and likes
+      end-to-end. Loading the pages proves the deploy is healthy; it
+      doesn't prove the write paths work against Supabase from Vercel.
 - [ ] Also revisit: re-enable "Confirm email" in Supabase with a real
       email provider (or make a deliberate decision to leave it off) —
       it's currently OFF for local testing only
@@ -107,6 +116,11 @@ actually use the site, on their phone, and it looks the way it's supposed to.
 you do — the app now reads two columns (`bet_type`, `profit`) that don't
 exist in your database yet. The script is safe to run more than once, and
 it backfills the dollar result of any pick you already graded.
+
+> **Order matters now that the site is live.** Pushing to `main` deploys
+> to production automatically. If you push Session 5 before running the
+> migration, the live feed breaks for everyone — it will ask Supabase for
+> columns that don't exist. Run the SQL first, *then* push.
 
 - [x] Add dollar fields to picks — `posts.profit` holds the realized
       dollar result (+ won / − lost), `posts.stake` is the amount risked.
