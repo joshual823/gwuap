@@ -167,13 +167,21 @@ confirm the card shows +$45.45 in green.
 
 ## YOU ARE HERE
 
-**Sessions 1-6 are done, deployed, and tested live at
-https://gwuap.vercel.app.** Nothing is half-built. Every link in the UI
-goes somewhere real. Four migrations have been run (001-004).
+**Sessions 1-6 and 8 are done, deployed, and tested live at
+https://gwuap.vercel.app.** Six migrations run (001-006). Nothing is
+half-built; every link in the UI goes somewhere real.
 
-**Next up is Session 7 — and it is not a coding session.** It's seeding
-the feed and getting five people on it. Nothing below Session 7 should
-start before that happens.
+The site now has: dollar-tracked picks with locked odds, takes, comment
+threads with replies and emoji reactions, cashtag autocomplete across
+222 teams and athletes, a news tab with images and post-a-pick prompts,
+working moderation, and a leaderboard with real profit.
+
+**What it does not have is a single other user.**
+
+**Session 7 is next and it is not a coding session.** Everything below it
+— DMs, chat rooms — is building for people who aren't there yet. The
+honest risk now isn't shipping too early, it's building indefinitely
+because building is the comfortable part.
 
 **The order changed, and here's why.** The original plan put DM requests
 next. Building private messaging for a site with one account is the exact
@@ -480,10 +488,15 @@ get most of the speed for nothing.
 - [ ] Seed 15-20 of your own real picks. An empty feed gives a visitor
       nothing to react to, and you don't get a second first impression
       from the same person.
-- [ ] Recruit 3-5 friends who **already bet and already text each other
-      picks.** You're replacing an existing group chat, not creating a
-      new habit. Five people posting daily beats 500 signups who never
-      return.
+- [ ] **Distribution, given no friend group to draw on.** The
+      "recruit a group chat" advice doesn't apply here, so ignore it.
+      What works for a solo founder with no network is being a public
+      bettor with receipts: post your picks in r/sportsbook daily
+      threads, a betting Discord, or on X — *and* on Gwuap — then let
+      your Gwuap profile be the proof. "Tracked record here" is a link
+      with a reason to click, not a promo drop. Those communities bury
+      link-drops but tolerate a regular who posts real picks and real
+      losses. It's slower than five friends. It's what's available.
 - [ ] The pitch is the argument they're already having: every betting
       group has someone who claims they're up on the year and can't prove
       it. Gwuap is a public timestamped record where profit is computed
