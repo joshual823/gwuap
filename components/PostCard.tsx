@@ -86,7 +86,8 @@ export default function PostCard({ post }: { post: Post }) {
 
         <div className="action-row">
           <ReactionBar
-            postId={post.id}
+            targetKind="post"
+            targetId={post.id}
             initialCounts={counts}
             initialMine={mine}
             viewerId={post.viewer_id}

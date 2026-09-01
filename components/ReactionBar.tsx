@@ -6,21 +6,30 @@ import { REACTION_EMOJI, DEFAULT_REACTION, type ReactionCount } from '@/lib/reac
 
 const HOLD_MS = 450
 
+/** Posts and comments store reactions in parallel tables. */
+const TARGETS = {
+  post: { table: 'likes', column: 'post_id' },
+  comment: { table: 'comment_reactions', column: 'comment_id' },
+} as const
+
 /**
  * Tap to react with a heart, press and hold to pick any reaction.
  *
- * One reaction per person per post — the likes table is keyed on
- * (user_id, post_id), so choosing a new emoji replaces your old one
+ * One reaction per person per target — both tables are keyed on
+ * (user_id, <target>_id), so choosing a new emoji replaces your old one
  * rather than stacking. Tapping your own reaction again removes it.
  */
 export default function ReactionBar({
-  postId, initialCounts, initialMine, viewerId,
+  targetKind, targetId, initialCounts, initialMine, viewerId, compact = false,
 }: {
-  postId: string
+  targetKind: 'post' | 'comment'
+  targetId: string
   initialCounts: ReactionCount[]
   initialMine: string | null
   viewerId: string | null
+  compact?: boolean
 }) {
+  const { table, column } = TARGETS[targetKind]
   const supabase = createClient()
   const router = useRouter()
   const [counts, setCounts] = useState<ReactionCount[]>(initialCounts)
@@ -65,9 +74,9 @@ export default function ReactionBar({
     setPickerOpen(false)
 
     const { error } = emoji === null
-      ? await supabase.from('likes').delete().match({ user_id: viewerId, post_id: postId })
-      : await supabase.from('likes')
-          .upsert({ user_id: viewerId, post_id: postId, emoji }, { onConflict: 'user_id,post_id' })
+      ? await supabase.from(table).delete().match({ user_id: viewerId, [column]: targetId })
+      : await supabase.from(table)
+          .upsert({ user_id: viewerId, [column]: targetId, emoji }, { onConflict: `user_id,${column}` })
 
     // Roll the optimistic update back if the write didn't land.
     if (error) applyLocal(emoji, previous)
@@ -98,7 +107,7 @@ export default function ReactionBar({
   }
 
   return (
-    <div className="reaction-wrap" ref={wrapRef}>
+    <div className={`reaction-wrap ${compact ? 'compact' : ''}`} ref={wrapRef}>
       <button
         type="button"
         className={`action-btn react-btn ${mine ? 'reacted' : ''}`}

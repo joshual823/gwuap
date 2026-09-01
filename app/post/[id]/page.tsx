@@ -2,9 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
-import CommentForm from './CommentForm'
-import DeleteComment from './DeleteComment'
-import { timeAgo } from '@/lib/time'
+import CommentThread from './CommentThread'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,13 +36,12 @@ export default async function PostPage({ params }: { params: { id: string } }) {
   const { data: comments } = await supabase
     .from('comments')
     .select(`
-      id, body, created_at,
-      author:profiles!comments_author_id_fkey ( id, username, avatar_url )
+      id, body, created_at, parent_id,
+      author:profiles!comments_author_id_fkey ( id, username, avatar_url ),
+      comment_reactions ( user_id, emoji )
     `)
     .eq('post_id', params.id)
     .order('created_at', { ascending: true })
-
-  const list = (comments ?? []) as any[]
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -52,28 +49,11 @@ export default async function PostPage({ params }: { params: { id: string } }) {
 
       <PostCard post={post} />
 
-      <h2 className="comments-heading">
-        {list.length === 0 ? 'No replies yet' : `${list.length} ${list.length === 1 ? 'reply' : 'replies'}`}
-      </h2>
-
-      {list.map(c => (
-        <article className="comment" key={c.id}>
-          <Link href={`/profile/${c.author?.username}`}>
-            <div className="avatar comment-avatar" />
-          </Link>
-          <div className="comment-body">
-            <div className="comment-head">
-              <Link href={`/profile/${c.author?.username}`} className="uname">@{c.author?.username}</Link>
-              <span className="dot">·</span>
-              <span className="time">{timeAgo(c.created_at)}</span>
-              {user?.id === c.author?.id && <DeleteComment commentId={c.id} />}
-            </div>
-            <p className="comment-text">{c.body}</p>
-          </div>
-        </article>
-      ))}
-
-      <CommentForm postId={post.id} signedIn={!!user} />
+      <CommentThread
+        postId={post.id}
+        viewerId={user?.id ?? null}
+        comments={(comments ?? []) as any}
+      />
     </div>
   )
 }

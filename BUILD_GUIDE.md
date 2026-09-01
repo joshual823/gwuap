@@ -244,6 +244,29 @@ INSERT and DELETE policies on `likes`. Changing a reaction is an UPDATE,
 so without a new RLS policy every reaction change would have been
 silently rejected. The migration adds it.
 
+### Session 6c — comment replies + comment reactions
+
+**Run `supabase/migrations/003_comment_replies_reactions.sql` before
+pushing.**
+
+- [x] **Emoji set grown to 78** (was 48). Adds pride and trans flags,
+      eggplant, lying face, angry faces, cap (as in "no cap"), snake,
+      and 20-odd more. All verified to fit the 8-code-point column
+      limit — the trans flag is the widest at 5.
+- [x] **Reactions on comments**, same tap-or-hold behavior as posts, in
+      a compact size. New `comment_reactions` table mirroring `likes`.
+- [x] **Reply threading**, one level deep like Instagram and Facebook
+      rather than Twitter's unlimited nesting — deep nesting is
+      unreadable in a 460px column. Replying to a reply attaches to the
+      same top-level parent and @-mentions the person instead.
+- [x] The comment list became a single client component
+      (`CommentThread.tsx`) so the composer, the "replying to" state,
+      and the list can share it. `CommentForm.tsx` folded into it.
+
+**Note:** deleting a comment cascades to its replies. That's deliberate
+(an orphaned reply to nothing is worse), but it means deleting a
+top-level comment removes the conversation under it.
+
 **What actually shipped:**
 - `/post/[id]` exists: the post, its replies oldest-first, a reply box,
   and a Delete on your own comments with a confirm step. Logged-out
