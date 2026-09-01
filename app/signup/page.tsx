@@ -54,7 +54,7 @@ export default function SignupPage() {
         /already registered|already exists/i.test(msg)
           ? 'There is already an account with that email. Try logging in instead.'
           : /password/i.test(msg)
-            ? 'Password needs to be at least 6 characters.'
+            ? 'Password needs to be at least 8 characters.'
             : 'Something went wrong creating your account. Try again in a moment.',
       )
       setLoading(false)
@@ -89,8 +89,8 @@ export default function SignupPage() {
         <input className="field" placeholder="Email" type="email" value={email}
           onChange={e => setEmail(e.target.value)} required autoCapitalize="none" />
         <input className="field" placeholder="Password" type="password" value={password}
-          onChange={e => setPassword(e.target.value)} required minLength={6} />
-        <p className="field-hint">At least 6 characters.</p>
+          onChange={e => setPassword(e.target.value)} required minLength={8} />
+        <p className="field-hint">At least 8 characters. Length beats complexity — a few words you’ll remember is fine.</p>
         {error && <p style={{ color: 'var(--bear)', fontSize: 14, marginBottom: 12 }}>{error}</p>}
         <button className="btn" type="submit" disabled={loading} style={{ width: '100%' }}>
           {loading ? 'Creating account…' : 'Sign up'}

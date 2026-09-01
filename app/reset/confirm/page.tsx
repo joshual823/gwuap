@@ -21,7 +21,7 @@ export default function ResetConfirmPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (password.length < 6) { setError('Password needs to be at least 6 characters.'); return }
+    if (password.length < 8) { setError('Password needs to be at least 8 characters.'); return }
     setLoading(true)
     const { error: updateError } = await supabase.auth.updateUser({ password })
     setLoading(false)
@@ -47,8 +47,8 @@ export default function ResetConfirmPage() {
       <h1 className="display" style={{ fontSize: 26, marginBottom: 20 }}>Set a new password</h1>
       <form onSubmit={submit}>
         <input className="field" placeholder="New password" type="password" value={password}
-          onChange={e => setPassword(e.target.value)} required minLength={6} autoFocus />
-        <p className="field-hint">At least 6 characters.</p>
+          onChange={e => setPassword(e.target.value)} required minLength={8} autoFocus />
+        <p className="field-hint">At least 8 characters.</p>
         {error && <p style={{ color: 'var(--bear)', fontSize: 14, marginBottom: 12 }}>{error}</p>}
         <button className="btn" type="submit" disabled={loading} style={{ width: '100%' }}>
           {loading ? 'Saving…' : 'Save password'}
