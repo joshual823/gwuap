@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
@@ -36,6 +36,10 @@ export default function NewPickForm() {
   const [stakeCustom, setStakeCustom] = useState(false)
   const [customStake, setCustomStake] = useState('')
 
+  const oddsScrollRef = useRef<HTMLDivElement>(null)
+  const stakeScrollRef = useRef<HTMLDivElement>(null)
+  const didScrollRef = useRef(false)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,7 +62,10 @@ export default function NewPickForm() {
     if (headline) setCaption(headline)
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
-      if (Number.isFinite(lastStake) && lastStake > 0) setPresetStake(lastStake)
+      if (Number.isFinite(lastStake) && lastStake > 0) {
+        if (STAKE_PRESETS.includes(lastStake)) setPresetStake(lastStake)
+        else { setStakeCustom(true); setCustomStake(String(lastStake)) }
+      }
     } catch { /* ditto */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -74,6 +81,15 @@ export default function NewPickForm() {
     if (sentiment && !directions.some(d => d.value === sentiment)) setSentiment(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, betType])
+
+  useEffect(() => {
+    if (didScrollRef.current) return
+    for (const box of [oddsScrollRef.current, stakeScrollRef.current]) {
+      const active = box?.querySelector('.chip.active') as HTMLElement | null
+      if (box && active) box.scrollLeft = Math.max(0, active.offsetLeft - 12)
+    }
+    didScrollRef.current = true
+  }, [presetStake, oddsInput])
 
   const oddsText = `${oddsSign}${oddsInput}`
   const oddsValue = parseAmericanOdds(oddsText)
@@ -170,12 +186,14 @@ export default function NewPickForm() {
         {kind === 'pick' && (
           <>
             <label className="form-label">Bet type</label>
-            <div className="chip-grid">
+            <div className="chip-line">
+              <div className="chip-scroll">
               {BET_TYPES.map(b => (
                 <button key={b.value} type="button" aria-pressed={betType === b.value}
                   className={`chip ${betType === b.value ? 'active' : ''}`}
                   onClick={() => setBetType(b.value)}>{b.label}</button>
               ))}
+              </div>
             </div>
           </>
         )}
@@ -211,14 +229,16 @@ export default function NewPickForm() {
         {kind === 'pick' && (
           <>
             <label className="form-label">Odds</label>
-            <div className="chip-grid">
-              {QUICK_ODDS.map(o => (
-                <button key={o} type="button" aria-pressed={!oddsCustom && oddsText === o}
-                  className={`chip ${!oddsCustom && oddsText === o ? 'active' : ''}`}
-                  onClick={() => chooseOdds(o)}>{o}</button>
-              ))}
+            <div className="chip-line">
+              <div className="chip-scroll" ref={oddsScrollRef}>
+                {QUICK_ODDS.map(o => (
+                  <button key={o} type="button" aria-pressed={!oddsCustom && oddsText === o}
+                    className={`chip ${!oddsCustom && oddsText === o ? 'active' : ''}`}
+                    onClick={() => chooseOdds(o)}>{o}</button>
+                ))}
+              </div>
               <button type="button" aria-pressed={oddsCustom}
-                className={`chip ${oddsCustom ? 'active' : ''}`}
+                className={`chip chip-pinned ${oddsCustom ? 'active' : ''}`}
                 onClick={() => setOddsCustom(true)}>Custom</button>
             </div>
             {oddsCustom && (
@@ -238,14 +258,16 @@ export default function NewPickForm() {
             )}
 
             <label className="form-label">Stake</label>
-            <div className="chip-grid">
-              {STAKE_PRESETS.map(amount => (
-                <button key={amount} type="button" aria-pressed={!stakeCustom && presetStake === amount}
-                  className={`chip ${!stakeCustom && presetStake === amount ? 'active' : ''}`}
-                  onClick={() => { setStakeCustom(false); setPresetStake(amount) }}>{formatUsd(amount)}</button>
-              ))}
+            <div className="chip-line">
+              <div className="chip-scroll" ref={stakeScrollRef}>
+                {STAKE_PRESETS.map(amount => (
+                  <button key={amount} type="button" aria-pressed={!stakeCustom && presetStake === amount}
+                    className={`chip ${!stakeCustom && presetStake === amount ? 'active' : ''}`}
+                    onClick={() => { setStakeCustom(false); setPresetStake(amount) }}>{formatUsd(amount)}</button>
+                ))}
+              </div>
               <button type="button" aria-pressed={stakeCustom}
-                className={`chip ${stakeCustom ? 'active' : ''}`}
+                className={`chip chip-pinned ${stakeCustom ? 'active' : ''}`}
                 onClick={() => setStakeCustom(true)}>Custom</button>
             </div>
             {stakeCustom && (
