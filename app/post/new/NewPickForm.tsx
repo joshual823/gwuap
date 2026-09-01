@@ -14,24 +14,26 @@ export default function NewPickForm() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const [kind, setKind] = useState<PostKind>('take')
+  const [betType, setBetType] = useState<BetType>('moneyline')
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [categoryId, setCategoryId] = useState<number | ''>('')
   const [tag, setTag] = useState('')
   const [tag2, setTag2] = useState('')
-  const [kind, setKind] = useState<PostKind>('take')
-  // Starts unset on purpose. Sentiment drives Trending and the ticker, so
+  // Starts unset on purpose. Direction drives Trending and the ticker, so
   // a silent default would make everything read as "backing".
   const [sentiment, setSentiment] = useState<Direction | null>(null)
   const [caption, setCaption] = useState('')
 
-  const [betType, setBetType] = useState<BetType>('moneyline')
+  // Odds and stake follow the same shape: quick chips, with a Custom chip
+  // that reveals the typed input.
   const [oddsSign, setOddsSign] = useState<'+' | '-'>('-')
   const [oddsInput, setOddsInput] = useState('110')
+  const [oddsCustom, setOddsCustom] = useState(false)
 
-  // Stake is a quick-select chip unless "Custom" is chosen, in which case
-  // the typed value in customStake takes over.
   const [presetStake, setPresetStake] = useState<number>(50)
-  const [customMode, setCustomMode] = useState(false)
+  const [stakeCustom, setStakeCustom] = useState(false)
   const [customStake, setCustomStake] = useState('')
 
   const [loading, setLoading] = useState(false)
@@ -50,47 +52,43 @@ export default function NewPickForm() {
       try {
         const last = Number(localStorage.getItem('gwuap:lastLeague'))
         if (rows.some(c => c.id === last)) setCategoryId(last)
-      } catch {}
+      } catch { /* private mode, or storage blocked */ }
     })
     const headline = searchParams.get('headline')
     if (headline) setCaption(headline)
-    // Posting your second pick of the day shouldn't be as slow as the first.
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
       if (Number.isFinite(lastStake) && lastStake > 0) setPresetStake(lastStake)
-    } catch { /* private mode, or storage blocked */ }
+    } catch { /* ditto */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const directions = directionsFor(kind, betType)
   const showMatchup = wantsMatchup(kind, betType)
+  const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
 
-  // Switching from a spread to a total makes "backing" meaningless, so
-  // drop a choice that no longer applies rather than posting a stale one.
+  // Bet type is asked first, so this almost never fires — it's here for
+  // the case where someone goes back and changes it, since "backing" is
+  // meaningless once the bet is a total.
   useEffect(() => {
     if (sentiment && !directions.some(d => d.value === sentiment)) setSentiment(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind, betType])
 
-  const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
-
   const oddsText = `${oddsSign}${oddsInput}`
   const oddsValue = parseAmericanOdds(oddsText)
-  const stake = customMode ? Number(customStake) : presetStake
+  const stake = stakeCustom ? Number(customStake) : presetStake
   const stakeValid = Number.isFinite(stake) && stake > 0 && stake <= MAX_STAKE
 
-  // Live "risk this, win that" line under the stake row.
   const preview = useMemo(() => {
     if (oddsValue === null || !stakeValid) return null
-    return {
-      win: profitOnWin(oddsValue, stake),
-      payout: payoutOnWin(oddsValue, stake),
-    }
+    return { win: profitOnWin(oddsValue, stake), payout: payoutOnWin(oddsValue, stake) }
   }, [oddsValue, stake, stakeValid])
 
-  function selectPreset(amount: number) {
-    setCustomMode(false)
-    setPresetStake(amount)
+  function chooseOdds(o: string) {
+    setOddsCustom(false)
+    setOddsSign(o[0] as '+' | '-')
+    setOddsInput(o.slice(1))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -98,17 +96,18 @@ export default function NewPickForm() {
     setError(null)
 
     if (!categoryId) { setError('Pick a league.'); return }
-    if (!tag.trim()) { setError('Add a cashtag — it\u2019s how picks get grouped.'); return }
+    if (!tag.trim()) { setError('Add a cashtag — it’s how posts get grouped.'); return }
     if (!sentiment) { setError(`Pick a side — ${directions[0].label} or ${directions[1].label}.`); return }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
     try { localStorage.setItem('gwuap:lastLeague', String(categoryId)) } catch {}
 
     if (kind === 'take') {
       if (!caption.trim()) { setError('Say something — a take needs words.'); return }
       setLoading(true)
-      const { data: { user: takeUser } } = await supabase.auth.getUser()
-      if (!takeUser) { router.push('/login'); return }
       const { error: takeError } = await supabase.from('posts').insert({
-        author_id: takeUser.id,
+        author_id: user.id,
         category_id: categoryId,
         post_kind: 'take',
         tag: tag.trim(),
@@ -122,7 +121,7 @@ export default function NewPickForm() {
     }
 
     if (oddsValue === null) {
-      setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/- buttons set it.')
+      setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
       return
     }
     if (!stakeValid) {
@@ -131,15 +130,14 @@ export default function NewPickForm() {
     }
 
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
-
     const { error: insertError } = await supabase.from('posts').insert({
       author_id: user.id,
-      category_id: categoryId || null,
-      tag: tag.trim() || null,
+      category_id: categoryId,
+      post_kind: 'pick',
+      tag: tag.trim(),
+      tag2: showMatchup && tag2.trim() ? tag2.trim() : null,
       sentiment,
-      caption,
+      caption: caption.trim(),
       bet_type: betType,
       odds: oddsText,
       stake,
@@ -165,11 +163,30 @@ export default function NewPickForm() {
             onClick={() => setKind('pick')}>Pick</button>
         </div>
 
+        {/* Bet type comes first: it decides whether the direction buttons
+            read Backing/Fading or Over/Under, and whether there's an
+            opponent field. Asking it up front means nothing downstream
+            has to be cleared and re-answered. */}
+        {kind === 'pick' && (
+          <>
+            <label className="form-label">Bet type</label>
+            <div className="chip-grid">
+              {BET_TYPES.map(b => (
+                <button key={b.value} type="button" aria-pressed={betType === b.value}
+                  className={`chip ${betType === b.value ? 'active' : ''}`}
+                  onClick={() => setBetType(b.value)}>{b.label}</button>
+              ))}
+            </div>
+          </>
+        )}
+
+        <label className="form-label">League</label>
         <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
           <option value="">Choose a league…</option>
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
 
+        <label className="form-label">{showMatchup ? 'Teams' : 'Cashtag'}</label>
         <CashtagInput value={tag} onChange={setTag} league={leagueName} />
         {showMatchup && (
           <>
@@ -178,6 +195,7 @@ export default function NewPickForm() {
           </>
         )}
 
+        <label className="form-label">{showMatchup ? 'Over or under' : 'Which way'}</label>
         <div className="sentiment-toggle">
           {directions.map((d, i) => (
             <button key={d.value} type="button" aria-pressed={sentiment === d.value}
@@ -190,66 +208,63 @@ export default function NewPickForm() {
           placeholder={kind === 'take' ? "What's your take?" : "What's the pick? Any reasoning?"}
           value={caption} onChange={e => setCaption(e.target.value)} />
 
-        {kind === 'pick' && (<>
-        <label className="form-label">Bet type</label>
-        <div className="chip-grid">
-          {BET_TYPES.map(b => (
-            <button key={b.value} type="button" aria-pressed={betType === b.value}
-              className={`chip ${betType === b.value ? 'active' : ''}`}
-              onClick={() => setBetType(b.value)}>{b.label}</button>
-          ))}
-        </div>
+        {kind === 'pick' && (
+          <>
+            <label className="form-label">Odds</label>
+            <div className="chip-grid">
+              {QUICK_ODDS.map(o => (
+                <button key={o} type="button" aria-pressed={!oddsCustom && oddsText === o}
+                  className={`chip ${!oddsCustom && oddsText === o ? 'active' : ''}`}
+                  onClick={() => chooseOdds(o)}>{o}</button>
+              ))}
+              <button type="button" aria-pressed={oddsCustom}
+                className={`chip ${oddsCustom ? 'active' : ''}`}
+                onClick={() => setOddsCustom(true)}>Custom</button>
+            </div>
+            {oddsCustom && (
+              <div className="odds-row">
+                <div className="segment compact" style={{ flex: '0 0 auto' }}>
+                  <button type="button" aria-pressed={oddsSign === '-'}
+                    className={oddsSign === '-' ? 'active' : ''}
+                    onClick={() => setOddsSign('-')}>− fav</button>
+                  <button type="button" aria-pressed={oddsSign === '+'}
+                    className={oddsSign === '+' ? 'active' : ''}
+                    onClick={() => setOddsSign('+')}>+ dog</button>
+                </div>
+                <input className="field mono odds-input" inputMode="numeric" autoFocus
+                  value={oddsInput} placeholder="110"
+                  onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
+              </div>
+            )}
 
-        <label className="form-label" htmlFor="odds-input">Odds</label>
-        <div className="odds-row">
-          <div className="segment compact" style={{ flex: '0 0 auto' }}>
-            <button type="button" aria-pressed={oddsSign === '-'}
-              className={oddsSign === '-' ? 'active' : ''}
-              onClick={() => setOddsSign('-')}>− fav</button>
-            <button type="button" aria-pressed={oddsSign === '+'}
-              className={oddsSign === '+' ? 'active' : ''}
-              onClick={() => setOddsSign('+')}>+ dog</button>
-          </div>
-          <input id="odds-input" className="field mono odds-input" inputMode="numeric"
-            value={oddsInput} placeholder="110"
-            onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
-        </div>
-        <div className="chip-grid">
-          {QUICK_ODDS.map(o => (
-            <button key={o} type="button"
-              className={`chip ${oddsText === o ? 'active' : ''}`}
-              onClick={() => { setOddsSign(o[0] as '+' | '-'); setOddsInput(o.slice(1)) }}>{o}</button>
-          ))}
-        </div>
+            <label className="form-label">Stake</label>
+            <div className="chip-grid">
+              {STAKE_PRESETS.map(amount => (
+                <button key={amount} type="button" aria-pressed={!stakeCustom && presetStake === amount}
+                  className={`chip ${!stakeCustom && presetStake === amount ? 'active' : ''}`}
+                  onClick={() => { setStakeCustom(false); setPresetStake(amount) }}>{formatUsd(amount)}</button>
+              ))}
+              <button type="button" aria-pressed={stakeCustom}
+                className={`chip ${stakeCustom ? 'active' : ''}`}
+                onClick={() => setStakeCustom(true)}>Custom</button>
+            </div>
+            {stakeCustom && (
+              <div className="odds-row">
+                <span className="currency-prefix mono">$</span>
+                <input className="field mono" inputMode="decimal" autoFocus
+                  value={customStake} placeholder="Amount risked"
+                  onChange={e => setCustomStake(e.target.value.replace(/[^0-9.]/g, ''))} />
+              </div>
+            )}
 
-        <label className="form-label">Stake</label>
-        <div className="chip-grid">
-          {STAKE_PRESETS.map(amount => (
-            <button key={amount} type="button" aria-pressed={!customMode && presetStake === amount}
-              className={`chip ${!customMode && presetStake === amount ? 'active' : ''}`}
-              onClick={() => selectPreset(amount)}>{formatUsd(amount)}</button>
-          ))}
-          <button type="button" aria-pressed={customMode}
-            className={`chip ${customMode ? 'active' : ''}`}
-            onClick={() => setCustomMode(true)}>Custom</button>
-        </div>
-        {customMode && (
-          <div className="odds-row">
-            <span className="currency-prefix mono">$</span>
-            <input className="field mono" inputMode="decimal" autoFocus
-              value={customStake} placeholder="Amount risked"
-              onChange={e => setCustomStake(e.target.value.replace(/[^0-9.]/g, ''))} />
-          </div>
+            <p className="bet-preview mono">
+              {preview
+                ? <>Risking <strong>{formatUsd(stake)}</strong> to win <strong className="pos">{formatUsd(preview.win)}</strong>
+                    <span className="bet-preview-dim"> · returns {formatUsd(preview.payout)}</span></>
+                : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
+            </p>
+          </>
         )}
-
-        <p className="bet-preview mono">
-          {preview
-            ? <>Risking <strong>{formatUsd(stake)}</strong> to win <strong className="pos">{formatUsd(preview.win)}</strong>
-                <span className="bet-preview-dim"> · returns {formatUsd(preview.payout)}</span></>
-            : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
-        </p>
-
-        </>)}
 
         {error && <p style={{ color: 'var(--bear)', fontSize: 14 }}>{error}</p>}
         <button className="btn" disabled={loading} type="submit">

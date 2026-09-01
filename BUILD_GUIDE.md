@@ -449,6 +449,30 @@ get most of the speed for nothing.
 
 ---
 
+### Session 8d — form reorder + a bug the reorder exposed
+
+**No migration.**
+
+- [x] **Bet type is now the first question.** Previously it sat below the
+      cashtag and direction, so choosing Total *after* answering them
+      wiped the direction — which read as "everything cleared". Asking it
+      first means the direction buttons and the opponent field are
+      already correct, and nothing downstream ever has to be re-answered.
+      Order is now: Take/Pick → Bet type → League → Cashtag (+ opponent
+      on totals) → Which way → Text → Odds → Stake.
+- [x] **Odds match the stake pattern**: chips, with the typed input
+      hidden behind Custom. -110 is preselected, so the most common bet
+      on the board needs no typing at all.
+- [x] **Fixed: the opponent cashtag was never saved.** The pick insert
+      had no `tag2` field — an earlier edit didn't match the real text
+      and silently did nothing, so anything typed there was discarded on
+      submit. Found by reading the file rather than by testing, which is
+      the point: a silent no-op looks identical to working.
+- [x] The pick insert now also sets `post_kind` explicitly instead of
+      relying on the column default, and trims the caption.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.
