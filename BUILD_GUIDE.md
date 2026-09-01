@@ -718,6 +718,36 @@ column-level grants as well as a policy.
 
 ---
 
+### Session 9d — profile pictures
+
+**Run `supabase/migrations/010_avatars.sql` before pushing.**
+
+- [x] Upload a profile picture from Edit profile. 2MB cap, images only.
+- [x] One `Avatar` component used by post cards, comments, the
+      leaderboard, search and the profile header — so a picture shows up
+      everywhere rather than only where someone remembered to handle it.
+      Falls back to the gradient placeholder.
+- [x] Files go to `avatars/<your user id>/…` and the storage policy only
+      permits writes inside your own folder, so nobody can overwrite
+      someone else's picture.
+- [x] Display name is shown on the profile now — it was editable and
+      stored but never rendered anywhere.
+
+**Upload rather than a URL field, on purpose:** a pasted URL can have its
+contents swapped after anyone has looked at it. An uploaded file can't.
+
+**Moderation, stated honestly:** an avatar is *more* exposed than the bet
+slip uploads removed in Session 6b — it sits beside every post and
+comment its owner makes, plus search and the leaderboard. The same
+concern applies, more strongly. What makes it acceptable for now is that
+it's one image per user rather than one per post, so it's bounded:
+clearing `avatar_url` in the Table Editor, or banning the account (which
+already hides their posts), fully resolves it. **Revisit before inviting
+strangers** — at that point either image moderation or an approval step
+belongs here, and it would cover slip uploads too.
+
+---
+
 ## Session 9b — DM requests
 
 - [ ] Build the conversations/messages tables

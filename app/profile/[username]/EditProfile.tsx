@@ -5,8 +5,10 @@ import { createClient } from '@/lib/supabaseClient'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024
+
 export default function EditProfile({ profile }: {
-  profile: { id: string; username: string; display_name: string | null; bio: string | null }
+  profile: { id: string; username: string; display_name: string | null; bio: string | null; avatar_url: string | null }
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -14,6 +16,7 @@ export default function EditProfile({ profile }: {
   const [username, setUsername] = useState(profile.username)
   const [displayName, setDisplayName] = useState(profile.display_name ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -38,12 +41,31 @@ export default function EditProfile({ profile }: {
       if (taken) { setError('That username is taken — try another.'); setSaving(false); return }
     }
 
+    // Uploaded into a folder named after the user id — storage policy
+    // only permits writes there, so nobody can overwrite someone else's.
+    let avatarUrl = profile.avatar_url
+    if (avatarFile) {
+      if (!avatarFile.type.startsWith('image/')) {
+        setError('That file isn\u2019t an image.'); setSaving(false); return
+      }
+      if (avatarFile.size > MAX_AVATAR_BYTES) {
+        setError('Pictures need to be under 2MB.'); setSaving(false); return
+      }
+      const ext = (avatarFile.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${profile.id}/${Date.now()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('avatars').upload(path, avatarFile, { upsert: true })
+      if (uploadError) { setError('Could not upload that picture — try again.'); setSaving(false); return }
+      avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
+    }
+
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         username: nextName,
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
+        avatar_url: avatarUrl,
       })
       .eq('id', profile.id)
 
@@ -69,6 +91,11 @@ export default function EditProfile({ profile }: {
 
   return (
     <form onSubmit={save} className="edit-profile">
+      <label className="form-label">Profile picture</label>
+      <input type="file" accept="image/*" className="field"
+        onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
+      <p className="field-hint">Square images look best. Under 2MB.</p>
+
       <label className="form-label">Username</label>
       <input className="field" value={username} autoCapitalize="none"
         onChange={e => setUsername(e.target.value)} required />

@@ -2,8 +2,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseClient'
+import Avatar from '@/components/Avatar'
 
-type Person = { id: string; username: string; display_name: string | null }
+type Person = { id: string; username: string; display_name: string | null; avatar_url: string | null }
 type Pick = { id: string; tag: string | null; caption: string | null; sentiment: string; author: { username: string } | null }
 
 export default function SearchPage() {
@@ -23,7 +24,7 @@ export default function SearchPage() {
     const bare = term.replace(/^\$/, '')
     const [{ data: profileRows }, { data: postRows }] = await Promise.all([
       supabase.from('profiles')
-        .select('id, username, display_name')
+        .select('id, username, display_name, avatar_url')
         .ilike('username', `%${bare}%`)
         .eq('is_banned', false)
         .limit(10),
@@ -61,7 +62,7 @@ export default function SearchPage() {
       {people.length > 0 && <h2 className="comments-heading">People</h2>}
       {people.map(u => (
         <Link href={`/profile/${u.username}`} key={u.id} className="search-row">
-          <div className="avatar" style={{ width: 32, height: 32 }} />
+          <Avatar url={u.avatar_url} size={32} />
           <div>
             <div style={{ fontWeight: 600 }}>@{u.username}</div>
             {u.display_name && <div style={{ fontSize: 13, color: 'var(--ink-dim)' }}>{u.display_name}</div>}

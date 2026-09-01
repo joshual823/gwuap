@@ -8,6 +8,7 @@ import { timeAgo } from '@/lib/time'
 import { tallyReactions } from '@/lib/reactions'
 import ReactionBar from './ReactionBar'
 import PostMenu from './PostMenu'
+import Avatar from './Avatar'
 
 type Post = {
   id: string
@@ -50,7 +51,7 @@ export default function PostCard({ post }: { post: Post }) {
   return (
     <article className="post">
       <Link href={`/profile/${post.author.username}`}>
-        <div className="avatar" />
+        <Avatar url={post.author.avatar_url} />
       </Link>
       <div className="post-body">
         <div className="post-head">

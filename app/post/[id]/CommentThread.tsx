@@ -7,6 +7,7 @@ import { tallyReactions } from '@/lib/reactions'
 import { timeAgo } from '@/lib/time'
 import ReactionBar from '@/components/ReactionBar'
 import DeleteComment from './DeleteComment'
+import Avatar from '@/components/Avatar'
 
 const MAX_LENGTH = 500
 
@@ -15,7 +16,7 @@ export type CommentRow = {
   body: string
   created_at: string
   parent_id: string | null
-  author: { id: string; username: string } | null
+  author: { id: string; username: string; avatar_url: string | null } | null
   comment_reactions: { user_id: string; emoji: string | null }[]
 }
 
@@ -87,7 +88,7 @@ export default function CommentThread({
     return (
       <article className={`comment ${isReply ? 'is-reply' : ''}`} key={c.id}>
         <Link href={`/profile/${c.author?.username}`}>
-          <div className="avatar comment-avatar" />
+          <Avatar url={c.author?.avatar_url} size={30} className="comment-avatar" />
         </Link>
         <div className="comment-body">
           <div className="comment-head">

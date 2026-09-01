@@ -5,6 +5,7 @@ import ProfileActions from './ProfileActions'
 import GradeButtons from './GradeButtons'
 import LogoutButton from '@/components/LogoutButton'
 import EditProfile from './EditProfile'
+import Avatar from '@/components/Avatar'
 import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -71,7 +72,13 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
     <div style={{ marginTop: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 className="display" style={{ fontSize: 24, marginBottom: 2 }}>@{profile.username}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Avatar url={profile.avatar_url} size={48} />
+            <h1 className="display" style={{ fontSize: 24, margin: 0 }}>@{profile.username}</h1>
+          </div>
+          {profile.display_name && (
+            <p style={{ color: 'var(--ink-dim)', margin: '6px 0 0', fontSize: 14 }}>{profile.display_name}</p>
+          )}
           {profile.bio && <p style={{ color: 'var(--ink-dim)', margin: '4px 0' }}>{profile.bio}</p>}
         </div>
         {user && user.id !== profile.id && (
