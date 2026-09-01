@@ -855,6 +855,29 @@ adding once there's traffic — the plumbing would serve Vent too.
       could set on an ordinary report.
 - [x] Delete your own message; report anyone else's
 
+### Session 10b — the Vent room is live
+
+**Run `supabase/migrations/013_vent_realtime.sql` before pushing.**
+
+- [x] Messages appear instantly, no refresh — Supabase Realtime on
+      `vent_messages` only. Deletions disappear too.
+- [x] **Presence**: "3 people here right now", or "You're the only one
+      here right now".
+- [x] **A quiet state.** When you're alone and nothing has been posted
+      for two hours, the room says so and points at the helpline instead
+      of pretending.
+
+**Why realtime here and nowhere else:** a live-chat interface *implies
+someone is listening*. In a room for people having a bad night, that's a
+promise — and if nobody's online, breaking it is worse than a message
+board would have been, because they expected a reply. So the room is
+live, and it's also honest about whether anyone is in it. The presence
+indicator isn't decoration; it's the part that keeps the interface from
+lying.
+
+Realtime everywhere else still waits for traffic. The plumbing is proven
+now, so adding it to cashtag pages later is small.
+
 ## Session 11 — Polish round two, then a wider invite
 
 - [ ] Fix whatever the first testers tripped over

@@ -1,10 +1,7 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
-import { timeAgo } from '@/lib/time'
-import Avatar from '@/components/Avatar'
 import VentComposer from './VentComposer'
-import VentActions from './VentActions'
+import VentStream, { type VentRow } from './VentStream'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +21,7 @@ export default async function VentPage() {
     .order('created_at', { ascending: false })
     .limit(100)
 
-  const messages = (data ?? []) as any[]
+  const messages = (data ?? []) as unknown as VentRow[]
 
   return (
     <div style={{ marginTop: 20 }}>
@@ -68,26 +65,7 @@ export default async function VentPage() {
 
       <VentComposer userId={user.id} />
 
-      {messages.length === 0 && (
-        <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>Nothing here yet.</p>
-      )}
-
-      {messages.map(m => (
-        <article className="vent-msg" key={m.id}>
-          <Link href={`/profile/${m.author?.username}`}>
-            <Avatar url={m.author?.avatar_url} size={30} />
-          </Link>
-          <div className="vent-body">
-            <div className="comment-head">
-              <Link href={`/profile/${m.author?.username}`} className="uname">@{m.author?.username}</Link>
-              <span className="dot">·</span>
-              <span className="time">{timeAgo(m.created_at)}</span>
-              <VentActions messageId={m.id} authorId={m.author?.id} viewerId={user.id} />
-            </div>
-            <p className="comment-text">{m.body}</p>
-          </div>
-        </article>
-      ))}
+      <VentStream initial={messages} viewerId={user.id} />
     </div>
   )
 }

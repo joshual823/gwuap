@@ -320,4 +320,10 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .ticket.priority { border-color: var(--pending); }
 .ticket-flag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--pending); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
 
+.vent-presence { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-dim); margin: 4px 0 10px; }
+.vent-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-faint); flex: 0 0 auto; }
+.vent-dot.live { background: var(--brand); box-shadow: 0 0 0 3px rgba(0,200,5,0.18); }
+.vent-quiet { font-size: 13px; line-height: 1.5; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; margin: 0 0 14px; }
+.vent-quiet a { color: var(--brand); font-weight: 700; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
