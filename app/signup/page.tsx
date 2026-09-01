@@ -75,6 +75,7 @@ export default function SignupPage() {
     }
 
     router.push('/feed')
+    router.refresh()
   }
 
   return (

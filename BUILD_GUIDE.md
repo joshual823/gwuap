@@ -681,6 +681,43 @@ Building them first would have meant retrofitting this.
 
 ---
 
+### Session 9c — profile editing, and a privilege-escalation fix
+
+**Run `supabase/migrations/009_profile_editing.sql` before pushing.**
+
+- [x] **Fixed: profile tab showed a login form for ~30 seconds after
+      logging in.** The root layout is cached by the client router, so
+      after login it kept rendering the logged-out state — including
+      `profileHref = '/login'` — until the cache went stale. Login and
+      signup now call `router.refresh()` after navigating, which
+      invalidates it. Logout already did this.
+- [x] **Edit your profile** — username, display name and bio, on your own
+      profile. A rename navigates to the new URL. Availability is checked
+      before saving, and the unique index catches anyone who claims the
+      name in the gap.
+- [x] **Usernames are now case-insensitively unique.** The index on
+      `lower(username)` existed but wasn't unique, and `username text
+      unique` is case-sensitive — so "Josh" and "josh" could both exist.
+      On a site where your handle is your reputation, that's an
+      impersonation vector.
+- [x] **Fixed a privilege-escalation hole.** The policy "users can update
+      own profile" allowed updating **any** column, including
+      `is_admin` and `is_banned`. The anon key ships in every browser, so
+      a signed-in user could PATCH their own row, make themselves an
+      admin, and then delete posts and ban people. Column-level grants
+      now limit users to username, display_name, bio and avatar_url;
+      moderation flags are service_role only, which is what the admin
+      panel already uses.
+
+**Pattern worth noticing:** this is the third time an RLS policy turned
+out to be too broad — posts (odds could be edited after the game),
+notifications (would have been forgeable if the client inserted them),
+and now profiles. **RLS controls which rows you can touch, never which
+columns.** Any time a table has a column users must not set, it needs
+column-level grants as well as a policy.
+
+---
+
 ## Session 9b — DM requests
 
 - [ ] Build the conversations/messages tables

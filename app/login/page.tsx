@@ -23,6 +23,9 @@ export default function LoginPage() {
     // need a Suspense boundary around this whole page.
     const next = new URLSearchParams(window.location.search).get('next')
     router.push(next && next.startsWith('/') ? next : '/feed')
+    // The root layout is client-cached, so without this the header and
+    // tab bar keep rendering the logged-out state for ~30 seconds.
+    router.refresh()
   }
 
   return (

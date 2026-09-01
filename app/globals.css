@@ -274,4 +274,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .notif-time { font-size: 12px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; flex: 0 0 auto; }
 .badge { min-width: 14px; padding: 0 3px; width: auto; }
 
+.edit-profile { width: 100%; max-width: 320px; margin-top: 4px; }
+.edit-profile .field { margin-bottom: 4px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -4,6 +4,7 @@ import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
 import GradeButtons from './GradeButtons'
 import LogoutButton from '@/components/LogoutButton'
+import EditProfile from './EditProfile'
 import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -76,7 +77,12 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         {user && user.id !== profile.id && (
           <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
         )}
-        {user?.id === profile.id && <LogoutButton />}
+        {user?.id === profile.id && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+            <EditProfile profile={profile as any} />
+            <LogoutButton />
+          </div>
+        )}
       </div>
 
       <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14, flexWrap: 'wrap' }}>

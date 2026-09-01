@@ -18,7 +18,8 @@ create table profiles (
   created_at timestamptz default now()
 );
 
-create index profiles_username_idx on profiles (lower(username));
+-- Unique, and case-insensitive: "Josh" and "josh" must not coexist.
+create unique index profiles_username_lower_idx on profiles (lower(username));
 
 -- 2. FOLLOWS (feature 3)
 create table follows (
@@ -171,6 +172,11 @@ alter table blocks enable row level security;
 -- only the owner can update their own row.
 create policy "profiles are publicly readable" on profiles for select using (true);
 create policy "users can update own profile" on profiles for update using (auth.uid() = id);
+-- ...but only these columns. Without this a user could PATCH their own
+-- row to set is_admin = true. RLS can't scope columns; grants can.
+revoke update on profiles from authenticated;
+revoke update on profiles from anon;
+grant update (username, display_name, bio, avatar_url) on profiles to authenticated;
 create policy "users can insert own profile" on profiles for insert with check (auth.uid() = id);
 
 -- Follows: readable by all, writable only by the follower.
