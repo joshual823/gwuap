@@ -56,6 +56,7 @@ export default function PostCard({ post }: { post: Post }) {
           <Link href={`/profile/${post.author.username}`} className="uname">@{post.author.username}</Link>
           <span className="dot">·</span>
           <span className="time">{timeAgo(post.created_at)}</span>
+          {post.post_kind === 'take' && <span className="stamp take">take</span>}
           {post.post_kind === 'pick' && post.status !== 'pending' &&
             <span className={`stamp ${post.status}`}>{post.status}</span>}
           <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id} />

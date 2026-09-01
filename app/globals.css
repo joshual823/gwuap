@@ -65,7 +65,7 @@ a { color: inherit; text-decoration: none; }
 .post-text { font-size: 14.5px; line-height: 1.4; margin: 6px 0 8px; }
 .post-img { width: 100%; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--line); }
 
-.stat-row { display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 8px; flex-wrap: wrap; }
+.stat-row { display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 8px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
 .amt { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 .amt.pos { color: var(--brand); }
 .amt.neg { color: var(--bear); }
@@ -77,6 +77,7 @@ a { color: inherit; text-decoration: none; }
 .action-btn.liked { color: var(--heart); }
 
 .stamp { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; letter-spacing: 0.03em; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; color: #fff; }
+.stamp.take { background: transparent; border: 1px solid var(--line); color: var(--ink-faint); font-weight: 600; }
 .stamp.win { background: var(--brand); color: #06210a; } .stamp.loss { background: var(--bear); } .stamp.push { background: var(--ink-faint); } .stamp.pending { background: var(--pending); color: #1a1305; }
 
 /* Leaderboard rows */
