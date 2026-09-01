@@ -733,6 +733,18 @@ column-level grants as well as a policy.
 - [x] Display name is shown on the profile now — it was editable and
       stored but never rendered anywhere.
 
+- [x] **Pictures are resized in the browser before upload.** The 2MB
+      limit is gone — any size works. The image is centre-cropped square
+      and scaled to 512px, so a 6MB phone photo becomes about 50KB.
+      Nobody has to shrink a file themselves.
+
+**How the resize works, and why it's free:** a canvas draw in the
+browser, no library. The original never leaves the device, so uploads
+are fast on a phone connection and nothing large touches storage. EXIF
+orientation is honoured via `createImageBitmap`, so photos taken sideways
+don't come out rotated. Output is JPEG — every browser can encode it, and
+at 512px the saving from WebP is a few kilobytes.
+
 **Upload rather than a URL field, on purpose:** a pasted URL can have its
 contents swapped after anyone has looked at it. An uploaded file can't.
 

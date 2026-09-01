@@ -2,10 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import { squareResize, MAX_SOURCE_BYTES } from '@/lib/image'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
-
-const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 
 export default function EditProfile({ profile }: {
   profile: { id: string; username: string; display_name: string | null; bio: string | null; avatar_url: string | null }
@@ -48,13 +47,24 @@ export default function EditProfile({ profile }: {
       if (!avatarFile.type.startsWith('image/')) {
         setError('That file isn\u2019t an image.'); setSaving(false); return
       }
-      if (avatarFile.size > MAX_AVATAR_BYTES) {
-        setError('Pictures need to be under 2MB.'); setSaving(false); return
+      if (avatarFile.size > MAX_SOURCE_BYTES) {
+        setError('That image is enormous — try one under 25MB.'); setSaving(false); return
       }
-      const ext = (avatarFile.name.split('.').pop() || 'jpg').toLowerCase()
-      const path = `${profile.id}/${Date.now()}.${ext}`
+
+      // Shrink in the browser rather than asking people to do it. A phone
+      // photo is several megabytes; this sends about fifty kilobytes.
+      let resized: Blob
+      try {
+        resized = await squareResize(avatarFile)
+      } catch {
+        setError('Couldn\u2019t read that image. Try a JPEG or PNG.')
+        setSaving(false); return
+      }
+
+      const path = `${profile.id}/${Date.now()}.jpg`
       const { error: uploadError } = await supabase.storage
-        .from('avatars').upload(path, avatarFile, { upsert: true })
+        .from('avatars')
+        .upload(path, resized, { upsert: true, contentType: 'image/jpeg' })
       if (uploadError) { setError('Could not upload that picture — try again.'); setSaving(false); return }
       avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
     }
@@ -94,7 +104,7 @@ export default function EditProfile({ profile }: {
       <label className="form-label">Profile picture</label>
       <input type="file" accept="image/*" className="field"
         onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
-      <p className="field-hint">Square images look best. Under 2MB.</p>
+      <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
 
       <label className="form-label">Username</label>
       <input className="field" value={username} autoCapitalize="none"
