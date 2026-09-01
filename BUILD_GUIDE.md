@@ -244,6 +244,40 @@ INSERT and DELETE policies on `likes`. Changing a reaction is an UPDATE,
 so without a new RLS policy every reaction change would have been
 silently rejected. The migration adds it.
 
+### Session 6d — drop the badge, lock picks, new sports
+
+**Run `supabase/migrations/004_lock_picks_and_new_sports.sql` before
+pushing.**
+
+- [x] **"Unverified" badge removed.** It read the same on every post, so
+      it was noise, not a signal.
+- [x] **Picks are now locked after posting** — this is the part that
+      actually matters. `users update own posts` allowed updating *any*
+      column including `odds` and `stake`. No edit button exists, but the
+      anon key ships in every browser, so the API was open: a user could
+      have changed their posted odds after the game. Column-level grants
+      now let an author change only `status` and `profit`. Grading still
+      works; the terms of the bet don't.
+- [x] **Tennis, UFC, and Boxing categories.** UFC and Boxing were sharing
+      one category — split, and Tennis added.
+- [x] **Athlete cashtags**, 98 of them: 36 tennis players, 38 UFC
+      fighters, 24 boxers. Code is the surname, and nicknames work
+      ("poatan" finds Pereira, "coco" finds Gauff). 222 tickers total.
+      `lib/teams.ts` became `lib/tickers.ts` since it's no longer only
+      teams.
+
+**Caveat on athlete lists:** unlike teams, these go stale. Fighters
+retire, rankings churn, new players break through. It's a plain array in
+one file — edit it whenever. Also worth knowing it was assembled from
+model knowledge with a mid-2026 cutoff, so check it against a current
+ranking before you lean on it.
+
+**Still open, if you ever want a badge that means something:** proving a
+pick was posted before the game started needs game start times. ESPN
+publishes a free undocumented scoreboard JSON that hobby projects use
+for exactly this; it's free but unofficial and can break without notice.
+That's the cheap path if you decide the badge is worth it.
+
 ### Session 6c — comment replies + comment reactions
 
 **Run `supabase/migrations/003_comment_replies_reactions.sql` before
@@ -406,7 +440,14 @@ better than a paywall would, and costs users nothing.
 - **Money:** all amounts are US dollars. Dollar profit is derived from
   American odds × stake at grading time, never entered by hand, so a
   user's posted record always matches the prices they posted
-- **Verification:** picks are self-reported for now, marked "Unverified."
+- **Verification:** picks are self-reported. The "Unverified" badge was
+  removed — it appeared identically on every post, so it carried no
+  information. What actually backs the record is cheaper and real: a
+  pick's terms are immutable once posted (column-level grants let the
+  author change only `status` and `profit`), and every post carries a
+  server timestamp. **To bring a badge back it has to mean something** —
+  either a real connected sportsbook account, or proof the pick beat the
+  opening whistle, which needs a schedule source we don't have yet
   Real verification (SharpSports API, connects to actual sportsbook
   accounts) is a paid, later-stage feature — not free, not urgent
 - **Not doing yet:** live scores integration, native app, paid ads,

@@ -35,7 +35,7 @@ create table categories (
   name text unique not null   -- NBA, NFL, MLB, NHL, Soccer, UFC, Golf, Other...
 );
 insert into categories (name) values
-  ('NBA'), ('NFL'), ('MLB'), ('NHL'), ('Soccer'), ('UFC/Boxing'), ('Golf'), ('College Football'), ('College Basketball'), ('Other');
+  ('NBA'), ('NFL'), ('MLB'), ('NHL'), ('Soccer'), ('UFC'), ('Boxing'), ('Tennis'), ('Golf'), ('College Football'), ('College Basketball'), ('Other');
 
 -- 4. POSTS (feature 4, 5, 6 relation target)
 create table posts (
@@ -153,6 +153,12 @@ create policy "users remove own follows" on follows for delete using (auth.uid()
 create policy "posts are publicly readable" on posts for select using (true);
 create policy "users insert own posts" on posts for insert with check (auth.uid() = author_id);
 create policy "users update own posts" on posts for update using (auth.uid() = author_id);
+-- ...but only the result may change. A pick's terms (odds, stake, tag,
+-- bet_type, caption) are immutable once posted, or the record would be
+-- worthless. RLS can't scope columns; column-level grants can.
+revoke update on posts from authenticated;
+revoke update on posts from anon;
+grant update (status, profit) on posts to authenticated;
 create policy "users delete own posts" on posts for delete using (auth.uid() = author_id);
 
 -- Likes

@@ -15,14 +15,14 @@
 // is effectively unbounded. Worth filling in once someone actually posts
 // those picks.
 
-export type Team = {
+export type Ticker = {
   code: string
   name: string
-  league: 'NBA' | 'NFL' | 'MLB' | 'NHL'
+  league: League
   aliases?: string[]
 }
 
-export const TEAMS: Team[] = [
+export const TICKERS: Ticker[] = [
   // ---- NBA (30) ----
   { code: 'ATL', name: 'Atlanta Hawks', league: 'NBA', aliases: ['hawks'] },
   { code: 'BOS', name: 'Boston Celtics', league: 'NBA', aliases: ['celtics'] },
@@ -154,10 +154,117 @@ export const TEAMS: Team[] = [
   { code: 'VGK', name: 'Vegas Golden Knights', league: 'NHL', aliases: ['golden knights', 'knights'] },
   { code: 'WSH', name: 'Washington Capitals', league: 'NHL', aliases: ['capitals', 'caps'] },
   { code: 'WPG', name: 'Winnipeg Jets', league: 'NHL', aliases: ['jets'] },
+  // ---- Tennis ----
+  // Individual sports use the athlete's surname as the code. Unlike team
+  // codes these DO go stale — players retire, new ones break through — so
+  // treat this as a starting list and edit it freely. It's a plain array.
+  { code: 'DJOKOVIC', name: 'Novak Djokovic', league: 'Tennis', aliases: ['novak'] },
+  { code: 'ALCARAZ', name: 'Carlos Alcaraz', league: 'Tennis', aliases: ['carlos'] },
+  { code: 'SINNER', name: 'Jannik Sinner', league: 'Tennis', aliases: ['jannik'] },
+  { code: 'MEDVEDEV', name: 'Daniil Medvedev', league: 'Tennis' },
+  { code: 'ZVEREV', name: 'Alexander Zverev', league: 'Tennis', aliases: ['sascha'] },
+  { code: 'RUBLEV', name: 'Andrey Rublev', league: 'Tennis' },
+  { code: 'TSITSIPAS', name: 'Stefanos Tsitsipas', league: 'Tennis' },
+  { code: 'RUUD', name: 'Casper Ruud', league: 'Tennis' },
+  { code: 'FRITZ', name: 'Taylor Fritz', league: 'Tennis' },
+  { code: 'DEMINAUR', name: 'Alex de Minaur', league: 'Tennis', aliases: ['de minaur'] },
+  { code: 'HURKACZ', name: 'Hubert Hurkacz', league: 'Tennis' },
+  { code: 'RUNE', name: 'Holger Rune', league: 'Tennis' },
+  { code: 'PAUL', name: 'Tommy Paul', league: 'Tennis' },
+  { code: 'SHELTON', name: 'Ben Shelton', league: 'Tennis' },
+  { code: 'TIAFOE', name: 'Frances Tiafoe', league: 'Tennis' },
+  { code: 'MUSETTI', name: 'Lorenzo Musetti', league: 'Tennis' },
+  { code: 'DIMITROV', name: 'Grigor Dimitrov', league: 'Tennis' },
+  { code: 'KHACHANOV', name: 'Karen Khachanov', league: 'Tennis' },
+  { code: 'SWIATEK', name: 'Iga Swiatek', league: 'Tennis', aliases: ['iga'] },
+  { code: 'SABALENKA', name: 'Aryna Sabalenka', league: 'Tennis' },
+  { code: 'GAUFF', name: 'Coco Gauff', league: 'Tennis', aliases: ['coco'] },
+  { code: 'RYBAKINA', name: 'Elena Rybakina', league: 'Tennis' },
+  { code: 'PEGULA', name: 'Jessica Pegula', league: 'Tennis' },
+  { code: 'ZHENG', name: 'Qinwen Zheng', league: 'Tennis' },
+  { code: 'PAOLINI', name: 'Jasmine Paolini', league: 'Tennis' },
+  { code: 'VONDROUSOVA', name: 'Marketa Vondrousova', league: 'Tennis' },
+  { code: 'JABEUR', name: 'Ons Jabeur', league: 'Tennis' },
+  { code: 'COLLINS', name: 'Danielle Collins', league: 'Tennis' },
+  { code: 'KEYS', name: 'Madison Keys', league: 'Tennis' },
+  { code: 'NAVARRO', name: 'Emma Navarro', league: 'Tennis' },
+  { code: 'MUCHOVA', name: 'Karolina Muchova', league: 'Tennis' },
+  { code: 'KASATKINA', name: 'Daria Kasatkina', league: 'Tennis' },
+  { code: 'OSTAPENKO', name: 'Jelena Ostapenko', league: 'Tennis' },
+  { code: 'KREJCIKOVA', name: 'Barbora Krejcikova', league: 'Tennis' },
+  { code: 'BADOSA', name: 'Paula Badosa', league: 'Tennis' },
+  { code: 'ANDREEVA', name: 'Mirra Andreeva', league: 'Tennis', aliases: ['mirra'] },
+
+  // ---- UFC ----
+  { code: 'JONES', name: 'Jon Jones', league: 'UFC', aliases: ['bones'] },
+  { code: 'MAKHACHEV', name: 'Islam Makhachev', league: 'UFC', aliases: ['islam'] },
+  { code: 'PEREIRA', name: 'Alex Pereira', league: 'UFC', aliases: ['poatan'] },
+  { code: 'TOPURIA', name: 'Ilia Topuria', league: 'UFC', aliases: ['el matador'] },
+  { code: 'OMALLEY', name: "Sean O'Malley", league: 'UFC', aliases: ['suga', 'omalley'] },
+  { code: 'VOLKANOVSKI', name: 'Alexander Volkanovski', league: 'UFC', aliases: ['volk'] },
+  { code: 'ADESANYA', name: 'Israel Adesanya', league: 'UFC', aliases: ['izzy', 'stylebender'] },
+  { code: 'EDWARDS', name: 'Leon Edwards', league: 'UFC', aliases: ['rocky'] },
+  { code: 'DUPLESSIS', name: 'Dricus du Plessis', league: 'UFC', aliases: ['du plessis', 'ddp'] },
+  { code: 'CHIMAEV', name: 'Khamzat Chimaev', league: 'UFC', aliases: ['borz'] },
+  { code: 'ASPINALL', name: 'Tom Aspinall', league: 'UFC' },
+  { code: 'GAETHJE', name: 'Justin Gaethje', league: 'UFC', aliases: ['highlight'] },
+  { code: 'POIRIER', name: 'Dustin Poirier', league: 'UFC', aliases: ['diamond'] },
+  { code: 'OLIVEIRA', name: 'Charles Oliveira', league: 'UFC', aliases: ['do bronx'] },
+  { code: 'HOLLOWAY', name: 'Max Holloway', league: 'UFC', aliases: ['blessed'] },
+  { code: 'STERLING', name: 'Aljamain Sterling', league: 'UFC', aliases: ['funkmaster'] },
+  { code: 'DVALISHVILI', name: 'Merab Dvalishvili', league: 'UFC', aliases: ['merab'] },
+  { code: 'NURMAGOMEDOV', name: 'Umar Nurmagomedov', league: 'UFC', aliases: ['umar'] },
+  { code: 'WHITTAKER', name: 'Robert Whittaker', league: 'UFC', aliases: ['bobby knuckles'] },
+  { code: 'STRICKLAND', name: 'Sean Strickland', league: 'UFC' },
+  { code: 'ANKALAEV', name: 'Magomed Ankalaev', league: 'UFC' },
+  { code: 'HILL', name: 'Jamahal Hill', league: 'UFC', aliases: ['sweet dreams'] },
+  { code: 'PROCHAZKA', name: 'Jiri Prochazka', league: 'UFC', aliases: ['jiri'] },
+  { code: 'SHEVCHENKO', name: 'Valentina Shevchenko', league: 'UFC', aliases: ['bullet'] },
+  { code: 'ZHANG', name: 'Zhang Weili', league: 'UFC', aliases: ['weili', 'magnum'] },
+  { code: 'GRASSO', name: 'Alexa Grasso', league: 'UFC' },
+  { code: 'HARRISON', name: 'Kayla Harrison', league: 'UFC' },
+  { code: 'PENNINGTON', name: 'Raquel Pennington', league: 'UFC' },
+  { code: 'BLACHOWICZ', name: 'Jan Blachowicz', league: 'UFC' },
+  { code: 'RODRIGUEZ', name: 'Yair Rodriguez', league: 'UFC', aliases: ['yair'] },
+  { code: 'TSARUKYAN', name: 'Arman Tsarukyan', league: 'UFC', aliases: ['arman'] },
+  { code: 'MUHAMMAD', name: 'Belal Muhammad', league: 'UFC', aliases: ['belal'] },
+  { code: 'BURNS', name: 'Gilbert Burns', league: 'UFC', aliases: ['durinho'] },
+  { code: 'COVINGTON', name: 'Colby Covington', league: 'UFC', aliases: ['chaos'] },
+  { code: 'PANTOJA', name: 'Alexandre Pantoja', league: 'UFC' },
+  { code: 'MORENO', name: 'Brandon Moreno', league: 'UFC', aliases: ['assassin baby'] },
+  { code: 'FIGUEIREDO', name: 'Deiveson Figueiredo', league: 'UFC', aliases: ['deus da guerra'] },
+  { code: 'YAN', name: 'Petr Yan', league: 'UFC', aliases: ['no mercy'] },
+
+  // ---- Boxing ----
+  { code: 'USYK', name: 'Oleksandr Usyk', league: 'Boxing' },
+  { code: 'FURY', name: 'Tyson Fury', league: 'Boxing', aliases: ['gypsy king'] },
+  { code: 'JOSHUA', name: 'Anthony Joshua', league: 'Boxing', aliases: ['aj'] },
+  { code: 'WILDER', name: 'Deontay Wilder', league: 'Boxing', aliases: ['bronze bomber'] },
+  { code: 'CANELO', name: 'Canelo Alvarez', league: 'Boxing', aliases: ['alvarez', 'canelo'] },
+  { code: 'CRAWFORD', name: 'Terence Crawford', league: 'Boxing', aliases: ['bud'] },
+  { code: 'BIVOL', name: 'Dmitry Bivol', league: 'Boxing' },
+  { code: 'BETERBIEV', name: 'Artur Beterbiev', league: 'Boxing' },
+  { code: 'INOUE', name: 'Naoya Inoue', league: 'Boxing', aliases: ['monster'] },
+  { code: 'DAVIS', name: 'Gervonta Davis', league: 'Boxing', aliases: ['tank'] },
+  { code: 'GARCIA', name: 'Ryan Garcia', league: 'Boxing', aliases: ['kingry'] },
+  { code: 'HANEY', name: 'Devin Haney', league: 'Boxing' },
+  { code: 'LOPEZ', name: 'Teofimo Lopez', league: 'Boxing', aliases: ['teofimo'] },
+  { code: 'STEVENSON', name: 'Shakur Stevenson', league: 'Boxing', aliases: ['shakur'] },
+  { code: 'BENAVIDEZ', name: 'David Benavidez', league: 'Boxing', aliases: ['monster'] },
+  { code: 'MUNGUIA', name: 'Jaime Munguia', league: 'Boxing' },
+  { code: 'RODRIGUEZ', name: 'Jesse Rodriguez', league: 'Boxing', aliases: ['bam'] },
+  { code: 'TSZYU', name: 'Tim Tszyu', league: 'Boxing' },
+  { code: 'DUBOIS', name: 'Daniel Dubois', league: 'Boxing', aliases: ['dynamite'] },
+  { code: 'PARKER', name: 'Joseph Parker', league: 'Boxing' },
+  { code: 'EUBANK', name: 'Chris Eubank Jr', league: 'Boxing' },
+  { code: 'BENN', name: 'Conor Benn', league: 'Boxing' },
+  { code: 'CHARLO', name: 'Jermell Charlo', league: 'Boxing' },
+  { code: 'RAMIREZ', name: 'Gilberto Ramirez', league: 'Boxing', aliases: ['zurdo'] },
 ]
 
-/** Leagues we have a team list for. Anything else stays free text. */
-export const SUPPORTED_LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL'] as const
+/** Leagues we have a ticker list for. Anything else stays free text. */
+export const SUPPORTED_LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL', 'Tennis', 'UFC', 'Boxing'] as const
+export type League = (typeof SUPPORTED_LEAGUES)[number]
 
 export function isSupportedLeague(league: string | null | undefined): boolean {
   return !!league && (SUPPORTED_LEAGUES as readonly string[]).includes(league)
@@ -168,14 +275,14 @@ export function isSupportedLeague(league: string | null | undefined): boolean {
  * Code-prefix matches rank above name/alias matches, so typing "LA"
  * surfaces LAL/LAC/LAD before "Atlanta".
  */
-export function searchTeams(league: string | null | undefined, query: string, limit = 8): Team[] {
+export function searchTickers(league: string | null | undefined, query: string, limit = 8): Ticker[] {
   if (!isSupportedLeague(league)) return []
-  const pool = TEAMS.filter(t => t.league === league)
+  const pool = TICKERS.filter(t => t.league === league)
   const q = query.trim().toLowerCase()
   if (!q) return pool.slice(0, limit)
 
-  const byCode: Team[] = []
-  const byName: Team[] = []
+  const byCode: Ticker[] = []
+  const byName: Ticker[] = []
   for (const t of pool) {
     if (t.code.toLowerCase().startsWith(q)) { byCode.push(t); continue }
     if (matchesWords(t, q)) byName.push(t)
@@ -188,7 +295,7 @@ export function searchTeams(league: string | null | undefined, query: string, li
  * them. Word-prefix rather than plain substring, so typing "l" doesn't
  * match "AtLanta" — a one-letter substring match hits nearly everything.
  */
-function matchesWords(t: Team, q: string): boolean {
+function matchesWords(t: Ticker, q: string): boolean {
   const phrases = [t.name.toLowerCase(), ...(t.aliases ?? [])]
   for (const phrase of phrases) {
     if (phrase.startsWith(q)) return true

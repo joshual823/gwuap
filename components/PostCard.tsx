@@ -69,8 +69,6 @@ export default function PostCard({ post }: { post: Post }) {
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
 
-        {/* Always rendered: every pick carries the Unverified badge, even
-            one posted without odds or a stake. */}
         <div className="stat-row">
           {betLabel && <span className="stat-key">{betLabel}</span>}
           {post.odds && <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
@@ -81,7 +79,6 @@ export default function PostCard({ post }: { post: Post }) {
           {toWin != null && (
             <span className="stat-key">TO WIN <span className="stat-val">{formatUsd(toWin)}</span></span>
           )}
-          <span className="unverified">Unverified</span>
         </div>
 
         <div className="action-row">

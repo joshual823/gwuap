@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { searchTeams, isSupportedLeague, type Team } from '@/lib/teams'
+import { searchTickers, isSupportedLeague, type Ticker } from '@/lib/tickers'
 
 /**
  * StockTwits-style cashtag field.
@@ -32,8 +32,8 @@ export default function CashtagInput({
   const rest = spaceAt === -1 ? '' : body.slice(spaceAt + 1)
   const stillTypingTicker = spaceAt === -1
 
-  const suggestions = useMemo<Team[]>(
-    () => (stillTypingTicker ? searchTeams(league, ticker) : []),
+  const suggestions = useMemo<Ticker[]>(
+    () => (stillTypingTicker ? searchTickers(league, ticker) : []),
     [league, ticker, stillTypingTicker],
   )
 
@@ -56,7 +56,7 @@ export default function CashtagInput({
     setOpen(true)
   }
 
-  function choose(team: Team) {
+  function choose(team: Ticker) {
     // Trailing space moves the user on to the line ("-4.5") and closes the list.
     onChange(rest ? `$${team.code} ${rest}` : `$${team.code} `)
     setOpen(false)
@@ -116,7 +116,7 @@ export default function CashtagInput({
       {!isSupportedLeague(league) && (
         <p className="cashtag-hint">
           {league
-            ? `No team list for ${league} yet — type the cashtag yourself.`
+            ? `No list for ${league} yet — type the cashtag yourself.`
             : 'Choose a league to get team suggestions.'}
         </p>
       )}

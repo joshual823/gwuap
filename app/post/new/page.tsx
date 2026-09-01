@@ -167,10 +167,10 @@ export default function NewPostPage() {
         <button className="btn" disabled={loading} type="submit">{loading ? 'Posting…' : 'Post pick'}</button>
       </form>
       <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 16 }}>
-        Every pick is marked Unverified — real verification (synced to your
-        actual sportsbook account) is a planned future feature. Amounts are
-        in US dollars. Bet slip uploads are off for now; they come back
-        once there's image moderation behind them.
+        Picks are self-reported. Your posted odds are locked once you
+        submit — only the result can change afterward — and every pick is
+        timestamped, so the record reflects the price you actually called.
+        Amounts are in US dollars. Bet slip uploads are off for now.
       </p>
     </div>
   )
