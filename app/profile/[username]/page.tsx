@@ -29,7 +29,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
   const { data: rawPosts } = await supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
+      id, caption, slip_image_url, tag, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
       likes ( user_id, emoji ),
@@ -44,13 +44,15 @@ export default async function ProfilePage({ params }: { params: { username: stri
     viewer_id: user?.id ?? null,
   }))
 
-  const wins = posts.filter((p: any) => p.status === 'win').length
-  const losses = posts.filter((p: any) => p.status === 'loss').length
+  const picks = posts.filter((p: any) => p.post_kind === 'pick')
+  const takeCount = posts.length - picks.length
+  const wins = picks.filter((p: any) => p.status === 'win').length
+  const losses = picks.filter((p: any) => p.status === 'loss').length
   const winPct = wins + losses > 0 ? Math.round((100 * wins) / (wins + losses)) : null
 
   // Lifetime $ result. Picks graded before Session 5 have no stored profit,
   // so recompute those from their odds and stake.
-  const graded = posts.filter((p: any) => p.status !== 'pending')
+  const graded = picks.filter((p: any) => p.status !== 'pending')
   const totalProfit = graded.reduce(
     (sum: number, p: any) => sum + (p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0),
     0,
@@ -74,16 +76,18 @@ export default async function ProfilePage({ params }: { params: { username: stri
         {graded.length > 0 && (
           <span className={`amt ${totalProfit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(totalProfit)}</span>
         )}
+        <span>{picks.length} picks</span>
+        {takeCount > 0 && <span>{takeCount} takes</span>}
         <span>{followerCount ?? 0} followers</span>
         <span>{followingCount ?? 0} following</span>
       </div>
 
-      <h2 style={{ fontSize: 16, marginTop: 28, color: 'var(--ink-dim)' }}>Picks</h2>
-      {posts.length === 0 && <p style={{ color: 'var(--ink-dim)' }}>No picks posted yet.</p>}
+      <h2 style={{ fontSize: 16, marginTop: 28, color: 'var(--ink-dim)' }}>Posts</h2>
+      {posts.length === 0 && <p style={{ color: 'var(--ink-dim)' }}>Nothing posted yet.</p>}
       {posts.map((post: any) => (
         <div key={post.id}>
           <PostCard post={post} />
-          {user?.id === profile.id && post.status === 'pending' && (
+          {user?.id === profile.id && post.post_kind === 'pick' && post.status === 'pending' && (
             <GradeButtons postId={post.id} odds={post.odds} stake={post.stake} />
           )}
         </div>

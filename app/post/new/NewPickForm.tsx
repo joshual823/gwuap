@@ -6,7 +6,7 @@ import CashtagInput from '@/components/CashtagInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
-  type BetType,
+  type BetType, type PostKind,
 } from '@/lib/odds'
 
 export default function NewPickForm() {
@@ -16,7 +16,10 @@ export default function NewPickForm() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [categoryId, setCategoryId] = useState<number | ''>('')
   const [tag, setTag] = useState('')
-  const [sentiment, setSentiment] = useState<'backing' | 'fading'>('backing')
+  const [kind, setKind] = useState<PostKind>('take')
+  // Starts unset on purpose. Sentiment drives Trending and the ticker, so
+  // a silent default would make everything read as "backing".
+  const [sentiment, setSentiment] = useState<'backing' | 'fading' | null>(null)
   const [caption, setCaption] = useState('')
 
   const [betType, setBetType] = useState<BetType>('moneyline')
@@ -73,6 +76,29 @@ export default function NewPickForm() {
     e.preventDefault()
     setError(null)
 
+    if (!categoryId) { setError('Pick a league.'); return }
+    if (!tag.trim()) { setError('Add a cashtag — it\u2019s how picks get grouped.'); return }
+    if (!sentiment) { setError('Are you backing this or fading it?'); return }
+
+    if (kind === 'take') {
+      if (!caption.trim()) { setError('Say something — a take needs words.'); return }
+      setLoading(true)
+      const { data: { user: takeUser } } = await supabase.auth.getUser()
+      if (!takeUser) { router.push('/login'); return }
+      const { error: takeError } = await supabase.from('posts').insert({
+        author_id: takeUser.id,
+        category_id: categoryId,
+        post_kind: 'take',
+        tag: tag.trim(),
+        sentiment,
+        caption: caption.trim(),
+      })
+      setLoading(false)
+      if (takeError) { setError('Could not post — try again.'); return }
+      router.push('/feed')
+      return
+    }
+
     if (oddsValue === null) {
       setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/- buttons set it.')
       return
@@ -105,8 +131,17 @@ export default function NewPickForm() {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h1 className="display" style={{ fontSize: 20 }}>Post a pick</h1>
+      <h1 className="display" style={{ fontSize: 20 }}>{kind === 'take' ? 'Post a take' : 'Post a pick'}</h1>
       <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
+        <div className="segment" style={{ marginBottom: 14 }}>
+          <button type="button" aria-pressed={kind === 'take'}
+            className={kind === 'take' ? 'active' : ''}
+            onClick={() => setKind('take')}>Take</button>
+          <button type="button" aria-pressed={kind === 'pick'}
+            className={kind === 'pick' ? 'active' : ''}
+            onClick={() => setKind('pick')}>Pick</button>
+        </div>
+
         <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
           <option value="">Choose a league…</option>
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -115,15 +150,19 @@ export default function NewPickForm() {
         <CashtagInput value={tag} onChange={setTag} league={leagueName} />
 
         <div className="sentiment-toggle">
-          <button type="button" className={`${sentiment === 'backing' ? 'active backing' : ''}`}
+          <button type="button" aria-pressed={sentiment === 'backing'}
+            className={`${sentiment === 'backing' ? 'active backing' : ''}`}
             onClick={() => setSentiment('backing')}>Backing</button>
-          <button type="button" className={`${sentiment === 'fading' ? 'active fading' : ''}`}
+          <button type="button" aria-pressed={sentiment === 'fading'}
+            className={`${sentiment === 'fading' ? 'active fading' : ''}`}
             onClick={() => setSentiment('fading')}>Fading</button>
         </div>
 
-        <textarea className="field" placeholder="What's the pick? Any reasoning?" rows={3}
+        <textarea className="field" rows={3}
+          placeholder={kind === 'take' ? "What's your take?" : "What's the pick? Any reasoning?"}
           value={caption} onChange={e => setCaption(e.target.value)} />
 
+        {kind === 'pick' && (<>
         <label className="form-label">Bet type</label>
         <div className="chip-grid">
           {BET_TYPES.map(b => (
@@ -175,14 +214,19 @@ export default function NewPickForm() {
             : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
         </p>
 
+        </>)}
+
         {error && <p style={{ color: 'var(--bear)', fontSize: 14 }}>{error}</p>}
-        <button className="btn" disabled={loading} type="submit">{loading ? 'Posting…' : 'Post pick'}</button>
+        <button className="btn" disabled={loading} type="submit">
+          {loading ? 'Posting…' : kind === 'take' ? 'Post take' : 'Post pick'}
+        </button>
       </form>
       <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 16 }}>
-        Picks are self-reported. Your posted odds are locked once you
-        submit — only the result can change afterward — and every pick is
-        timestamped, so the record reflects the price you actually called.
-        Amounts are in US dollars. Bet slip uploads are off for now.
+        A <strong>take</strong> is a cashtag and an opinion — it never
+        touches your record. A <strong>pick</strong> has money on it: your
+        posted odds lock once you submit, only the result can change
+        afterward, and every pick is timestamped, so your record reflects
+        the price you actually called. Amounts are in US dollars.
       </p>
     </div>
   )

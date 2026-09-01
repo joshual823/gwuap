@@ -15,10 +15,28 @@ export type NewsItem = {
   link: string
   published: string | null
   summary: string | null
+  image: string | null
+  source: string
 }
 
-/** Category name (as stored in the `categories` table) -> ESPN feed slug. */
-const FEEDS: Record<string, string> = {
+// CBS is the primary source because its items carry an <enclosure>
+// image and ESPN's don't. ESPN stays as a fallback for when a CBS feed
+// errors or comes back empty. Both cover all twelve categories.
+const CBS: Record<string, string> = {
+  'NBA': 'nba',
+  'NFL': 'nfl',
+  'MLB': 'mlb',
+  'NHL': 'nhl',
+  'Soccer': 'soccer',
+  'UFC': 'mma',
+  'Boxing': 'boxing',
+  'Tennis': 'tennis',
+  'Golf': 'golf',
+  'College Football': 'college-football',
+  'College Basketball': 'college-basketball',
+}
+
+const ESPN: Record<string, string> = {
   'NBA': 'nba',
   'NFL': 'nfl',
   'MLB': 'mlb',
@@ -33,13 +51,29 @@ const FEEDS: Record<string, string> = {
 }
 
 /** The league chips shown on the News tab, in order. "Top" is all sports. */
-export const NEWS_LEAGUES = ['Top', ...Object.keys(FEEDS)]
+export const NEWS_LEAGUES = ['Top', ...Object.keys(CBS)]
 
-function feedUrl(league: string): string {
-  const slug = FEEDS[league]
-  return slug
-    ? `https://www.espn.com/espn/rss/${slug}/news`
-    : 'https://www.espn.com/espn/rss/news'
+type Source = { name: string; url: string }
+
+function sourcesFor(league: string): Source[] {
+  const cbs = CBS[league]
+  const espn = ESPN[league]
+  return [
+    { name: 'CBS Sports', url: cbs
+        ? `https://www.cbssports.com/rss/headlines/${cbs}/`
+        : 'https://www.cbssports.com/rss/headlines/' },
+    { name: 'ESPN', url: espn
+        ? `https://www.espn.com/espn/rss/${espn}/news`
+        : 'https://www.espn.com/espn/rss/news' },
+  ]
+}
+
+/** <enclosure url="..." type="image/jpeg"/> — CBS attaches one per story. */
+function enclosureImage(block: string): string | null {
+  const m = /<enclosure\b[^>]*\burl=["']([^"']+)["'][^>]*>/i.exec(block)
+  if (!m) return null
+  const url = decodeEntities(m[1])
+  return /^https:\/\//.test(url) ? url : null
 }
 
 function stripCdata(raw: string): string {
@@ -70,8 +104,16 @@ function tagContent(block: string, tag: string): string | null {
  * being down should never take the page with it.
  */
 export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]> {
+  for (const source of sourcesFor(league)) {
+    const items = await fetchFrom(source, limit)
+    if (items.length > 0) return items
+  }
+  return []
+}
+
+async function fetchFrom(source: Source, limit: number): Promise<NewsItem[]> {
   try {
-    const res = await fetch(feedUrl(league), {
+    const res = await fetch(source.url, {
       next: { revalidate: 900 },
       headers: { 'User-Agent': 'Gwuap/1.0 (+https://gwuap.vercel.app)' },
     })
@@ -79,8 +121,7 @@ export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]>
     const xml = await res.text()
 
     const items: NewsItem[] = []
-    const blocks = xml.split('<item>').slice(1)
-    for (const raw of blocks) {
+    for (const raw of xml.split('<item>').slice(1)) {
       const block = raw.split('</item>')[0]
       const title = tagContent(block, 'title')
       const link = tagContent(block, 'link')
@@ -92,6 +133,8 @@ export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]>
         link,
         published: parsed && !isNaN(parsed.getTime()) ? parsed.toISOString() : null,
         summary: tagContent(block, 'description'),
+        image: enclosureImage(block),
+        source: source.name,
       })
       if (items.length >= limit) break
     }

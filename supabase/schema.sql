@@ -46,6 +46,7 @@ create table posts (
   slip_image_url text,        -- uploaded betting slip screenshot (Supabase Storage)
   tag text,                   -- short cashtag-style label, e.g. "$LAL -4.5"
   sentiment text default 'backing' check (sentiment in ('backing','fading')),
+  post_kind text not null default 'pick' check (post_kind in ('take','pick')),
   bet_type text default 'moneyline' check (bet_type in (
     'moneyline','spread','total','player_prop','team_prop','parlay','future','other')),
   odds text,                  -- American odds as entered, e.g. "+150", "-110"
@@ -54,7 +55,13 @@ create table posts (
   potential_payout numeric,
   profit numeric,             -- dollars won (+) / lost (-) once graded; NULL while pending
   status text default 'pending' check (status in ('pending','win','loss','push','void')), -- feature 9
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  -- A take is never gradeable and carries no money; enforced here rather
+  -- than only in the UI, since the anon key ships in every browser.
+  constraint posts_take_not_graded_check check (post_kind = 'pick' or status = 'pending'),
+  constraint posts_take_no_money_check check (
+    post_kind = 'pick'
+    or (odds is null and stake is null and profit is null and potential_payout is null))
 );
 
 create index posts_author_idx on posts (author_id, created_at desc);
@@ -123,6 +130,7 @@ from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'
   and p.is_banned = false
+  and posts.post_kind = 'pick'
 group by p.id, p.username, p.avatar_url
 having count(*) filter (where posts.status in ('win','loss')) >= 5
 order by win_pct desc, graded_picks desc;

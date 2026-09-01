@@ -371,6 +371,47 @@ users; worth extending before a wider audience.
 
 ---
 
+### Session 8b — takes, and news with pictures
+
+**Run `supabase/migrations/005_takes.sql` before pushing.**
+
+- [x] **News now carries a thumbnail on every story.** ESPN's RSS has no
+      per-article image — the one `<image>` tag in it is the channel
+      logo. CBS Sports' feed attaches an `<enclosure>` image to every
+      item and covers all twelve categories, so CBS is now the primary
+      source with ESPN as an automatic fallback if a CBS feed errors or
+      comes back empty. Still $0: the images are hotlinked from CBS's
+      CDN, and they're plain `<img loading="lazy">` rather than
+      `next/image`, which is metered on Vercel.
+- [x] **Takes** — a post with no bet on it. Cashtag + league + Backing or
+      Fading + something to say. That's the StockTwits shape: nobody
+      there attaches a trade, they attach a symbol and a direction.
+      Tapping **+** opens a Take by default; a Take/Pick toggle at the
+      top switches to the full bet slip.
+- [x] Takes feed Trending and the ticker like any other post, which is
+      where the site gets its sense of a live room.
+- [x] **Sentiment is now a required choice, not a silent default.** It
+      used to default to Backing, which meant an unconsidered post still
+      counted as bullish and quietly skewed Trending.
+
+**The part that matters: takes can never touch the record.** Hiding the
+grade buttons isn't enough — the anon key ships in every browser. The
+migration adds database CHECK constraints so a take must stay `pending`
+and must carry no odds, stake, profit, or payout. If a take could be
+marked a win it would enter the leaderboard as a free victory and make
+every record on the site meaningless. The leaderboard view also filters
+on `post_kind = 'pick'` explicitly.
+
+**Judgment call worth knowing:** a take requires caption text. You only
+specified cashtag, league, and sentiment as mandatory — but without odds
+or a stake, a take with no words is just a bare cashtag with nothing to
+react to. Easy to reverse if you disagree.
+
+**Profile** now reads "12 picks · 34 takes", and the record and profit
+figures count picks only.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.

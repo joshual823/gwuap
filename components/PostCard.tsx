@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import {
   BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
-  formatUsd, formatSignedUsd, type BetType, type PickStatus,
+  formatUsd, formatSignedUsd, type BetType, type PickStatus, type PostKind,
 } from '@/lib/odds'
 import { timeAgo } from '@/lib/time'
 import { tallyReactions } from '@/lib/reactions'
@@ -13,6 +13,7 @@ type Post = {
   id: string
   caption: string | null
   slip_image_url: string | null
+  post_kind: PostKind
   bet_type: BetType | null
   odds: string | null
   stake: number | null
@@ -55,7 +56,8 @@ export default function PostCard({ post }: { post: Post }) {
           <Link href={`/profile/${post.author.username}`} className="uname">@{post.author.username}</Link>
           <span className="dot">·</span>
           <span className="time">{timeAgo(post.created_at)}</span>
-          {post.status !== 'pending' && <span className={`stamp ${post.status}`}>{post.status}</span>}
+          {post.post_kind === 'pick' && post.status !== 'pending' &&
+            <span className={`stamp ${post.status}`}>{post.status}</span>}
           <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id} />
         </div>
 
@@ -71,6 +73,7 @@ export default function PostCard({ post }: { post: Post }) {
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
 
+        {post.post_kind === 'pick' && (
         <div className="stat-row">
           {betLabel && <span className="stat-key">{betLabel}</span>}
           {post.odds && <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
@@ -82,6 +85,7 @@ export default function PostCard({ post }: { post: Post }) {
             <span className="stat-key">TO WIN <span className="stat-val">{formatUsd(toWin)}</span></span>
           )}
         </div>
+        )}
 
         <div className="action-row">
           <ReactionBar

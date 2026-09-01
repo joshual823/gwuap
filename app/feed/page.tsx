@@ -79,7 +79,7 @@ export default async function FeedPage({ searchParams }: {
   let query = supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
+      id, caption, slip_image_url, tag, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned ),
       category:categories ( name ),
       likes ( user_id, emoji ),

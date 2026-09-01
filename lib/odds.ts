@@ -11,6 +11,12 @@ export type BetType =
   | 'player_prop' | 'team_prop' | 'parlay' | 'future' | 'other'
 export type PickStatus = 'pending' | 'win' | 'loss' | 'push' | 'void'
 
+/**
+ * A take is a cashtag, a direction, and something to say — no money on
+ * it. A pick is a real wager. Only picks touch the record.
+ */
+export type PostKind = 'take' | 'pick'
+
 // Note: a "total" IS the over/under — they're the same bet, so there's
 // no separate O/U entry. Player props are broken out because they're the
 // most common casual bet and lumping them into "other" would tell us
