@@ -11,9 +11,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   let profileHref = '/login'
+  let isAdmin = false
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('username').eq('id', user.id).single()
-    if (profile) profileHref = `/profile/${profile.username}`
+    const { data: profile } = await supabase.from('profiles').select('username, is_admin').eq('id', user.id).single()
+    if (profile) {
+      profileHref = `/profile/${profile.username}`
+      isAdmin = !!profile.is_admin
+    }
   }
 
   return (
@@ -27,6 +31,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 hardcoded "2" and "1" notification badges. Both are gone
                 until the features are real. */}
             <div className="top-icons">
+              {/* /admin has no link otherwise — it was URL-only. */}
+              {isAdmin && <Link href="/admin" className="icon-wrap" title="Moderation queue">🛡️</Link>}
               <Link href="/search" className="icon-wrap">🔍</Link>
             </div>
           </div>

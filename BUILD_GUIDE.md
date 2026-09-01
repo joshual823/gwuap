@@ -331,6 +331,46 @@ data.
 
 ---
 
+### Session 6e — moderation tools that actually work
+
+**No migration.** The database already allowed all of this; the app just
+never called it. Push and it's live.
+
+- [x] **Delete your own pick.** There was no button anywhere — the RLS
+      policy permitted it, nothing invoked it. Now behind a ⋯ menu on
+      every card, with a confirm step. You'll want this while seeding.
+- [x] **Report a specific pick.** Reports could only name a *user*, from
+      their profile, so `reported_post_id` was always empty — which meant
+      the admin panel's "Remove post" button had nothing to act on and
+      **never rendered at all.** Reporting a post now fills in both ids,
+      so that button works.
+- [x] **Blocking does something.** `ProfileActions` wrote to the `blocks`
+      table and the feed never read it, so a blocked user's picks kept
+      appearing. The feed now filters them out.
+- [x] **Banning does something in the feed.** `is_banned` was only
+      respected by the leaderboard — a banned user's posts stayed in
+      everyone's timeline. The feed now excludes them.
+- [x] **A link to `/admin`**, shown only to admins. It was URL-only
+      before, with nothing pointing at it.
+
+**How to become an admin:** `is_admin` defaults to false, so `/admin`
+says "Not authorized" until you run:
+```sql
+update profiles set is_admin = true where username = 'YOUR_USERNAME';
+```
+
+**What `/admin` is and isn't:** it's a queue of open reports with three
+buttons — Dismiss, Remove post, Ban user. It is not a content browser.
+For general adding and deleting, use Supabase's **Table Editor**, which
+bypasses RLS and is the right tool at this scale.
+
+**Known limit:** block and ban filtering is applied to the **feed only**.
+A banned or blocked user's profile page, and a direct link to one of
+their posts, still render. The feed is the surface that matters at five
+users; worth extending before a wider audience.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.

@@ -7,6 +7,7 @@ import {
 import { timeAgo } from '@/lib/time'
 import { tallyReactions } from '@/lib/reactions'
 import ReactionBar from './ReactionBar'
+import PostMenu from './PostMenu'
 
 type Post = {
   id: string
@@ -55,6 +56,7 @@ export default function PostCard({ post }: { post: Post }) {
           <span className="dot">·</span>
           <span className="time">{timeAgo(post.created_at)}</span>
           {post.status !== 'pending' && <span className={`stamp ${post.status}`}>{post.status}</span>}
+          <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id} />
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>

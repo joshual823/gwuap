@@ -20,17 +20,34 @@ export default async function FeedPage() {
     )
   }
 
-  const { data: posts } = await supabase
+  // Blocking used to write a row and change nothing — the feed never read
+  // the table, so a blocked user's picks kept showing up.
+  const { data: blocks } = await supabase
+    .from('blocks')
+    .select('blocked_id')
+    .eq('blocker_id', user.id)
+  const blockedIds = (blocks ?? []).map((b: any) => b.blocked_id)
+
+  let query = supabase
     .from('posts')
     .select(`
       id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
-      author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
+      author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned ),
       category:categories ( name ),
       likes ( user_id, emoji ),
       comments ( id )
     `)
+    // Banning set a flag that only the leaderboard respected; the feed
+    // still carried the banned user's posts.
+    .eq('author.is_banned', false)
     .order('created_at', { ascending: false })
     .limit(50)
+
+  if (blockedIds.length > 0) {
+    query = query.not('author_id', 'in', `(${blockedIds.join(',')})`)
+  }
+
+  const { data: posts } = await query
 
   const shaped = (posts ?? []).map((p: any) => ({
     ...p,
