@@ -6,7 +6,7 @@ import CashtagInput from '@/components/CashtagInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
-  directionsFor, wantsMatchup, QUICK_ODDS,
+  directionsFor, wantsMatchup, isPropBet, QUICK_ODDS,
   type BetType, type PostKind, type Direction,
 } from '@/lib/odds'
 
@@ -72,6 +72,7 @@ export default function NewPickForm() {
 
   const directions = directionsFor(kind, betType)
   const showMatchup = wantsMatchup(kind, betType)
+  const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
 
   // Bet type is asked first, so this almost never fires — it's here for
@@ -221,6 +222,14 @@ export default function NewPickForm() {
               onClick={() => setSentiment(d.value)}>{d.label}</button>
           ))}
         </div>
+        {showPropHint && (
+          <p className="field-hint">
+            Most props are priced on a number, so this asks Over or Under.
+            Betting a yes/no prop — anytime scorer, double-double? Pick{' '}
+            <button type="button" className="link-btn" onClick={() => setBetType('other')}>Other</button>{' '}
+            instead.
+          </p>
+        )}
 
         <textarea className="field" rows={3}
           placeholder={kind === 'take' ? "What's your take?" : "What's the pick? Any reasoning?"}

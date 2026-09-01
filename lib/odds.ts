@@ -38,6 +38,17 @@ export function isBullish(d: Direction): boolean {
   return d === 'backing' || d === 'over'
 }
 
+/**
+ * Props are priced on a number far more often than not — points, yards,
+ * strikeouts — so Over/Under is the right default. Yes/no props (anytime
+ * scorer, double-double) don't fit it, and there's no data yet on how
+ * often people post those, so they're steered to "Other" with a hint
+ * rather than given their own machinery.
+ */
+export function isPropBet(kind: PostKind, betType: BetType): boolean {
+  return kind === 'pick' && (betType === 'player_prop' || betType === 'team_prop')
+}
+
 /** Totals sit on a game, so they get an optional opponent cashtag. */
 export function wantsMatchup(kind: PostKind, betType: BetType): boolean {
   return kind === 'pick' && betType === 'total'
