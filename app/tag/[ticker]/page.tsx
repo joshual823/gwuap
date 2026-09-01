@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import { isBullish } from '@/lib/odds'
@@ -15,7 +16,15 @@ export const dynamic = 'force-dynamic'
  */
 export default async function TickerPage(props: { params: Promise<{ ticker: string }> }) {
   const params = await props.params
-  const bare = decodeURIComponent(params.ticker).replace(/^\$/, '').toUpperCase()
+  // This value is interpolated into a PostgREST .or() filter, where commas
+  // and dots are syntax rather than data. Tickers are short alphanumerics,
+  // so anything else is dropped rather than escaped.
+  const bare = decodeURIComponent(params.ticker)
+    .replace(/^\$/, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 24)
+  if (!bare) notFound()
   const ticker = `$${bare}`
 
   const supabase = await createClient()
