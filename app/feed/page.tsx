@@ -3,6 +3,7 @@ import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
 import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
 import { isBullish } from '@/lib/odds'
+import { tickerOf, tickerHref } from '@/lib/ticker'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -81,7 +82,7 @@ export default async function FeedPage(props: {
   let query = supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
+      id, caption, slip_image_url, tag, tag2, ticker, ticker2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned ),
       category:categories ( name ),
       likes ( user_id, emoji ),
@@ -111,9 +112,11 @@ export default async function FeedPage(props: {
   // Trending: group by cashtag and count whichever direction each post
   // took. Four directions now (backing/fading for sides, over/under for
   // totals), and a total counts under BOTH teams' tags.
+  // Group on the ticker, not the whole tag: "$LAL -4.5" and "$LAL -3.5"
+  // are the same team and used to count as two separate trends.
   const tagCounts: Record<string, Record<string, number>> = {}
   for (const p of shaped) {
-    for (const t of [p.tag, p.tag2]) {
+    for (const t of [p.ticker ?? tickerOf(p.tag), p.ticker2 ?? tickerOf(p.tag2)]) {
       if (!t) continue
       tagCounts[t] = tagCounts[t] ?? {}
       tagCounts[t][p.sentiment] = (tagCounts[t][p.sentiment] ?? 0) + 1
@@ -139,9 +142,9 @@ export default async function FeedPage(props: {
       {tickerItems.length > 0 && (
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (
-            <span key={p.id} className="ticker-item">
+            <Link key={p.id} href={tickerHref(p.tag)} className="ticker-item">
               {p.tag} <span className={p.sentiment}>{p.sentiment}</span>
-            </span>
+            </Link>
           ))}
         </div>
       )}
@@ -151,14 +154,14 @@ export default async function FeedPage(props: {
           <div className="trending-card">
             <div className="trending-title">Trending on Gwuap</div>
             {trending.map((t, i) => (
-              <div className="trend-row" key={t.tag}>
+              <Link href={tickerHref(t.tag)} className="trend-row" key={t.tag}>
                 <span className="trend-rank">{i + 1}</span>
                 <span className="cashtag" style={{ fontSize: 12 }}>{t.tag}</span>
                 <span style={{ flex: 1, color: 'var(--ink-dim)' }}>{t.total} picks</span>
                 <span className="mono" style={{ color: isBullish(t.leader as any) ? 'var(--brand)' : 'var(--bear)', fontWeight: 700 }}>
                   {t.pct}% {t.leader}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -805,17 +805,55 @@ better than a paywall would, and costs users nothing.
 
 ---
 
-## Session 10 — Chat rooms + Vent room
+## Session 10 — Cashtag pages + Vent room ✅ DONE
 
-- [ ] Build the realtime chat room feature for league categories
-- [ ] Build the Vent room specifically:
-  - [ ] Exclude "Vent" from pick categories / leaderboard / win-loss tracking
-  - [ ] Pin crisis resources at the top of the room (e.g. National Problem
-        Gambling Helpline, 1-800-522-4700)
-  - [ ] Pin visible room rules
-  - [ ] Route reports from this room into a flagged, priority queue
+**Run `supabase/migrations/012_tickers_and_vent.sql` before pushing.**
 
----
+**League chat rooms were dropped.** The idea came from Polymarket, where
+people talk under a specific market. What makes that work is a *shared
+object* with conversation attached — the market — not the chat itself.
+Twelve league rooms with nobody in them would have felt deader than no
+rooms at all.
+
+The shared object here already existed: the cashtag. What was missing was
+a page for it.
+
+### Cashtag pages
+
+- [x] `/tag/LAL` — every pick and take on a team or player, newest first,
+      with the sentiment split across the top and a Post button that
+      pre-fills the ticker.
+- [x] **Cashtags are links now.** They were plain text in post cards,
+      Trending rows and the ticker strip — three dead ends on every page.
+- [x] **Fixed a second fragmentation bug.** `tag` stores the whole string
+      ("$LAL -4.5"), and Trending grouped on it exactly — so "$LAL -4.5"
+      and "$LAL -3.5" counted as two different trends. The autocomplete
+      fixed *case* fragmentation in Session 6; this is the *line*. A new
+      `ticker` column is derived by trigger from the tag, so it can't
+      drift, and Trending and cashtag pages both group on it.
+
+**Not built: realtime.** Polymarket feels alive because thousands of
+people are on one market, which is volume rather than technology.
+Realtime on an empty room is an empty room that updates instantly. Worth
+adding once there's traffic — the plumbing would serve Vent too.
+
+### Vent room
+
+- [x] `/vent`, signed-in only — people say hard things there and it
+      shouldn't be readable by passers-by or indexable
+- [x] A separate table rather than a post category, so it's
+      *structurally* incapable of reaching picks, the leaderboard or
+      anyone's record
+- [x] Crisis resources pinned at the top: National Problem Gambling
+      Helpline 1-800-522-4700 (call or text, 24/7), ncpgambling.org/chat,
+      and 988 for self-harm. US only for now.
+- [x] Room rules pinned: no bullying (permanent ban), no racism or hate
+      speech
+- [x] Reports from this room go to the top of the moderation queue and
+      are flagged there. A report counts as a Vent report if and only if
+      it points at a vent message — there's no priority flag a client
+      could set on an ordinary report.
+- [x] Delete your own message; report anyone else's
 
 ## Session 11 — Polish round two, then a wider invite
 

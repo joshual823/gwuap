@@ -300,4 +300,24 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .dm-request-note { color: var(--ink-dim); font-size: 12.5px; line-height: 1.45; }
 .dm-disabled { font-size: 13px; color: var(--ink-faint); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
 
+/* Cashtag pages */
+.ticker-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.ticker-split { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+/* Vent room */
+.vent-help { background: var(--card); border: 1px solid var(--brand); border-radius: 12px; padding: 14px; margin-bottom: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); }
+.vent-help strong { color: var(--ink); display: block; margin-bottom: 6px; }
+.vent-help ul, .vent-rules ol { margin: 0; padding-left: 18px; }
+.vent-help li { margin-bottom: 4px; }
+.vent-help a { color: var(--brand); font-weight: 600; }
+.vent-help-note { display: block; margin-top: 8px; font-size: 12px; color: var(--ink-faint); }
+.vent-rules { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); }
+.vent-rules strong { color: var(--ink); display: block; margin-bottom: 6px; }
+.vent-msg { display: flex; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.vent-body { flex: 1; min-width: 0; }
+.vent-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.vent-action-note { margin-left: auto; font-size: 12px; color: var(--ink-faint); }
+.ticket.priority { border-color: var(--pending); }
+.ticket-flag { display: inline-block; font-size: 11px; font-weight: 700; color: var(--pending); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

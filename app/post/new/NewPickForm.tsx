@@ -60,6 +60,9 @@ export default function NewPickForm() {
     })
     const headline = searchParams.get('headline')
     if (headline) setCaption(headline)
+    // Arriving from a cashtag page: start with that ticker filled in.
+    const presetTag = searchParams.get('tag')
+    if (presetTag) setTag(presetTag.toUpperCase() + ' ')
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
       if (Number.isFinite(lastStake) && lastStake > 0) {

@@ -58,6 +58,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </Link>
               )}
               {user && (
+                <Link href="/vent" className="icon-wrap" title="Vent room">🫂</Link>
+              )}
+              {user && (
                 <Link href="/messages" className="icon-wrap" title="Messages">
                   ✉️{inbox > 0 && <span className="badge">{inbox > 9 ? '9+' : inbox}</span>}
                 </Link>

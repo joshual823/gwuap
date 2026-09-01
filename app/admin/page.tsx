@@ -17,12 +17,16 @@ export default async function AdminPage() {
   const { data: reports } = await supabase
     .from('reports')
     .select(`
-      id, reason, status, created_at,
+      id, reason, status, created_at, reported_vent_id,
       reporter:profiles!reports_reporter_id_fkey ( username ),
       reported_user:profiles!reports_reported_user_id_fkey ( id, username ),
-      reported_post:posts ( id, caption )
+      reported_post:posts ( id, caption ),
+      reported_vent:vent_messages ( id, body )
     `)
     .eq('status', 'open')
+    // Vent reports first: it's the room where getting moderation wrong
+    // matters most.
+    .order('reported_vent_id', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   return (
@@ -30,13 +34,17 @@ export default async function AdminPage() {
       <h1 className="display" style={{ fontSize: 22, marginBottom: 16 }}>Moderation queue</h1>
       {(reports ?? []).length === 0 && <p style={{ color: 'var(--ink-dim)' }}>No open reports.</p>}
       {(reports ?? []).map((r: any) => (
-        <div key={r.id} className="ticket">
+        <div key={r.id} className={`ticket ${r.reported_vent_id ? 'priority' : ''}`}>
+          {r.reported_vent_id && <span className="ticket-flag">Vent room · priority</span>}
           <p style={{ margin: 0, fontSize: 14 }}>
             <strong>@{r.reporter?.username}</strong> reported <strong>@{r.reported_user?.username}</strong>
           </p>
           <p style={{ margin: '6px 0', color: 'var(--ink-dim)', fontSize: 13 }}>{r.reason}</p>
           {r.reported_post?.caption && (
             <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink-dim)' }}>"{r.reported_post.caption}"</p>
+          )}
+          {r.reported_vent?.body && (
+            <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink-dim)' }}>"{r.reported_vent.body}"</p>
           )}
           <AdminActions reportId={r.id} userId={r.reported_user?.id} postId={r.reported_post?.id} />
         </div>

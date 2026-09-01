@@ -6,6 +6,7 @@ import {
 } from '@/lib/odds'
 import { timeAgo } from '@/lib/time'
 import { tallyReactions } from '@/lib/reactions'
+import { tickerHref } from '@/lib/ticker'
 import ReactionBar from './ReactionBar'
 import PostMenu from './PostMenu'
 import Avatar from './Avatar'
@@ -65,8 +66,8 @@ export default function PostCard({ post }: { post: Post }) {
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>
-          {post.tag && <span className="cashtag">{post.tag}</span>}
-          {post.tag2 && <><span className="vs">vs</span><span className="cashtag">{post.tag2}</span></>}
+          {post.tag && <Link href={tickerHref(post.tag)} className="cashtag">{post.tag}</Link>}
+          {post.tag2 && <><span className="vs">vs</span><Link href={tickerHref(post.tag2)} className="cashtag">{post.tag2}</Link></>}
           {post.category && <span className="pill">{post.category.name}</span>}
           <span className={`sentiment ${post.sentiment}`}>{post.sentiment}</span>
         </div>
