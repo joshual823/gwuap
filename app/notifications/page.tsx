@@ -21,7 +21,7 @@ export default async function NotificationsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/notifications')
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('notifications')
     .select(`
       id, type, post_id, comment_id, emoji, read_at, created_at,
@@ -32,6 +32,18 @@ export default async function NotificationsPage() {
     .limit(50)
 
   const rows = (data ?? []) as any[]
+  // A failed query and an empty inbox used to render identically, which
+  // makes a broken notification system look like a quiet one.
+  if (error) {
+    return (
+      <div style={{ marginTop: 24 }}>
+        <h1 className="display" style={{ fontSize: 22 }}>Notifications</h1>
+        <p style={{ color: 'var(--bear)', fontSize: 14, marginTop: 12 }}>
+          Couldn't load notifications: {error.message}
+        </p>
+      </div>
+    )
+  }
   const unread = rows.filter(n => !n.read_at).length
 
   return (
