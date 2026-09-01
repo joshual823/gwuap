@@ -219,6 +219,12 @@ create policy "users view own reports" on reports for select using (auth.uid() =
 create policy "users manage own blocks" on blocks for all using (auth.uid() = blocker_id);
 
 -- ============================================================
+-- Trigger functions are SECURITY DEFINER and must not be callable by
+-- clients. Postgres doesn't check EXECUTE when firing a trigger, so
+-- revoking it costs nothing. See migration 016.
+-- ============================================================
+
+-- ============================================================
 -- Admin moderation (feature 13) is done with the Supabase
 -- service_role key from a protected /admin route (see app/admin) —
 -- service_role bypasses RLS, so all admin actions go through
