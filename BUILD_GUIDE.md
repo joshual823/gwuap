@@ -433,6 +433,14 @@ failure, so a feed going down can never take the page with it. Caching
 is Next's `revalidate: 900`, so each feed is pulled at most four times an
 hour regardless of traffic.
 
+**Caught after the first deploy:** `/feed` returned the signed-out
+landing page before any tab logic ran, so the News tab was invisible to
+logged-out visitors — the exact people it was built for. News is now
+public: a cold visitor can browse headlines without an account, the
+landing page links to it ("Just looking? Browse today's headlines"), and
+a sign-up nudge sits above the list. Worth remembering as a pattern:
+anything meant to hook a stranger has to be reachable *before* signup.
+
 **Budget boundary to hold:** headlines via RSS are free. *Structured*
 sports data — live scores, odds, injury reports, player props — is a
 different product with real pricing ($50-500/month, and some vendors

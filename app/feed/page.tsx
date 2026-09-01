@@ -17,14 +17,53 @@ export default async function FeedPage({ searchParams }: {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const tabs = (
+    <div className="feed-tabs">
+      <Link href="/feed" className={`feed-tab ${tab === 'home' ? 'active' : ''}`}>Home</Link>
+      <Link href="/feed?tab=news" className={`feed-tab ${tab === 'news' ? 'active' : ''}`}>News</Link>
+    </div>
+  )
+
+  // News needs no account. It's the one thing a cold visitor can actually
+  // look at, which is the entire reason it exists — gating it behind
+  // signup would show it only to people who are already convinced.
+  if (tab === 'news') {
+    const items = await fetchNews(newsLeague)
+    return (
+      <div>
+        {tabs}
+        <div className="chip-row">
+          {NEWS_LEAGUES.map(lg => (
+            <Link key={lg} href={`/feed?tab=news&league=${encodeURIComponent(lg)}`}
+              className={`chip ${lg === newsLeague ? 'active' : ''}`}>{lg}</Link>
+          ))}
+        </div>
+        {!user && (
+          <div className="signup-nudge">
+            <strong>Have a take on any of this?</strong>
+            <span>Post a pick and start building a public record.</span>
+            <Link href="/signup" className="btn">Get started</Link>
+          </div>
+        )}
+        <NewsList items={items} league={newsLeague === 'Top' ? 'Other' : newsLeague} />
+      </div>
+    )
+  }
+
   if (!user) {
     return (
-      <div style={{ marginTop: 60, textAlign: 'center' }}>
-        <h1 className="display" style={{ fontSize: 26 }}>Track your picks. Follow the sharps.</h1>
-        <p style={{ color: 'var(--ink-dim)', margin: '12px 0 24px' }}>
-          Post your picks, build a public record, and see who's actually winning.
-        </p>
-        <Link href="/signup" className="btn">Get started</Link>
+      <div>
+        {tabs}
+        <div style={{ marginTop: 48, textAlign: 'center' }}>
+          <h1 className="display" style={{ fontSize: 26 }}>Track your picks. Follow the sharps.</h1>
+          <p style={{ color: 'var(--ink-dim)', margin: '12px 0 24px' }}>
+            Post your picks, build a public record, and see who's actually winning.
+          </p>
+          <Link href="/signup" className="btn">Get started</Link>
+          <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 20 }}>
+            Just looking? <Link href="/feed?tab=news" style={{ color: 'var(--twitter-blue)', fontWeight: 600 }}>Browse today's headlines →</Link>
+          </p>
+        </div>
       </div>
     )
   }
@@ -83,29 +122,6 @@ export default async function FeedPage({ searchParams }: {
     })
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
-
-  const tabs = (
-    <div className="feed-tabs">
-      <Link href="/feed" className={`feed-tab ${tab === 'home' ? 'active' : ''}`}>Home</Link>
-      <Link href="/feed?tab=news" className={`feed-tab ${tab === 'news' ? 'active' : ''}`}>News</Link>
-    </div>
-  )
-
-  if (tab === 'news') {
-    const items = await fetchNews(newsLeague)
-    return (
-      <div>
-        {tabs}
-        <div className="chip-row">
-          {NEWS_LEAGUES.map(lg => (
-            <Link key={lg} href={`/feed?tab=news&league=${encodeURIComponent(lg)}`}
-              className={`chip ${lg === newsLeague ? 'active' : ''}`}>{lg}</Link>
-          ))}
-        </div>
-        <NewsList items={items} league={newsLeague === 'Top' ? 'Other' : newsLeague} />
-      </div>
-    )
-  }
 
   // Home keeps three headlines as a prompt, not as feed content — the
   // timeline itself stays real picks by real people.
