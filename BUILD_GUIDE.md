@@ -168,32 +168,57 @@ confirm the card shows +$45.45 in green.
 
 ## YOU ARE HERE
 
-**Sessions 1-6 and 8 are done, deployed, and tested live at
-https://gwuap.vercel.app.** Six migrations run (001-006). Nothing is
-half-built; every link in the UI goes somewhere real.
+**Everything in this guide is built, deployed and tested live at
+https://gwuap.vercel.app,** except the email provider. Sixteen
+migrations run. Next.js 16, React 19, 0 npm vulnerabilities.
 
-The site now has: dollar-tracked picks with locked odds, takes, comment
-threads with replies and emoji reactions, cashtag autocomplete across
-222 teams and athletes, a news tab with images and post-a-pick prompts,
-working moderation, and a leaderboard with real profit.
+### Security review passed (Session 11)
 
-**What it does not have is a single other user.**
+Nine real holes found and closed over the project:
 
-**Session 7 is next and it is not a coding session.** Everything below it
-— DMs, chat rooms — is building for people who aren't there yet. The
-honest risk now isn't shipping too early, it's building indefinitely
-because building is the comfortable part.
+1. `categories` had no RLS at all — the anon key in every browser could
+   rename or delete every league. Supabase's own linter flagged this
+   independently.
+2. No write throttles anywhere except DM requests — a script could fill
+   the feed, drown the Vent room, or flood the moderation queue.
+3. The `avatars` bucket was listable, exposing every user id in bulk.
+4. The `leaderboard` view read past RLS (no leak today; latent).
+5. A URL segment reached a PostgREST filter unsanitised.
+6. Posted odds were editable after the game (Session 6d).
+7. `is_admin` was self-settable — any user could become an admin (9c).
+8. Notifications would have been forgeable if the client wrote them (9a).
+9. The leaderboard could be topped by never grading losses (8f).
 
-**The order changed, and here's why.** The original plan put DM requests
-next. Building private messaging for a site with one account is the exact
-trap this guide warns about on page one — you can't test it, and neither
-can your first testers, because there's nobody to message. Worse, three
-links in the shipped UI are 404 right now and a tester will tap all three
-in their first minute. So Session 6 became "make it not broken," seeding
-and inviting moved up, and DMs moved back behind the point where there
-are actually people to message.
+**Accepted, documented risks:** email enumeration on signup, `is_admin`
+publicly readable, one-directional blocking, no image moderation.
 
----
+**Advisor status:** 0 errors, 1 warning — leaked-password protection,
+which is Pro-plan only. Minimum password length is 8 in both Supabase
+and the app.
+
+**Supabase Auth toggles:** "Secure password change" ON is good. **"Require
+current password when updating" should be OFF** until someone tests a
+full password reset with it on — `/reset/confirm` calls
+`updateUser({password})` with no old password, because the user forgot
+it. If Supabase doesn't exempt recovery sessions, resets break for
+exactly the people who need them.
+
+### What's left
+
+**1. A domain.** `gwuap.com` is taken by a parking service. A domain is
+needed for Resend to send to anyone but you, so it blocks password
+resets and email confirmation for strangers. It's also the real URL —
+switching needs zero code changes, just the new domain added to
+Supabase's redirect allowlist.
+
+**2. Resend** (chosen via `vercel integration discover --category
+messaging` — it's the only option). Supabase Auth sends the mail, so the
+work is: verify the domain in Resend, take the SMTP credentials, paste
+them into Supabase's Custom SMTP settings. ~1 hour, mostly waiting on
+DNS.
+
+**3. Seed the feed, then get people on it.** Still the actual blocker,
+and still not a coding problem. See Session 7.
 
 ## Session 6 — Make it not broken ✅ DONE (tested live)
 
