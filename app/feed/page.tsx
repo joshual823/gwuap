@@ -26,7 +26,7 @@ export default async function FeedPage() {
       id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
-      likes ( user_id ),
+      likes ( user_id, emoji ),
       comments ( id )
     `)
     .order('created_at', { ascending: false })
@@ -34,9 +34,8 @@ export default async function FeedPage() {
 
   const shaped = (posts ?? []).map((p: any) => ({
     ...p,
-    like_count: p.likes?.length ?? 0,
     comment_count: p.comments?.length ?? 0,
-    liked_by_me: !!p.likes?.find((l: any) => l.user_id === user.id),
+    viewer_id: user?.id ?? null,
   }))
 
   // Ticker: most recent picks that have a tag, newest first.

@@ -1,12 +1,12 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabaseClient'
 import {
   BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
   formatUsd, formatSignedUsd, type BetType, type PickStatus,
 } from '@/lib/odds'
 import { timeAgo } from '@/lib/time'
+import { tallyReactions } from '@/lib/reactions'
+import ReactionBar from './ReactionBar'
 
 type Post = {
   id: string
@@ -22,16 +22,12 @@ type Post = {
   created_at: string
   author: { id: string; username: string; avatar_url: string | null }
   category: { name: string } | null
-  like_count: number
+  likes: { user_id: string; emoji: string | null }[]
   comment_count: number
-  liked_by_me: boolean
+  viewer_id: string | null
 }
 
 export default function PostCard({ post }: { post: Post }) {
-  const supabase = createClient()
-  const [liked, setLiked] = useState(post.liked_by_me)
-  const [likeCount, setLikeCount] = useState(post.like_count)
-
   const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
 
   // Graded picks show what actually happened. Older picks graded before
@@ -44,17 +40,9 @@ export default function PostCard({ post }: { post: Post }) {
     ? profitOnWin(oddsValue, post.stake)
     : null
 
-  async function toggleLike() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    if (liked) {
-      await supabase.from('likes').delete().match({ user_id: user.id, post_id: post.id })
-      setLiked(false); setLikeCount(c => c - 1)
-    } else {
-      await supabase.from('likes').insert({ user_id: user.id, post_id: post.id })
-      setLiked(true); setLikeCount(c => c + 1)
-    }
-  }
+  const reactions = post.likes ?? []
+  const counts = tallyReactions(reactions)
+  const mine = reactions.find(l => l.user_id === post.viewer_id)?.emoji ?? null
 
   return (
     <article className="post">
@@ -97,9 +85,12 @@ export default function PostCard({ post }: { post: Post }) {
         </div>
 
         <div className="action-row">
-          <button className={`action-btn ${liked ? 'liked' : ''}`} onClick={toggleLike} aria-pressed={liked}>
-            <span style={{ fontSize: 16 }}>{liked ? '♥' : '♡'}</span> {likeCount}
-          </button>
+          <ReactionBar
+            postId={post.id}
+            initialCounts={counts}
+            initialMine={mine}
+            viewerId={post.viewer_id}
+          />
           <Link href={`/post/${post.id}`} className="action-btn">
             <span style={{ fontSize: 15 }}>💬</span> {post.comment_count}
           </Link>

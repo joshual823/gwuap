@@ -139,8 +139,8 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .odds-input { flex: 1; font-size: 17px; font-weight: 700; letter-spacing: 0.02em; }
 .currency-prefix { display: flex; align-items: center; padding: 0 4px 0 2px; font-size: 17px; font-weight: 700; color: var(--ink-dim); }
 
-.stake-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.stake-chips .chip { cursor: pointer; padding: 9px 14px; font-size: 13px; }
+.chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip-grid .chip { cursor: pointer; padding: 9px 14px; font-size: 13px; }
 
 .bet-preview { font-size: 13px; color: var(--ink); margin: 0 0 16px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
 .bet-preview .pos { color: var(--brand); }
@@ -186,5 +186,19 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .cashtag-code { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13.5px; color: var(--ink); flex: 0 0 auto; min-width: 48px; }
 .cashtag-name { font-size: 13px; color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cashtag-hint { font-size: 12px; color: var(--ink-faint); margin: -6px 0 12px; }
+
+
+/* Reactions: tap for a heart, press and hold for the picker */
+.reaction-wrap { position: relative; display: flex; align-items: center; gap: 8px; }
+.react-btn { -webkit-touch-callout: none; user-select: none; touch-action: manipulation; }
+.react-emoji { font-size: 17px; line-height: 1; }
+.react-btn.reacted .react-emoji { filter: none; }
+
+.reaction-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--ink-dim); cursor: pointer; }
+.reaction-chip.mine { border-color: var(--brand); color: var(--ink); }
+
+.reaction-picker { position: absolute; bottom: 30px; left: 0; z-index: 40; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; padding: 8px; width: 258px; max-height: 210px; overflow-y: auto; background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.5); }
+.reaction-pick { background: none; border: none; border-radius: 8px; padding: 6px 0; font-size: 20px; line-height: 1.2; cursor: pointer; }
+.reaction-pick:hover, .reaction-pick.mine { background: var(--card); }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

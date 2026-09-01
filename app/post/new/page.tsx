@@ -28,7 +28,6 @@ export default function NewPostPage() {
   const [customMode, setCustomMode] = useState(false)
   const [customStake, setCustomStake] = useState('')
 
-  const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -75,15 +74,6 @@ export default function NewPostPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    let slip_image_url: string | null = null
-    if (file) {
-      const path = `${user.id}/${Date.now()}-${file.name}`
-      const { error: uploadError } = await supabase.storage.from('bet-slips').upload(path, file)
-      if (uploadError) { setError('Image upload failed.'); setLoading(false); return }
-      const { data } = supabase.storage.from('bet-slips').getPublicUrl(path)
-      slip_image_url = data.publicUrl
-    }
-
     const { error: insertError } = await supabase.from('posts').insert({
       author_id: user.id,
       category_id: categoryId || null,
@@ -94,7 +84,6 @@ export default function NewPostPage() {
       odds: oddsText,
       stake,
       potential_payout: payoutOnWin(oddsValue, stake),
-      slip_image_url,
     })
 
     setLoading(false)
@@ -124,10 +113,10 @@ export default function NewPostPage() {
           value={caption} onChange={e => setCaption(e.target.value)} />
 
         <label className="form-label">Bet type</label>
-        <div className="segment">
+        <div className="chip-grid">
           {BET_TYPES.map(b => (
             <button key={b.value} type="button" aria-pressed={betType === b.value}
-              className={betType === b.value ? 'active' : ''}
+              className={`chip ${betType === b.value ? 'active' : ''}`}
               onClick={() => setBetType(b.value)}>{b.label}</button>
           ))}
         </div>
@@ -148,7 +137,7 @@ export default function NewPostPage() {
         </div>
 
         <label className="form-label">Stake</label>
-        <div className="stake-chips">
+        <div className="chip-grid">
           {STAKE_PRESETS.map(amount => (
             <button key={amount} type="button" aria-pressed={!customMode && presetStake === amount}
               className={`chip ${!customMode && presetStake === amount ? 'active' : ''}`}
@@ -174,17 +163,14 @@ export default function NewPostPage() {
             : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
         </p>
 
-        <label className="form-label">Betting slip screenshot (optional)</label>
-        <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] ?? null)}
-          style={{ marginBottom: 12, color: 'var(--ink-dim)' }} />
-
         {error && <p style={{ color: 'var(--bear)', fontSize: 14 }}>{error}</p>}
         <button className="btn" disabled={loading} type="submit">{loading ? 'Posting…' : 'Post pick'}</button>
       </form>
       <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 16 }}>
         Every pick is marked Unverified — real verification (synced to your
         actual sportsbook account) is a planned future feature. Amounts are
-        in US dollars.
+        in US dollars. Bet slip uploads are off for now; they come back
+        once there's image moderation behind them.
       </p>
     </div>
   )

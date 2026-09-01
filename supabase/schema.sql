@@ -46,7 +46,8 @@ create table posts (
   slip_image_url text,        -- uploaded betting slip screenshot (Supabase Storage)
   tag text,                   -- short cashtag-style label, e.g. "$LAL -4.5"
   sentiment text default 'backing' check (sentiment in ('backing','fading')),
-  bet_type text default 'moneyline' check (bet_type in ('moneyline','spread','total')),
+  bet_type text default 'moneyline' check (bet_type in (
+    'moneyline','spread','total','player_prop','team_prop','parlay','future','other')),
   odds text,                  -- American odds as entered, e.g. "+150", "-110"
   stake numeric,              -- dollars risked
   currency text default '$',  -- USD only as of Session 5; kept for old rows
@@ -63,8 +64,9 @@ create index posts_category_idx on posts (category_id, created_at desc);
 create table likes (
   user_id uuid references profiles(id) on delete cascade,
   post_id uuid references posts(id) on delete cascade,
+  emoji text not null default '♥' check (char_length(emoji) between 1 and 8),
   created_at timestamptz default now(),
-  primary key (user_id, post_id)
+  primary key (user_id, post_id)   -- one reaction per person per post
 );
 
 -- 6. COMMENTS (feature 7)
@@ -156,6 +158,7 @@ create policy "users delete own posts" on posts for delete using (auth.uid() = a
 -- Likes
 create policy "likes are publicly readable" on likes for select using (true);
 create policy "users manage own likes" on likes for insert with check (auth.uid() = user_id);
+create policy "users update own likes" on likes for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "users remove own likes" on likes for delete using (auth.uid() = user_id);
 
 -- Comments

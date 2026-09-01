@@ -210,8 +210,39 @@ are actually people to message.
       neither has ever been exercised against production. Still yours to
       do; it can't be checked from the terminal.
 
-**No database migration this time** — Session 6 is all application code,
-so unlike Session 5 you can just push. Nothing to run in Supabase first.
+### Session 6b — bet types, no uploads, emoji reactions
+
+**Run `supabase/migrations/002_session6_bettypes_reactions.sql` BEFORE
+pushing.** Same rule as Session 5: push first and the live site asks for
+columns that don't exist.
+
+- [x] **Bet types widened from 3 to 8**: Moneyline, Spread, Total (O/U),
+      Player prop, Team prop, Parlay, Future, Other. One flat wrapping
+      row of chips, not a nested category picker — two levels means two
+      taps every post, and most people don't know which bucket their bet
+      is in. Note a "total" **is** the over/under; they're the same bet,
+      so there's no separate entry for it.
+- [x] **Bet slip upload removed.** No image moderation and one solo
+      moderator is a bad combination. The storage bucket and the
+      `slip_image_url` column stay, and post cards still display an image
+      if one exists — nothing is destroyed, only the upload UI is gone.
+      **Tradeoff accepted:** a slip screenshot was the closest thing to
+      real verification we had. It comes back with moderation behind it.
+- [x] **Emoji reactions.** Tap for a heart, press and hold for a grid of
+      48 reactions. One reaction per person per post — picking a new one
+      replaces your old one, tapping your own removes it. Counts show as
+      chips on the card and yours is outlined.
+
+**Why it's a curated grid and not the iPhone keyboard:** a web page
+cannot open the system emoji keyboard. There's no API — it's part of the
+native keyboard UI and only appears when the user taps the emoji key
+themselves. Slack, Discord, and Notion all ship their own grid for the
+same reason.
+
+**Migration gotcha worth remembering:** the original schema only had
+INSERT and DELETE policies on `likes`. Changing a reaction is an UPDATE,
+so without a new RLS policy every reaction change would have been
+silently rejected. The migration adds it.
 
 **What actually shipped:**
 - `/post/[id]` exists: the post, its replies oldest-first, a reply box,

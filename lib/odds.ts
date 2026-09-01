@@ -6,13 +6,24 @@
 // The magnitude is never below 100 — "+100" / "-100" is an even bet — so
 // anything smaller is rejected as a typo rather than silently mis-priced.
 
-export type BetType = 'moneyline' | 'spread' | 'total'
+export type BetType =
+  | 'moneyline' | 'spread' | 'total'
+  | 'player_prop' | 'team_prop' | 'parlay' | 'future' | 'other'
 export type PickStatus = 'pending' | 'win' | 'loss' | 'push' | 'void'
 
+// Note: a "total" IS the over/under — they're the same bet, so there's
+// no separate O/U entry. Player props are broken out because they're the
+// most common casual bet and lumping them into "other" would tell us
+// nothing later.
 export const BET_TYPES: { value: BetType; label: string }[] = [
   { value: 'moneyline', label: 'Moneyline' },
   { value: 'spread', label: 'Spread' },
-  { value: 'total', label: 'Total' },
+  { value: 'total', label: 'Total (O/U)' },
+  { value: 'player_prop', label: 'Player prop' },
+  { value: 'team_prop', label: 'Team prop' },
+  { value: 'parlay', label: 'Parlay' },
+  { value: 'future', label: 'Future' },
+  { value: 'other', label: 'Other' },
 ]
 
 /** Quick-select stake amounts, in dollars. */

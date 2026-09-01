@@ -32,7 +32,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
       id, caption, slip_image_url, tag, sentiment, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
-      likes ( user_id ),
+      likes ( user_id, emoji ),
       comments ( id )
     `)
     .eq('author_id', profile.id)
@@ -40,9 +40,8 @@ export default async function ProfilePage({ params }: { params: { username: stri
 
   const posts = (rawPosts ?? []).map((p: any) => ({
     ...p,
-    like_count: p.likes?.length ?? 0,
     comment_count: p.comments?.length ?? 0,
-    liked_by_me: !!p.likes?.find((l: any) => l.user_id === user?.id),
+    viewer_id: user?.id ?? null,
   }))
 
   const wins = posts.filter((p: any) => p.status === 'win').length
