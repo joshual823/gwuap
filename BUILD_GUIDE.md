@@ -44,9 +44,10 @@ with five features that real people are using.
       file, which was needed for login sessions to persist)
 - [x] Posted a real pick, confirmed it shows in the feed
 - [x] Liked a post
-- [ ] Comment thread page (`/post/[id]`) — known incomplete, on the list
-- [ ] Admin access — not urgent, skipped for now, revisit once there's
-      real content to moderate
+- [x] Comment thread page (`/post/[id]`) — built in Session 6, with
+      replies and reactions
+- [x] Admin access — granted in Session 9, with a link in the header and
+      a priority queue for Vent reports
 
 ---
 
@@ -102,8 +103,8 @@ with five features that real people are using.
       (`/`, `/feed`, and `/leaderboard` all confirmed serving.)
 - [x] Posting verified end-to-end on the live URL (Session 5) — writes
       do reach Supabase from Vercel
-- [ ] Still unverified live: signup as a brand-new user, and likes.
-      Worth doing before you invite anyone.
+- [x] Signup as a brand-new user and reactions both verified live via a
+      second account (Session 9)
 - [ ] Also revisit: re-enable "Confirm email" in Supabase with a real
       email provider (or make a deliberate decision to leave it off) —
       it's currently OFF for local testing only
@@ -884,12 +885,10 @@ now, so adding it to cashtag pages later is small.
 - [ ] Re-enable "Confirm email" in Supabase with a real email provider —
       currently OFF, which is fine for five friends and not fine for
       strangers
-- [ ] **Upgrade Next.js off 14.2.x.** That line stopped receiving
-      security backports in May 2026, so `npm audit` will keep flagging
-      issues no matter what. The jump to 15.x/16.x is a real breaking
-      change (cookie/session handling API), not a quick bump — it needs
-      its own session, and it needs to happen before any wider public
-      audience.
+- [x] **Next.js upgraded to 16.3.4 / React 19** (Session 8g). Done early
+      rather than last, because the async `cookies()` change touches every
+      server component and gets more expensive with each feature added on
+      14.x. `npm audit` reports 0 vulnerabilities.
 
 ---
 
