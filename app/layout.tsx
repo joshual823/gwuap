@@ -41,6 +41,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="top-icons">
               {/* /admin has no link otherwise — it was URL-only. */}
               {isAdmin && <Link href="/admin" className="icon-wrap" title="Moderation queue">🛡️</Link>}
+              {user && (
+                <Link href="/notifications" className="icon-wrap" title="Notifications">
+                  🔔{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}
+                </Link>
+              )}
               <Link href="/search" className="icon-wrap">🔍</Link>
             </div>
           </div>
