@@ -167,14 +167,13 @@ confirm the card shows +$45.45 in green.
 
 ## YOU ARE HERE
 
-**Sessions 1-5 are done, deployed, and verified live at
-https://gwuap.vercel.app.** Nothing is broken in what shipped.
+**Sessions 1-6 are done, deployed, and tested live at
+https://gwuap.vercel.app.** Nothing is half-built. Every link in the UI
+goes somewhere real. Four migrations have been run (001-004).
 
-**Paused mid-build — the comment thread page.** `app/post/[id]/` has
-`CommentForm.tsx` and `DeleteComment.tsx` written, plus a shared
-`lib/time.ts`. The `page.tsx` that ties them together is NOT written, so
-no `/post/[id]` route exists and none of it is live. The build passes.
-Say "finish the comment page" to resume.
+**Next up is Session 7 — and it is not a coding session.** It's seeding
+the feed and getting five people on it. Nothing below Session 7 should
+start before that happens.
 
 **The order changed, and here's why.** The original plan put DM requests
 next. Building private messaging for a site with one account is the exact
@@ -187,7 +186,7 @@ are actually people to message.
 
 ---
 
-## Session 6 — Make it not broken ✅ CODE DONE
+## Session 6 — Make it not broken ✅ DONE (tested live)
 
 **Goal:** nothing a first-time visitor touches is broken or fake.
 
@@ -206,9 +205,8 @@ are actually people to message.
       also resolves the `LAC` = Clippers *and* Chargers collision.
       College and soccer stay free-text for now; that's a long tail worth
       filling in only once someone actually posts those picks.
-- [ ] Test **signup as a brand-new user** and **likes** on the live URL —
-      neither has ever been exercised against production. Still yours to
-      do; it can't be checked from the terminal.
+- [x] Tested on the live URL — signup, posting, comments, replies, and
+      reactions all confirmed working against production.
 
 ### Session 6b — bet types, no uploads, emoji reactions
 
