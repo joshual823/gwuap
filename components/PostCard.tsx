@@ -6,6 +6,7 @@ import {
   BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
   formatUsd, formatSignedUsd, type BetType, type PickStatus,
 } from '@/lib/odds'
+import { timeAgo } from '@/lib/time'
 
 type Post = {
   id: string
@@ -24,15 +25,6 @@ type Post = {
   like_count: number
   comment_count: number
   liked_by_me: boolean
-}
-
-function timeAgo(dateStr: string) {
-  const diffMs = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diffMs / 60000)
-  if (mins < 60) return `${mins}m`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h`
-  return `${Math.floor(hours / 24)}d`
 }
 
 export default function PostCard({ post }: { post: Post }) {

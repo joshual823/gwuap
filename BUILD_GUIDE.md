@@ -187,19 +187,19 @@ are actually people to message.
 
 ---
 
-## Session 6 — Make it not broken (current step)
+## Session 6 — Make it not broken ✅ CODE DONE
 
 **Goal:** nothing a first-time visitor touches is broken or fake.
 
-- [ ] **Finish the comment thread page** (`/post/[id]`). Every post card
+- [x] **Finished the comment thread page** (`/post/[id]`). Every post card
       has a comment icon linking here and it 404s on the live site today.
       Half-built already, see above.
-- [ ] **Deal with `/chat` and `/dm` in the header.** Both 404, and both
+- [x] **Removed `/chat` and `/dm` from the header.** Both 404, and both
       display hardcoded fake notification badges ("2" and "1"). Either
       build them or strip the links — but fake badges have to go before
       anyone else sees the site.
-- [ ] **Cashtag auto-uppercase.** One line in the post form's onChange.
-- [ ] **Cashtag autocomplete**, StockTwits-style: type `$L`, get a
+- [x] **Cashtag auto-uppercase.** One line in the post form's onChange.
+- [x] **Cashtag autocomplete**, StockTwits-style: type `$L`, get a
       dropdown of matching teams with full names. Static file of the 124
       teams in NBA/NFL/MLB/NHL — no API, no database, no monthly cost.
       Filter the list by the league already selected on the form, which
@@ -207,7 +207,29 @@ are actually people to message.
       College and soccer stay free-text for now; that's a long tail worth
       filling in only once someone actually posts those picks.
 - [ ] Test **signup as a brand-new user** and **likes** on the live URL —
-      neither has ever been exercised against production.
+      neither has ever been exercised against production. Still yours to
+      do; it can't be checked from the terminal.
+
+**No database migration this time** — Session 6 is all application code,
+so unlike Session 5 you can just push. Nothing to run in Supabase first.
+
+**What actually shipped:**
+- `/post/[id]` exists: the post, its replies oldest-first, a reply box,
+  and a Delete on your own comments with a confirm step. Logged-out
+  visitors see the thread and a prompt to log in.
+- The header's chat and envelope icons are gone, along with their fake
+  "2" and "1" badges. They come back in Sessions 9-10 when the features
+  are real.
+- The league selector moved **above** the cashtag field, because
+  suggestions are filtered by league and it can't help you until it
+  knows which one.
+- `lib/teams.ts` holds all 124 teams across NBA/NFL/MLB/NHL, verified
+  for count and for unique codes within each league. Typing `$L` in the
+  NBA gives you LAC and LAL; `$LA` in MLB gives LAA and LAD. Team names
+  and nicknames work too — "lakers", "niners", "red sox".
+- Tags are trimmed before saving. The autocomplete appends a trailing
+  space so you can type the line next, and an untrimmed `"$LAL "` would
+  have fragmented Trending exactly the way free text did.
 
 **Why the cashtag work belongs here and not in "polish":** the Trending
 module groups picks by the exact tag string (`app/feed/page.tsx`), so

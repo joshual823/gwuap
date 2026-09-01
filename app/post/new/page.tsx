@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import CashtagInput from '@/components/CashtagInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
@@ -35,6 +36,8 @@ export default function NewPostPage() {
     supabase.from('categories').select('id, name').then(({ data }) => setCategories(data ?? []))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
 
   const oddsText = `${oddsSign}${oddsInput}`
   const oddsValue = parseAmericanOdds(oddsText)
@@ -84,7 +87,7 @@ export default function NewPostPage() {
     const { error: insertError } = await supabase.from('posts').insert({
       author_id: user.id,
       category_id: categoryId || null,
-      tag: tag || null,
+      tag: tag.trim() || null,
       sentiment,
       caption,
       bet_type: betType,
@@ -103,8 +106,12 @@ export default function NewPostPage() {
     <div style={{ marginTop: 20 }}>
       <h1 className="display" style={{ fontSize: 20 }}>Post a pick</h1>
       <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
-        <input className="field mono" placeholder="Cashtag, e.g. $LAL -4.5" value={tag}
-          onChange={e => setTag(e.target.value)} />
+        <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
+          <option value="">Choose a league…</option>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+
+        <CashtagInput value={tag} onChange={setTag} league={leagueName} />
 
         <div className="sentiment-toggle">
           <button type="button" className={`${sentiment === 'backing' ? 'active backing' : ''}`}
@@ -112,11 +119,6 @@ export default function NewPostPage() {
           <button type="button" className={`${sentiment === 'fading' ? 'active fading' : ''}`}
             onClick={() => setSentiment('fading')}>Fading</button>
         </div>
-
-        <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
-          <option value="">Choose a league…</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
 
         <textarea className="field" placeholder="What's the pick? Any reasoning?" rows={3}
           value={caption} onChange={e => setCaption(e.target.value)} />

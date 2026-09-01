@@ -22,9 +22,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/feed" className="wordmark">Gwuap</Link>
+            {/* Chat and DMs aren't built yet (Sessions 9-10). The links
+                used to point at /chat and /dm, which 404, and carried
+                hardcoded "2" and "1" notification badges. Both are gone
+                until the features are real. */}
             <div className="top-icons">
-              <Link href="/chat" className="icon-wrap">💬<span className="badge">2</span></Link>
-              <Link href="/dm" className="icon-wrap">✉️<span className="badge">1</span></Link>
               <Link href="/search" className="icon-wrap">🔍</Link>
             </div>
           </div>
