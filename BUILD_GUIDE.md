@@ -650,7 +650,38 @@ line.
 
 ---
 
-## Session 9 — DM requests
+## Session 9a — Notifications ✅ DONE
+
+**Run `supabase/migrations/008_notifications.sql` before pushing.**
+
+- [x] `notifications` table covering reactions, comments, replies and
+      follows, with a real unread badge on a bell in the header — the
+      badge used to be a hardcoded "2" next to a link that 404'd.
+- [x] `/notifications` page, newest first, unread highlighted. Opening
+      the page marks everything read; there's no button, because opening
+      it *is* the acknowledgement.
+- [x] Un-reacting removes the notification, so you don't get pinged for
+      a reaction that no longer exists.
+- [x] Self-actions never notify — reacting to your own post, replying to
+      yourself, and so on.
+
+**The design decision that matters: rows are written by database
+triggers, never by the app.** If the client inserted them, every
+signed-in user would need permission to write rows addressed to *other
+people*, and there's no RLS policy that makes that safe — it's a spam
+vector by construction. The triggers run as the table owner, so the
+client has SELECT, UPDATE and DELETE on its own notifications and **no
+INSERT at all.** Nobody can fabricate a notification.
+
+Reactions notify on INSERT only, so switching your emoji doesn't fire a
+second ping.
+
+**Built before DMs on purpose:** DMs need somewhere to notify into.
+Building them first would have meant retrofitting this.
+
+---
+
+## Session 9b — DM requests
 
 - [ ] Build the conversations/messages tables
 - [ ] Build the request → accept/decline flow

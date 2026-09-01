@@ -12,12 +12,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { data: { user } } = await supabase.auth.getUser()
   let profileHref = '/login'
   let isAdmin = false
+  let unread = 0
   if (user) {
-    const { data: profile } = await supabase.from('profiles').select('username, is_admin').eq('id', user.id).single()
+    const [{ data: profile }, { count }] = await Promise.all([
+      supabase.from('profiles').select('username, is_admin').eq('id', user.id).single(),
+      supabase.from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('read_at', null),
+    ])
     if (profile) {
       profileHref = `/profile/${profile.username}`
       isAdmin = !!profile.is_admin
     }
+    unread = count ?? 0
   }
 
   return (

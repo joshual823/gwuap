@@ -265,4 +265,13 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .grade-nudge { display: flex; flex-direction: column; gap: 5px; background: var(--card); border: 1px solid var(--pending); border-radius: 12px; padding: 12px 14px; margin-top: 18px; font-size: 13px; line-height: 1.45; color: var(--ink-dim); }
 .grade-nudge strong { color: var(--pending); font-size: 14px; }
 
+/* Notifications */
+.notif { display: flex; align-items: center; gap: 10px; padding: 12px 10px; border-bottom: 1px solid var(--line); border-radius: 8px; }
+.notif.unread { background: var(--card); }
+.notif-icon { font-size: 17px; flex: 0 0 22px; text-align: center; }
+.notif-text { flex: 1; min-width: 0; font-size: 14px; color: var(--ink-dim); }
+.notif-text strong { color: var(--ink); font-weight: 700; }
+.notif-time { font-size: 12px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; flex: 0 0 auto; }
+.badge { min-width: 14px; padding: 0 3px; width: auto; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
