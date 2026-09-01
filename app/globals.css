@@ -260,4 +260,6 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .field-hint { font-size: 12px; line-height: 1.45; color: var(--ink-faint); margin: -6px 0 12px; }
 .link-btn { background: none; border: none; padding: 0; font: inherit; color: var(--twitter-blue); font-weight: 600; cursor: pointer; text-decoration: underline; }
 
+.search-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

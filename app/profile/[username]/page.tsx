@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
@@ -16,7 +17,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
     .eq('username', params.username)
     .single()
 
-  if (!profile) return <p style={{ marginTop: 40 }}>User not found.</p>
+  if (!profile) notFound()
 
   const [{ count: followerCount }, { count: followingCount }, { data: myFollow }] = await Promise.all([
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profile.id),

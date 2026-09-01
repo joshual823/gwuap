@@ -18,7 +18,11 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
     if (error) { setError('Wrong email or password.'); return }
-    router.push('/feed')
+    // Honour ?next= so a gated page sends you back where you were going.
+    // Read from the URL directly rather than useSearchParams, which would
+    // need a Suspense boundary around this whole page.
+    const next = new URLSearchParams(window.location.search).get('next')
+    router.push(next && next.startsWith('/') ? next : '/feed')
   }
 
   return (
@@ -35,6 +39,9 @@ export default function LoginPage() {
         </button>
       </form>
       <p style={{ marginTop: 16, fontSize: 14, color: 'var(--ink-dim)' }}>
+        <a href="/reset" style={{ color: 'var(--twitter-blue)' }}>Forgot your password?</a>
+      </p>
+      <p style={{ marginTop: 8, fontSize: 14, color: 'var(--ink-dim)' }}>
         New here? <a href="/signup" style={{ color: 'var(--twitter-blue)' }}>Create an account</a>
       </p>
     </div>

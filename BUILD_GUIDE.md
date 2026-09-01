@@ -481,6 +481,47 @@ get most of the speed for nothing.
 
 ---
 
+### Session 8e — the cold-visitor pass
+
+A review of everything a stranger touches before they have an account.
+**No migration.**
+
+- [x] **Signup could permanently lock someone out.** It created the auth
+      account first, then inserted the profile. A taken username failed
+      the insert and said "try another" — but the email was already
+      registered, so resubmitting failed with "User already registered"
+      forever. That email became unusable. Now the username is checked
+      *before* the account is created, and if someone claims the name in
+      the gap, the half-made account is signed out rather than stranding
+      them.
+- [x] **`/post/new` was fully usable logged out.** A visitor could fill
+      in bet type, league, cashtag, direction, text, odds and stake, hit
+      post, and get bounced to login with all of it gone. It now
+      redirects up front, with `?next=` so login returns you there.
+- [x] **Password reset now exists.** There was none — forget your
+      password and you were locked out for good. `/reset` requests a
+      link, `/auth/callback` exchanges the code for a session, and
+      `/reset/confirm` sets the new one, with a clear message for expired
+      links. The request page always reports success, so nobody can use
+      it to test which emails are registered.
+- [x] **Search finds cashtags.** It only searched usernames, so on a site
+      organised around cashtags, searching `$LAL` returned nothing.
+      Now it searches people and picks, with a real empty state instead
+      of a blank void.
+- [x] **`/profile/nosuchuser` returned HTTP 200** with "User not found."
+      It's a real 404 now.
+- [x] Signup states its username and password rules instead of leaving
+      the browser to say "match the requested format", and Supabase's
+      raw error strings are translated into plain English.
+
+**Caveat on password reset:** it depends on Supabase sending email. The
+built-in sender works but is rate-limited on the free tier — fine for a
+handful of testers, not for a public launch. That's the same decision
+already sitting in Session 11 (a real email provider), and it now covers
+resets as well as confirmations.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.
