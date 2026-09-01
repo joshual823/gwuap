@@ -157,6 +157,10 @@ having count(*) filter (where posts.status in ('win','loss')) >= 5
      ), 100) >= 80
 order by win_pct desc, graded_picks desc;
 
+-- Run as the querying user, not the view owner, so the view can never
+-- read past RLS on profiles or posts.
+alter view leaderboard set (security_invoker = on);
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- ============================================================
