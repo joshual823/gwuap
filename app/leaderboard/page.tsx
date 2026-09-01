@@ -5,7 +5,7 @@ import { formatSignedUsd } from '@/lib/odds'
 export const dynamic = 'force-dynamic'
 
 export default async function LeaderboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   // Queries the "leaderboard" SQL view defined in supabase/schema.sql
   const { data: rows } = await supabase.from('leaderboard').select('*').limit(50)
 

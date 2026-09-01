@@ -6,8 +6,9 @@ import CommentThread from './CommentThread'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+export default async function PostPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   // A malformed id makes Postgres error rather than return null, which

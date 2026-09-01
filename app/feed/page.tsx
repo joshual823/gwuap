@@ -7,15 +7,16 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FeedPage({ searchParams }: {
-  searchParams: { tab?: string; league?: string }
+export default async function FeedPage(props: {
+  searchParams: Promise<{ tab?: string; league?: string }>
 }) {
+  const searchParams = await props.searchParams
   const tab = searchParams.tab === 'news' ? 'news' : 'home'
   const newsLeague = NEWS_LEAGUES.includes(searchParams.league ?? '')
     ? (searchParams.league as string)
     : 'Top'
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const tabs = (
