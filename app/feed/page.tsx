@@ -1,10 +1,19 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import NewsList from '@/components/NewsList'
+import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
-export default async function FeedPage() {
+export default async function FeedPage({ searchParams }: {
+  searchParams: { tab?: string; league?: string }
+}) {
+  const tab = searchParams.tab === 'news' ? 'news' : 'home'
+  const newsLeague = NEWS_LEAGUES.includes(searchParams.league ?? '')
+    ? (searchParams.league as string)
+    : 'Top'
+
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -75,8 +84,36 @@ export default async function FeedPage() {
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
 
+  const tabs = (
+    <div className="feed-tabs">
+      <Link href="/feed" className={`feed-tab ${tab === 'home' ? 'active' : ''}`}>Home</Link>
+      <Link href="/feed?tab=news" className={`feed-tab ${tab === 'news' ? 'active' : ''}`}>News</Link>
+    </div>
+  )
+
+  if (tab === 'news') {
+    const items = await fetchNews(newsLeague)
+    return (
+      <div>
+        {tabs}
+        <div className="chip-row">
+          {NEWS_LEAGUES.map(lg => (
+            <Link key={lg} href={`/feed?tab=news&league=${encodeURIComponent(lg)}`}
+              className={`chip ${lg === newsLeague ? 'active' : ''}`}>{lg}</Link>
+          ))}
+        </div>
+        <NewsList items={items} league={newsLeague === 'Top' ? 'Other' : newsLeague} />
+      </div>
+    )
+  }
+
+  // Home keeps three headlines as a prompt, not as feed content — the
+  // timeline itself stays real picks by real people.
+  const newsTeaser = (await fetchNews('Top', 3))
+
   return (
     <div>
+      {tabs}
       {tickerItems.length > 0 && (
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (
@@ -101,6 +138,18 @@ export default async function FeedPage() {
                 </span>
               </div>
             ))}
+          </div>
+        )}
+
+        {newsTeaser.length > 0 && (
+          <div className="trending-card">
+            <div className="trending-title">Today in sports</div>
+            {newsTeaser.map(n => (
+              <div className="trend-row" key={n.link}>
+                <a href={n.link} target="_blank" rel="noopener noreferrer" className="news-teaser-title">{n.title}</a>
+              </div>
+            ))}
+            <Link href="/feed?tab=news" className="news-cta">All headlines →</Link>
           </div>
         )}
 

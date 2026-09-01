@@ -397,22 +397,41 @@ interest. Miss it and the next comparable window is March Madness.
 
 ---
 
-## Session 8 — Sports news tab
+## Session 8 — Sports news tab ✅ DONE
 
-- [ ] Toggle on the feed: **Home** (user picks, current behavior) vs
+- [x] Toggle on the feed: **Home** (user picks, current behavior) vs
       **News** (headlines for a chosen league). The `.chip-row` / `.chip`
       styles for the league picker already exist, unused, from Session 3.
-- [ ] Pull headlines from free per-league **RSS feeds** (ESPN, CBS,
+- [x] Pull headlines from free per-league **RSS feeds** (ESPN, CBS,
       Yahoo). No API key, no account, no monthly cost. Cache with Next's
       `revalidate: 900` — no database table, no cron.
-- [ ] Show headline, source, timestamp, link out. **Do not** republish
+- [x] Show headline, source, timestamp, link out. **Do not** republish
       article body text.
-- [ ] **The whole point of the feature:** a "Post a pick on this" button
+- [x] **The whole point of the feature:** a "Post a pick on this" button
       on every headline that opens the post form with the league
       pre-filled and the headline quoted. Otherwise a news tab is just an
       exit ramp to ESPN — you'd be paying attention to send traffic to a
       competitor. This turns reading into posting, and hands someone with
       nothing to say nine reasons to post.
+
+**No migration.** It's all read-only fetching; nothing new is stored.
+
+**What shipped:** Home / News tabs on the feed, a league chip row on
+News covering all 12 categories (ESPN's `mma` feed serves UFC, `boxing`
+is separate, `tennis` too), and a "Today in sports" module with three
+headlines on Home. Every headline carries a **Post a pick on this**
+button that opens the form with the league preselected and the headline
+dropped into the caption. The Home timeline itself stays real picks only
+— a timeline of auto-posted headlines reads as a bot aggregator and
+makes a site look more dead, not less.
+
+**Implementation notes:** all 12 ESPN feeds were verified returning live
+content before shipping. The RSS parser is ~30 lines in `lib/news.ts`
+rather than an npm dependency — RSS is predictable enough, and it keeps
+the bundle and the supply chain small. `fetchNews` returns `[]` on any
+failure, so a feed going down can never take the page with it. Caching
+is Next's `revalidate: 900`, so each feed is pulled at most four times an
+hour regardless of traffic.
 
 **Budget boundary to hold:** headlines via RSS are free. *Structured*
 sports data — live scores, odds, injury reports, player props — is a
