@@ -13,7 +13,8 @@ export default async function LeaderboardPage() {
     <div style={{ marginTop: 24 }}>
       <h1 className="display" style={{ fontSize: 22 }}>Leaderboard</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 16 }}>
-        Win rate and profit over the last 30 days · minimum 5 graded picks
+        Win rate and profit over the last 30 days · minimum 5 graded picks ·
+        at least 80% of settled picks graded
       </p>
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '2px 14px' }}>
         {(rows ?? []).map((r: any, i: number) => {
@@ -28,6 +29,12 @@ export default async function LeaderboardPage() {
                   <span>{r.wins}-{r.losses}</span>
                   <span className="dot">·</span>
                   <span className={`amt ${profit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(profit)}</span>
+                  {Number(r.ungraded ?? 0) > 0 && (
+                    <>
+                      <span className="dot">·</span>
+                      <span style={{ color: 'var(--pending)' }}>{r.ungraded} ungraded</span>
+                    </>
+                  )}
                 </span>
               </div>
               <span className="stat" style={{ color: 'var(--brand)', fontSize: 18, width: 56, textAlign: 'right' }}>

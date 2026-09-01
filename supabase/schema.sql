@@ -127,7 +127,18 @@ select
   ) as win_pct,
   round(
     coalesce(sum(posts.profit) filter (where posts.status <> 'pending'), 0), 2
-  ) as total_profit
+  ) as total_profit,
+  -- Picks old enough to have resolved that were never graded. Without
+  -- this, never grading your losses reads as a perfect record.
+  count(*) filter (
+    where posts.status = 'pending' and posts.created_at < now() - interval '7 days'
+  ) as ungraded,
+  round(
+    100.0 * count(*) filter (where posts.status <> 'pending')
+    / nullif(count(*) filter (
+        where posts.status <> 'pending' or posts.created_at < now() - interval '7 days'
+      ), 0), 0
+  ) as graded_pct
 from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'
@@ -135,6 +146,14 @@ where posts.created_at > now() - interval '30 days'
   and posts.post_kind = 'pick'
 group by p.id, p.username, p.avatar_url
 having count(*) filter (where posts.status in ('win','loss')) >= 5
+   -- Grade at least 80% of your resolved picks or you don't rank.
+   and coalesce(
+     round(
+       100.0 * count(*) filter (where posts.status <> 'pending')
+       / nullif(count(*) filter (
+           where posts.status <> 'pending' or posts.created_at < now() - interval '7 days'
+         ), 0), 0
+     ), 100) >= 80
 order by win_pct desc, graded_picks desc;
 
 -- ============================================================

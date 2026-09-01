@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
 import GradeButtons from './GradeButtons'
+import LogoutButton from '@/components/LogoutButton'
 import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -55,6 +56,11 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   // Lifetime $ result. Picks graded before Session 5 have no stored profit,
   // so recompute those from their odds and stake.
   const graded = picks.filter((p: any) => p.status !== 'pending')
+  // A pick still pending a week later has almost certainly resolved.
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+  const ungraded = picks.filter(
+    (p: any) => p.status === 'pending' && new Date(p.created_at).getTime() < weekAgo,
+  )
   const totalProfit = graded.reduce(
     (sum: number, p: any) => sum + (p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0),
     0,
@@ -70,6 +76,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         {user && user.id !== profile.id && (
           <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
         )}
+        {user?.id === profile.id && <LogoutButton />}
       </div>
 
       <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14, flexWrap: 'wrap' }}>
@@ -78,11 +85,25 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         {graded.length > 0 && (
           <span className={`amt ${totalProfit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(totalProfit)}</span>
         )}
+        {ungraded.length > 0 && (
+          <span style={{ color: 'var(--pending)' }}>{ungraded.length} ungraded</span>
+        )}
         <span>{picks.length} picks</span>
         {takeCount > 0 && <span>{takeCount} takes</span>}
         <span>{followerCount ?? 0} followers</span>
         <span>{followingCount ?? 0} following</span>
       </div>
+
+      {user?.id === profile.id && ungraded.length > 0 && (
+        <div className="grade-nudge">
+          <strong>{ungraded.length} pick{ungraded.length === 1 ? '' : 's'} still ungraded.</strong>
+          <span>
+            They're over a week old, so they've almost certainly settled. Ungraded
+            picks are shown publicly and keep you off the leaderboard — grade the
+            losses too or the record means nothing.
+          </span>
+        </div>
+      )}
 
       <h2 style={{ fontSize: 16, marginTop: 28, color: 'var(--ink-dim)' }}>Posts</h2>
       {posts.length === 0 && <p style={{ color: 'var(--ink-dim)' }}>Nothing posted yet.</p>}

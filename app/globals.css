@@ -262,4 +262,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 .search-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 
+.grade-nudge { display: flex; flex-direction: column; gap: 5px; background: var(--card); border: 1px solid var(--pending); border-radius: 12px; padding: 12px 14px; margin-top: 18px; font-size: 13px; line-height: 1.45; color: var(--ink-dim); }
+.grade-nudge strong { color: var(--pending); font-size: 14px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

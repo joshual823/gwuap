@@ -522,6 +522,51 @@ resets as well as confirmations.
 
 ---
 
+### Session 8g — Next.js 16, grading integrity, logout
+
+**Run `supabase/migrations/007_grading_integrity.sql` before merging.**
+
+- [x] **Upgraded Next.js 14.2.35 → 16.3.4, React 18 → 19.** `npm audit`
+      now reports 0 vulnerabilities; 14.2.x had been off security support
+      since May 2026. Done before DMs and chat rooms on purpose — the
+      async `cookies()` change touches every server component, so the
+      migration gets more expensive with every feature added on 14.x.
+      Nine files today; closer to twenty later.
+      - `createClient()` in `lib/supabaseServer.ts` is async now, and all
+        nine server-side callers await it
+      - `params` and `searchParams` are promises
+      - `middleware.ts` → `proxy.ts` (Next 16 convention)
+      - `next lint` was removed from Next; the script is gone
+      - Turbopack is the default builder
+      - **Done on a branch with a Vercel preview URL**, not straight to
+        main. Worth repeating for anything that replaces the framework,
+        React, or auth at once.
+- [x] **Closed the selective-grading hole.** The obvious cheat is marking
+      a loss as a win. The easy one was never grading losses at all — the
+      leaderboard only counted win/loss picks, so 50 picks with the 20
+      winners graded and 30 left pending read as a **100% win rate**
+      without a single lie. Now: picks pending over 7 days count as
+      *ungraded* and are shown publicly on profiles and the leaderboard,
+      and you need at least 80% of your settled picks graded to rank at
+      all. Your own profile nudges you with what's outstanding.
+- [x] **Added a log out button.** There wasn't one anywhere — the only
+      `signOut` in the codebase was an error path inside signup.
+
+**Deliberately kept:** the grade buttons. Removing them would mean
+nothing ever gets graded, which kills the record, the leaderboard and the
+profit tracking — the whole product. The fix is making dishonesty
+visible, not removing the honest path.
+
+**Where this ends up:** auto-grading from a results feed removes
+self-reporting entirely. ESPN publishes a free undocumented scoreboard
+JSON that could grade moneyline, spread and totals for the major
+leagues. The hard part isn't scores, it's matching a free-text pick to a
+specific game — that needs game IDs captured at post time rather than
+cashtags. A real feature, not a session. Beyond that is the sportsbook
+sync that should be the only thing to ever earn a "Verified" badge.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.
