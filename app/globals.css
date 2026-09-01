@@ -277,4 +277,27 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .edit-profile { width: 100%; max-width: 320px; margin-top: 4px; }
 .edit-profile .field { margin-bottom: 4px; }
 
+/* Direct messages */
+.dm-row { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.dm-row.unread { background: var(--card); border-radius: 8px; }
+.dm-main { flex: 1; min-width: 0; }
+.dm-head { display: flex; align-items: baseline; gap: 8px; }
+.dm-head .time { margin-left: auto; }
+.dm-preview { font-size: 13.5px; color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.dm-tag { font-size: 11px; color: var(--ink-faint); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; margin-right: 6px; }
+.dm-badge { position: static; flex: 0 0 auto; }
+
+.dm-header { display: flex; align-items: center; gap: 10px; padding: 10px 0 12px; border-bottom: 1px solid var(--line); }
+.dm-thread { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; }
+.dm-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 78%; }
+.dm-msg.mine { align-self: flex-end; align-items: flex-end; }
+.dm-bubble { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 9px 12px; font-size: 14.5px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dm-msg.mine .dm-bubble { background: rgba(0,200,5,0.12); border-color: rgba(0,200,5,0.35); }
+.dm-msg-time { font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; margin-top: 3px; }
+
+.dm-request { background: var(--card); border: 1px solid var(--pending); border-radius: 12px; padding: 14px; margin-top: 14px; font-size: 14px; }
+.dm-request p { margin: 0 0 8px; }
+.dm-request-note { color: var(--ink-dim); font-size: 12.5px; line-height: 1.45; }
+.dm-disabled { font-size: 13px; color: var(--ink-faint); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

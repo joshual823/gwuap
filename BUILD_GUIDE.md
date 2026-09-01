@@ -760,12 +760,42 @@ belongs here, and it would cover slip uploads too.
 
 ---
 
-## Session 9b — DM requests
+## Session 9b — DM requests ✅ DONE
 
-- [ ] Build the conversations/messages tables
-- [ ] Build the request → accept/decline flow
-- [ ] Build the actual message thread UI
-- [ ] Rate-limit outbound requests (e.g. 10 pending per day)
+**Run `supabase/migrations/011_direct_messages.sql` before pushing.**
+
+- [x] `conversations` and `messages` tables
+- [x] Request → accept/decline flow
+- [x] Thread UI, an inbox split into Requests / Conversations / Sent,
+      and a Message button on other people's profiles
+- [x] Rate limit: 10 pending outbound requests per day
+- [x] An ✉️ in the header counting unread messages plus pending requests,
+      and DM notifications that deep-link to the thread
+
+**Design decisions worth keeping:**
+
+*The pair is stored in a canonical order* (`user_a < user_b`) with a
+unique constraint, so A→B and B→A can't become two separate threads —
+the classic duplicate-conversation bug.
+
+*While a request is pending only the requester can write.* The recipient
+reads it and decides without being talked at, which is the whole point of
+permission-based DMs.
+
+*Blocks and the rate limit are enforced by a trigger, not a policy.* A
+user can't read someone else's block list through RLS, so the check
+can't live in a policy — and a rate limit in a policy would be trivially
+bypassed. The trigger runs as the table owner.
+
+*Column-level grants again* (fourth time): users may update only
+`conversations.status` and `messages.read_at`. Without that, anyone
+could rewrite `last_message_at` to pin themselves to the top of every
+inbox, or edit someone else's sent message.
+
+**Not built, deliberately:** realtime. Messages appear on refresh, not
+instantly. Supabase Realtime would fix it and belongs with chat rooms in
+Session 10, where it's needed anyway — no point building the plumbing
+twice.
 
 **Decided:** StockTwits uses an open inbox — anyone can message anyone.
 We're deliberately not copying that. On a site where people post losses

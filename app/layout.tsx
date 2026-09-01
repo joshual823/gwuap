@@ -13,19 +13,30 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let profileHref = '/login'
   let isAdmin = false
   let unread = 0
+  let inbox = 0
   if (user) {
-    const [{ data: profile }, { count }] = await Promise.all([
+    const [{ data: profile }, { count }, { count: unreadMsgs }, { count: requests }] = await Promise.all([
       supabase.from('profiles').select('username, is_admin').eq('id', user.id).single(),
       supabase.from('notifications')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .is('read_at', null),
+      // RLS scopes both of these to conversations you're part of.
+      supabase.from('messages')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null)
+        .neq('sender_id', user.id),
+      supabase.from('conversations')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'pending')
+        .neq('requested_by', user.id),
     ])
     if (profile) {
       profileHref = `/profile/${profile.username}`
       isAdmin = !!profile.is_admin
     }
     unread = count ?? 0
+    inbox = (unreadMsgs ?? 0) + (requests ?? 0)
   }
 
   return (
@@ -44,6 +55,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {user && (
                 <Link href="/notifications" className="icon-wrap" title="Notifications">
                   🔔{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}
+                </Link>
+              )}
+              {user && (
+                <Link href="/messages" className="icon-wrap" title="Messages">
+                  ✉️{inbox > 0 && <span className="badge">{inbox > 9 ? '9+' : inbox}</span>}
                 </Link>
               )}
               <Link href="/search" className="icon-wrap">🔍</Link>

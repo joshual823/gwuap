@@ -12,6 +12,8 @@ function describe(n: any): string {
     case 'comment': return 'commented on your post'
     case 'reply': return 'replied to you'
     case 'follow': return 'followed you'
+    case 'dm_request': return 'wants to message you'
+    case 'dm_message': return 'sent you a message'
     default: return 'did something'
   }
 }
@@ -24,7 +26,7 @@ export default async function NotificationsPage() {
   const { data, error } = await supabase
     .from('notifications')
     .select(`
-      id, type, post_id, comment_id, emoji, read_at, created_at,
+      id, type, post_id, comment_id, conversation_id, emoji, read_at, created_at,
       actor:profiles!notifications_actor_id_fkey ( username )
     `)
     .eq('user_id', user.id)
@@ -61,11 +63,17 @@ export default async function NotificationsPage() {
       )}
 
       {rows.map(n => {
-        const href = n.post_id ? `/post/${n.post_id}` : `/profile/${n.actor?.username}`
+        const href = n.conversation_id
+          ? `/messages/${n.conversation_id}`
+          : n.post_id
+            ? `/post/${n.post_id}`
+            : `/profile/${n.actor?.username}`
         return (
           <Link href={href} key={n.id} className={`notif ${n.read_at ? '' : 'unread'}`}>
             <span className="notif-icon">
-              {n.type === 'reaction' ? (n.emoji || '♥') : n.type === 'follow' ? '👤' : '💬'}
+              {n.type === 'reaction' ? (n.emoji || '♥')
+                : n.type === 'follow' ? '👤'
+                : n.type.startsWith('dm_') ? '✉️' : '💬'}
             </span>
             <span className="notif-text">
               <strong>@{n.actor?.username ?? 'someone'}</strong> {describe(n)}

@@ -6,6 +6,7 @@ import GradeButtons from './GradeButtons'
 import LogoutButton from '@/components/LogoutButton'
 import EditProfile from './EditProfile'
 import Avatar from '@/components/Avatar'
+import MessageButton from './MessageButton'
 import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -82,7 +83,10 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           {profile.bio && <p style={{ color: 'var(--ink-dim)', margin: '4px 0' }}>{profile.bio}</p>}
         </div>
         {user && user.id !== profile.id && (
-          <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+            <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
+            <MessageButton profileId={profile.id} username={profile.username} />
+          </div>
         )}
         {user?.id === profile.id && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
