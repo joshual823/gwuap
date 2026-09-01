@@ -17,6 +17,35 @@ export type PickStatus = 'pending' | 'win' | 'loss' | 'push' | 'void'
  */
 export type PostKind = 'take' | 'pick'
 
+/**
+ * Which way you're leaning. Team bets are backing/fading; totals and
+ * props are over/under — "backing the Over" isn't a thing anyone says.
+ */
+export type Direction = 'backing' | 'fading' | 'over' | 'under'
+
+/** Bet types priced on a number rather than a side. */
+const OVER_UNDER_BETS: BetType[] = ['total', 'player_prop', 'team_prop']
+
+export function directionsFor(kind: PostKind, betType: BetType): { value: Direction; label: string }[] {
+  if (kind === 'pick' && OVER_UNDER_BETS.includes(betType)) {
+    return [{ value: 'over', label: 'Over' }, { value: 'under', label: 'Under' }]
+  }
+  return [{ value: 'backing', label: 'Backing' }, { value: 'fading', label: 'Fading' }]
+}
+
+/** True for the "more / yes" side, which the UI paints green. */
+export function isBullish(d: Direction): boolean {
+  return d === 'backing' || d === 'over'
+}
+
+/** Totals sit on a game, so they get an optional opponent cashtag. */
+export function wantsMatchup(kind: PostKind, betType: BetType): boolean {
+  return kind === 'pick' && betType === 'total'
+}
+
+/** One tap covers most real prices; -110 is the standard spread/total juice. */
+export const QUICK_ODDS = ['-110', '-120', '+100', '+120', '+150', '+200']
+
 // Note: a "total" IS the over/under — they're the same bet, so there's
 // no separate O/U entry. Player props are broken out because they're the
 // most common casual bet and lumping them into "other" would tell us

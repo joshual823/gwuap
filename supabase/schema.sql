@@ -45,7 +45,9 @@ create table posts (
   caption text,
   slip_image_url text,        -- uploaded betting slip screenshot (Supabase Storage)
   tag text,                   -- short cashtag-style label, e.g. "$LAL -4.5"
-  sentiment text default 'backing' check (sentiment in ('backing','fading')),
+  tag2 text,                  -- optional opponent cashtag, for totals
+  -- backing/fading for team bets; over/under for totals and props
+  sentiment text default 'backing' check (sentiment in ('backing','fading','over','under')),
   post_kind text not null default 'pick' check (post_kind in ('take','pick')),
   bet_type text default 'moneyline' check (bet_type in (
     'moneyline','spread','total','player_prop','team_prop','parlay','future','other')),

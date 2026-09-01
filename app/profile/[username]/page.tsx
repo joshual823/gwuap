@@ -29,7 +29,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
   const { data: rawPosts } = await supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, tag, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
+      id, caption, slip_image_url, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
       category:categories ( name ),
       likes ( user_id, emoji ),

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
 import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
+import { isBullish } from '@/lib/odds'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -79,7 +80,7 @@ export default async function FeedPage({ searchParams }: {
   let query = supabase
     .from('posts')
     .select(`
-      id, caption, slip_image_url, tag, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
+      id, caption, slip_image_url, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
       author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned ),
       category:categories ( name ),
       likes ( user_id, emoji ),
@@ -106,19 +107,23 @@ export default async function FeedPage({ searchParams }: {
   // Ticker: most recent picks that have a tag, newest first.
   const tickerItems = shaped.filter((p: any) => p.tag).slice(0, 10)
 
-  // Trending: group by tag, count backing vs fading mentions, take top 3 by volume.
-  const tagCounts: Record<string, { backing: number; fading: number }> = {}
+  // Trending: group by cashtag and count whichever direction each post
+  // took. Four directions now (backing/fading for sides, over/under for
+  // totals), and a total counts under BOTH teams' tags.
+  const tagCounts: Record<string, Record<string, number>> = {}
   for (const p of shaped) {
-    if (!p.tag) continue
-    if (!tagCounts[p.tag]) tagCounts[p.tag] = { backing: 0, fading: 0 }
-    tagCounts[p.tag][p.sentiment as 'backing' | 'fading']++
+    for (const t of [p.tag, p.tag2]) {
+      if (!t) continue
+      tagCounts[t] = tagCounts[t] ?? {}
+      tagCounts[t][p.sentiment] = (tagCounts[t][p.sentiment] ?? 0) + 1
+    }
   }
   const trending = Object.entries(tagCounts)
     .map(([tag, counts]) => {
-      const total = counts.backing + counts.fading
-      const leader = counts.backing >= counts.fading ? 'backing' : 'fading'
-      const pct = Math.round((100 * Math.max(counts.backing, counts.fading)) / total)
-      return { tag, total, leader, pct }
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
+      const total = entries.reduce((sum, [, n]) => sum + n, 0)
+      const [leader, leadCount] = entries[0]
+      return { tag, total, leader, pct: Math.round((100 * leadCount) / total) }
     })
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
@@ -149,8 +154,8 @@ export default async function FeedPage({ searchParams }: {
                 <span className="trend-rank">{i + 1}</span>
                 <span className="cashtag" style={{ fontSize: 12 }}>{t.tag}</span>
                 <span style={{ flex: 1, color: 'var(--ink-dim)' }}>{t.total} picks</span>
-                <span className="mono" style={{ color: t.leader === 'backing' ? 'var(--brand)' : 'var(--bear)', fontWeight: 700 }}>
-                  {t.pct}%
+                <span className="mono" style={{ color: isBullish(t.leader as any) ? 'var(--brand)' : 'var(--bear)', fontWeight: 700 }}>
+                  {t.pct}% {t.leader}
                 </span>
               </div>
             ))}

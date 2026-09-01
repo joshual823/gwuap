@@ -412,6 +412,43 @@ figures count picks only.
 
 ---
 
+### Session 8c — Over/Under, matchup cashtags, faster posting
+
+**Run `supabase/migrations/006_directions_and_matchup.sql` before
+pushing.**
+
+- [x] **Direction now follows the bet type.** Backing/Fading maps onto a
+      team; it means nothing on a total — you're not backing the Giants,
+      you're taking the Over on a game. Totals, player props and team
+      props now show **Over / Under**. Everything else, and all takes,
+      keep Backing / Fading.
+- [x] The real value is stored, not Backing wearing an "Over" label, so
+      Trending can say "68% over on $SF" and mean it. The constraint on
+      `sentiment` was widened to four values.
+- [x] Changing bet type clears a direction that no longer applies,
+      rather than silently posting a stale one.
+- [x] **Optional opponent cashtag for totals** (`tag2`). A total sits on
+      a game, so one tag was lossy — a Giants/Padres total now surfaces
+      under both teams in Trending.
+- [x] **Quick-odds chips**: −110 · −120 · +100 · +120 · +150 · +200.
+      Most spreads and totals are −110, which was already the default,
+      so the common case is now zero typing.
+- [x] **Last league and last stake are remembered** in the browser, so
+      your second post of the day is faster than your first. Wrapped in
+      try/catch — private mode and blocked storage must not break the
+      form.
+
+**Why there's no live odds feed, decided here:** The Odds API's free tier
+is 500 *credits* a month, and a credit isn't a request — a call costs
+markets × regions. Refreshing hourly for a **single** league is ~720
+calls/month, so one sport would blow the free tier, never mind twelve.
+Paid starts around $149/month. Scraping a sportsbook breaks constantly
+and is against their terms. The Vercel Marketplace has no sports-data
+category. Revisit only with traction and a budget; the quick-odds chips
+get most of the speed for nothing.
+
+---
+
 ## Session 7 — Seed the feed, then invite real testers
 
 **Goal:** five people who post without being reminded.

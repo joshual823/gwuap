@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import {
   BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
-  formatUsd, formatSignedUsd, type BetType, type PickStatus, type PostKind,
+  formatUsd, formatSignedUsd, type BetType, type PickStatus, type PostKind, type Direction,
 } from '@/lib/odds'
 import { timeAgo } from '@/lib/time'
 import { tallyReactions } from '@/lib/reactions'
@@ -20,7 +20,8 @@ type Post = {
   profit: number | null
   status: PickStatus
   tag: string | null
-  sentiment: 'backing' | 'fading'
+  tag2: string | null
+  sentiment: Direction
   created_at: string
   author: { id: string; username: string; avatar_url: string | null }
   category: { name: string } | null
@@ -64,6 +65,7 @@ export default function PostCard({ post }: { post: Post }) {
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>
           {post.tag && <span className="cashtag">{post.tag}</span>}
+          {post.tag2 && <><span className="vs">vs</span><span className="cashtag">{post.tag2}</span></>}
           {post.category && <span className="pill">{post.category.name}</span>}
           <span className={`sentiment ${post.sentiment}`}>{post.sentiment}</span>
         </div>

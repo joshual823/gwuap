@@ -6,7 +6,8 @@ import CashtagInput from '@/components/CashtagInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
-  type BetType, type PostKind,
+  directionsFor, wantsMatchup, QUICK_ODDS,
+  type BetType, type PostKind, type Direction,
 } from '@/lib/odds'
 
 export default function NewPickForm() {
@@ -16,10 +17,11 @@ export default function NewPickForm() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
   const [categoryId, setCategoryId] = useState<number | ''>('')
   const [tag, setTag] = useState('')
+  const [tag2, setTag2] = useState('')
   const [kind, setKind] = useState<PostKind>('take')
   // Starts unset on purpose. Sentiment drives Trending and the ticker, so
   // a silent default would make everything read as "backing".
-  const [sentiment, setSentiment] = useState<'backing' | 'fading' | null>(null)
+  const [sentiment, setSentiment] = useState<Direction | null>(null)
   const [caption, setCaption] = useState('')
 
   const [betType, setBetType] = useState<BetType>('moneyline')
@@ -43,13 +45,32 @@ export default function NewPickForm() {
       const wanted = searchParams.get('league')
       if (wanted) {
         const match = rows.find(c => c.name === wanted)
-        if (match) setCategoryId(match.id)
+        if (match) { setCategoryId(match.id); return }
       }
+      try {
+        const last = Number(localStorage.getItem('gwuap:lastLeague'))
+        if (rows.some(c => c.id === last)) setCategoryId(last)
+      } catch {}
     })
     const headline = searchParams.get('headline')
     if (headline) setCaption(headline)
+    // Posting your second pick of the day shouldn't be as slow as the first.
+    try {
+      const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
+      if (Number.isFinite(lastStake) && lastStake > 0) setPresetStake(lastStake)
+    } catch { /* private mode, or storage blocked */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const directions = directionsFor(kind, betType)
+  const showMatchup = wantsMatchup(kind, betType)
+
+  // Switching from a spread to a total makes "backing" meaningless, so
+  // drop a choice that no longer applies rather than posting a stale one.
+  useEffect(() => {
+    if (sentiment && !directions.some(d => d.value === sentiment)) setSentiment(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kind, betType])
 
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
 
@@ -78,7 +99,8 @@ export default function NewPickForm() {
 
     if (!categoryId) { setError('Pick a league.'); return }
     if (!tag.trim()) { setError('Add a cashtag — it\u2019s how picks get grouped.'); return }
-    if (!sentiment) { setError('Are you backing this or fading it?'); return }
+    if (!sentiment) { setError(`Pick a side — ${directions[0].label} or ${directions[1].label}.`); return }
+    try { localStorage.setItem('gwuap:lastLeague', String(categoryId)) } catch {}
 
     if (kind === 'take') {
       if (!caption.trim()) { setError('Say something — a take needs words.'); return }
@@ -126,6 +148,7 @@ export default function NewPickForm() {
 
     setLoading(false)
     if (insertError) { setError('Could not post — try again.'); return }
+    try { localStorage.setItem('gwuap:lastStake', String(stake)) } catch {}
     router.push('/feed')
   }
 
@@ -148,14 +171,19 @@ export default function NewPickForm() {
         </select>
 
         <CashtagInput value={tag} onChange={setTag} league={leagueName} />
+        {showMatchup && (
+          <>
+            <label className="form-label">Opponent — a total is on the game, not one team</label>
+            <CashtagInput value={tag2} onChange={setTag2} league={leagueName} />
+          </>
+        )}
 
         <div className="sentiment-toggle">
-          <button type="button" aria-pressed={sentiment === 'backing'}
-            className={`${sentiment === 'backing' ? 'active backing' : ''}`}
-            onClick={() => setSentiment('backing')}>Backing</button>
-          <button type="button" aria-pressed={sentiment === 'fading'}
-            className={`${sentiment === 'fading' ? 'active fading' : ''}`}
-            onClick={() => setSentiment('fading')}>Fading</button>
+          {directions.map((d, i) => (
+            <button key={d.value} type="button" aria-pressed={sentiment === d.value}
+              className={sentiment === d.value ? `active ${i === 0 ? 'backing' : 'fading'}` : ''}
+              onClick={() => setSentiment(d.value)}>{d.label}</button>
+          ))}
         </div>
 
         <textarea className="field" rows={3}
@@ -185,6 +213,13 @@ export default function NewPickForm() {
           <input id="odds-input" className="field mono odds-input" inputMode="numeric"
             value={oddsInput} placeholder="110"
             onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
+        </div>
+        <div className="chip-grid">
+          {QUICK_ODDS.map(o => (
+            <button key={o} type="button"
+              className={`chip ${oddsText === o ? 'active' : ''}`}
+              onClick={() => { setOddsSign(o[0] as '+' | '-'); setOddsInput(o.slice(1)) }}>{o}</button>
+          ))}
         </div>
 
         <label className="form-label">Stake</label>
