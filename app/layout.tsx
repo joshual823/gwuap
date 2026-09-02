@@ -2,6 +2,8 @@ import './globals.css'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
+import { Analytics } from '@vercel/analytics/next'
+import Clarity from '@/components/Clarity'
 
 export const metadata = {
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
@@ -78,6 +80,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Link href="/leaderboard" className="tab-icon">🏆</Link>
           <Link href={profileHref} className="tab-icon">👤</Link>
         </nav>
+        <Analytics />
+        <Clarity />
       </body>
     </html>
   )
