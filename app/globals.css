@@ -554,4 +554,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .signup-theme { display: flex; justify-content: flex-start; margin: 4px 0 14px; }
 .signup-theme .theme-toggle { align-items: flex-start; width: 100%; }
 
+.watch-error { font-size: 11px; color: var(--bear); max-width: 220px; }
+.gd-head .watch-btn { margin-left: auto; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

@@ -32,6 +32,7 @@ export default async function GamePage(props: {
     ? await supabase.from('watchlist').select('ticker').eq('user_id', user.id)
     : { data: [] }
   const watchedCodes = (watchRows ?? []).map((w: any) => String(w.ticker).toUpperCase())
+  const gameKey = `${league}:${params.id}`
   const base = `/game/${encodeURIComponent(league)}/${encodeURIComponent(params.id)}`
 
   return (
@@ -41,6 +42,8 @@ export default async function GamePage(props: {
 
       <div className={`gd-head lg-${league.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
         <span className="game-league">{league}</span>
+        <WatchButton ticker={gameKey} league={league} kind="game" viewerId={user?.id ?? null}
+          initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())} label />
         <span className={`gd-status ${detail.state}`}>
           {live && <span className="live-dot" />}{detail.status}
         </span>

@@ -13,16 +13,29 @@ export default async function WatchlistPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/watchlist')
 
-  const { data: rows } = await supabase
+  const { data: rows, error: watchError } = await supabase
     .from('watchlist')
-    .select('ticker, league')
+    .select('ticker, league, kind')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const watched = (rows ?? []) as { ticker: string; league: string | null }[]
+  if (watchError) {
+    return (
+      <div style={{ marginTop: 24 }}>
+        <h1 className="display" style={{ fontSize: 22 }}>Watchlist</h1>
+        <p style={{ color: 'var(--bear)', fontSize: 14, marginTop: 12 }}>
+          Couldn't load your watchlist: {watchError.message}
+        </p>
+      </div>
+    )
+  }
+
+  const all = (rows ?? []) as { ticker: string; league: string | null; kind: string | null }[]
+  const watched = all.filter(w => w.kind !== 'game')
+  const watchedGames = all.filter(w => w.kind === 'game')
   const codes = watched.map(w => w.ticker)
 
-  if (codes.length === 0) {
+  if (all.length === 0) {
     return (
       <div style={{ marginTop: 24 }}>
         <h1 className="display" style={{ fontSize: 22, marginBottom: 6 }}>Watchlist</h1>
@@ -38,15 +51,19 @@ export default async function WatchlistPage() {
   }
 
   // Only fetch leagues actually being watched.
-  const leagues = [...new Set(watched.map(w => w.league).filter(Boolean) as string[])]
+  const leagues = [...new Set(all.map(w => w.league).filter(Boolean) as string[])]
     .filter(l => LEAGUES_WITH_SCORES.includes(l))
   const allGames = (await Promise.all(leagues.map(l => fetchGames(l)))).flat()
+  // A game is watched either directly, or because one of its sides is.
+  const pinned = new Set(watchedGames.map(w => w.ticker.toUpperCase()))
   const games: Game[] = allGames.filter(g =>
-    codes.includes(g.home.code.toUpperCase()) || codes.includes(g.away.code.toUpperCase()),
+    pinned.has(`${g.league}:${g.id}`.toUpperCase())
+    || codes.includes(g.home.code.toUpperCase())
+    || codes.includes(g.away.code.toUpperCase()),
   ).slice(0, 12)
 
-  const tagFilters = codes.map(c => `$${c}`)
-  const { data: posts } = await supabase
+  const tagFilters = codes.map(c => `"$${c}"`)
+  const { data: posts } = codes.length === 0 ? { data: [] } : await supabase
     .from('posts')
     .select(`
       id, caption, slip_image_url, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
