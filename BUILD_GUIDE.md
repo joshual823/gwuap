@@ -168,86 +168,89 @@ confirm the card shows +$45.45 in green.
 
 ## YOU ARE HERE
 
-**Everything in this guide is built, deployed and tested live at
-https://gwuap.vercel.app,** except the email provider. Sixteen
-migrations run. Next.js 16, React 19, 0 npm vulnerabilities.
+**Everything is built, deployed and live at https://gwuap.co.**
+20 migrations run (001-020). Next.js 16, React 19, 0 vulnerabilities.
+Security advisor: 0 errors.
 
-### Security review passed (Session 11)
+**The only thing left is people.** The feed needs picks and the site
+needs users. That has been the real blocker since Session 5 and no
+amount of building has changed it.
 
-Nine real holes found and closed over the project:
+### How to pick this up in a new terminal
 
-1. `categories` had no RLS at all — the anon key in every browser could
-   rename or delete every league. Supabase's own linter flagged this
-   independently.
-2. No write throttles anywhere except DM requests — a script could fill
-   the feed, drown the Vent room, or flood the moderation queue.
-3. The `avatars` bucket was listable, exposing every user id in bulk.
-4. The `leaderboard` view read past RLS (no leak today; latent).
-5. A URL segment reached a PostgREST filter unsanitised.
-6. Posted odds were editable after the game (Session 6d).
-7. `is_admin` was self-settable — any user could become an admin (9c).
-8. Notifications would have been forgeable if the client wrote them (9a).
-9. The leaderboard could be topped by never grading losses (8f).
+```bash
+cd ~/Desktop/chalk
+claude --continue      # resumes the most recent conversation here
+```
 
-**Accepted, documented risks:** email enumeration on signup, `is_admin`
-publicly readable, one-directional blocking, no image moderation.
+`claude --resume` instead gives a picker of older sessions. Every commit
+message also carries a `Claude-Session:` URL if you want the web view.
 
-**Advisor status:** 0 errors, 1 warning — leaked-password protection,
-which is Pro-plan only. Minimum password length is 8 in both Supabase
-and the app.
+Then say: **"read BUILD_GUIDE.md and tell me where we are"**.
 
-**Supabase Auth toggles:** "Secure password change" ON is good. **"Require
-current password when updating" should be OFF** until someone tests a
-full password reset with it on — `/reset/confirm` calls
-`updateUser({password})` with no old password, because the user forgot
-it. If Supabase doesn't exempt recovery sessions, resets break for
-exactly the people who need them.
+### The workflow, every time
 
-### Email and domain ✅ DONE
+1. Claude writes code and commits locally
+2. **If a migration is named, run it in the Supabase SQL editor FIRST**
+3. Push from GitHub Desktop — CLI pushes have no stored credential
+4. Pushing to `main` deploys to production automatically
 
-- [x] **Domain: `gwuap.co`**, bought through Vercel so DNS configures
-      itself. `gwuap.vercel.app` still resolves, so nothing already
-      shared is broken. Both are on Supabase's redirect allowlist.
-      *Gotcha hit along the way:* buying a domain adds it to your Vercel
-      **account**; attaching it to the **project** is a separate step,
-      and until you do, the domain returns 404 with no certificate.
-- [x] **Resend** provisioned through the Vercel Marketplace (free plan).
-      DKIM, SPF and the return-path MX auto-configured because the
-      domain is on Vercel nameservers. DMARC (`p=none`) added manually —
-      Resend marks it optional, but Gmail and Yahoo expect it.
-- [x] **Supabase Custom SMTP** pointed at `smtp.resend.com:587`, sending
-      as `hello@gwuap.co` (not `noreply@`, which some filters penalise).
-- [x] **Password reset verified end to end on the live domain.**
-- [x] **Email templates** in `supabase/email-templates/`, replacing
-      Supabase's defaults — which are a bare link on a white page, the
-      same shape as a phishing mail.
+**The single most common failure in this project** is a migration that
+didn't run. The symptom is always the same: a feature that quietly does
+nothing. `relation "x" does not exist` has bitten twice. If something
+does nothing at all, suspect the migration before the code.
 
-**Deliberately still OFF: email confirmation.** The reset mail lands in
-spam, because `gwuap.co` has no sending reputation yet — nothing is
-misconfigured, all four auth records pass. Someone requesting a reset
-knows to look in spam; a new signup doesn't. They'd hit "check your
-email", find nothing, and leave, and you would never know it happened.
+For anything visual or risky, work on a branch — Vercel builds a preview
+URL and `main` stays untouched. That's how the Next.js 16 upgrade and the
+rejected typography change were handled.
 
-**Turn it on when you post the link somewhere you can't text the person**
-— a subreddit, a Discord, a bio. By then the domain will have sending
-history. It's one click, in Authentication → Providers → Email.
+### What exists
 
-**What you give up meanwhile:** someone can register an address they
-don't own. Among people you personally invited, negligible.
+**Posting** — picks with locked odds and auto-computed profit, takes
+(cashtag + direction + text, no money), 8 bet types, over/under for
+totals and props, neutral takes, matchup cashtags, quick-select odds and
+stake chips.
 
-### What's left
+**Cashtags** — 274 curated tickers across NBA/NFL/MLB/NHL/Tennis/UFC/
+Boxing, plus anything previously posted, learned automatically. `/tag/LAL`
+is a stream per team or player.
 
-**Nothing technical.** Every item in this guide is built, deployed,
-tested live and security-reviewed.
+**Games** — live scoreboard across 11 leagues from ESPN, free, with
+spreads and totals. Auto-scrolling rail on the feed, a Games tab, league
+pages with live/soon/recent, and game pages with box scores, team logos,
+the latest play and a live chat room.
 
-**1. Seed the feed.** Still the actual blocker. Takes made it quick —
-cashtag, league, direction, a sentence. The news tab hands you prompts.
+**Social** — comment threads with replies, emoji reactions on posts and
+comments, @ and $ autocomplete everywhere, notifications, permission-based
+DMs with request/accept, follows, watchlists.
 
-**2. Get people on it.** See Session 7. Tell the first few to check spam
-if a password reset doesn't arrive.
+**Vent room** — realtime, signed-in only, crisis resources pinned,
+reports jump the moderation queue.
 
-**3. Then fix whatever they trip on.** That's the only item here that
-can't be started early, because it needs users to exist first.
+**Trust** — posted odds are immutable, profit is computed not typed,
+ungraded picks are shown publicly and keep you off the leaderboard.
+
+**Chrome** — light/dark following the OS with a manual toggle, profile
+pictures resized in-browser, news carousel, search across people and
+cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
+
+### Known gaps, deliberately
+
+- **Image moderation.** Avatars are allowed because they're one per user
+  and easy to clear. Bet-slip uploads and chat GIFs stay off until
+  there's a moderation story. Revisit before a wider public launch.
+- **Email confirmation is OFF.** gwuap.co has no sending reputation yet,
+  so resets land in spam. A spam-foldered confirmation kills signups
+  silently. Turn it on when you post the link somewhere you can't text
+  the person.
+- **Leaked-password protection** is Pro-plan only; minimum length is 8
+  instead.
+- **Block and ban filtering covers the feed only.** Profile pages and
+  direct post links still render for blocked or banned users.
+- **Fonts.** A Manrope/Inter version lives on the `typography-preview`
+  branch, rejected on look. One merge away if you revisit.
+
+---
 
 ## Session 6 — Make it not broken ✅ DONE (tested live)
 
