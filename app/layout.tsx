@@ -24,6 +24,22 @@ const mono = JetBrains_Mono({
   weight: ['500', '600', '700'],
 })
 
+/**
+ * viewport-fit=cover is what makes env(safe-area-inset-*) return real
+ * numbers. Without it those insets are 0, so the fixed tab bar had no
+ * bottom padding and sat underneath Safari's toolbar and the home
+ * indicator — which is why it vanished at the ends of a scroll.
+ */
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover' as const,
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0B0E11' },
+    { media: '(prefers-color-scheme: light)', color: '#F4F6F8' },
+  ],
+}
+
 export const metadata = {
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
   description: `Talk sports with the people who know it best. Post your picks, track your record, and back up your takes.`,
