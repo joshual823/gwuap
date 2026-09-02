@@ -5,7 +5,7 @@ import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
 
 export const metadata = {
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-  description: `A social feed for sports bettors: post your picks, track your record, follow the sharps.`,
+  description: `Where bettors talk. Post takes, share picks, argue about the spread — with a record that keeps itself.`,
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

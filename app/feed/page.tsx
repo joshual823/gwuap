@@ -44,8 +44,8 @@ export default async function FeedPage(props: {
         </div>
         {!user && (
           <div className="signup-nudge">
-            <strong>Have a take on any of this?</strong>
-            <span>Post a pick and start building a public record.</span>
+            <strong>Got a take on any of this?</strong>
+            <span>Say it. Takes don't need money on them.</span>
             <Link href="/signup" className="btn">Get started</Link>
           </div>
         )}
@@ -59,9 +59,14 @@ export default async function FeedPage(props: {
       <div>
         {tabs}
         <div style={{ marginTop: 48, textAlign: 'center' }}>
-          <h1 className="display" style={{ fontSize: 26 }}>Track your picks. Follow the sharps.</h1>
-          <p style={{ color: 'var(--ink-dim)', margin: '12px 0 24px' }}>
-            Post your picks, build a public record, and see who's actually winning.
+          <h1 className="display" style={{ fontSize: 26 }}>Talk bets with people who actually bet.</h1>
+          <p style={{ color: 'var(--ink-dim)', margin: '12px 0 20px', lineHeight: 1.5 }}>
+            Post a take, drop a pick, argue about the spread. No tout accounts,
+            no screenshots — just the room.
+          </p>
+          <p style={{ color: 'var(--ink-faint)', fontSize: 13.5, margin: '0 0 24px', lineHeight: 1.5 }}>
+            And if you want one, a record that keeps itself. Post your odds
+            before the game and it does the rest.
           </p>
           <Link href="/signup" className="btn">Get started</Link>
           <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 20 }}>
