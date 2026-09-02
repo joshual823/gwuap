@@ -106,9 +106,26 @@ export async function fetchGames(league: string): Promise<Game[]> {
 }
 
 /** A merged rail across the leagues most likely to have something on. */
-export async function fetchRailGames(limit = 12): Promise<Game[]> {
+export async function fetchRailGames(limit = 16): Promise<Game[]> {
   const batches = await Promise.all(RAIL_LEAGUES.map(l => fetchGames(l)))
-  return sortGames(batches.flat()).slice(0, limit)
+
+  // Interleave the leagues instead of sorting purely by time. On a
+  // September afternoon a straight sort is fifteen baseball games and
+  // nothing else, which reads as one sport rather than a live board.
+  const queues = batches.map(b => sortGames(b))
+  const mixed: Game[] = []
+  for (let round = 0; mixed.length < limit; round++) {
+    let added = false
+    for (const queue of queues) {
+      const game = queue[round]
+      if (!game) continue
+      mixed.push(game)
+      added = true
+      if (mixed.length >= limit) break
+    }
+    if (!added) break
+  }
+  return mixed
 }
 
 /** Live first — that's what someone wants to see — then upcoming, then finished. */

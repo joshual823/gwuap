@@ -73,12 +73,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <main className="container">{children}</main>
+        {/* Icon plus label: testers said they were guessing what the
+            icons meant. A word under each removes the guessing. */}
         <nav className="tabbar">
-          <Link href="/feed" className="tab-icon active">⌂</Link>
-          <Link href="/search" className="tab-icon">🔍</Link>
-          <Link href="/post/new" className="tab-post">+</Link>
-          <Link href="/leaderboard" className="tab-icon">🏆</Link>
-          <Link href={profileHref} className="tab-icon">👤</Link>
+          <Link href="/feed" className="tab active">
+            <span className="tab-icon">⌂</span><span className="tab-label">Home</span>
+          </Link>
+          <Link href="/search" className="tab">
+            <span className="tab-icon">🔍</span><span className="tab-label">Search</span>
+          </Link>
+          <Link href="/post/new" className="tab tab-center">
+            <span className="tab-post">+</span><span className="tab-label">Post</span>
+          </Link>
+          <Link href="/leaderboard" className="tab">
+            <span className="tab-icon">🏆</span><span className="tab-label">Ranks</span>
+          </Link>
+          <Link href={profileHref} className="tab">
+            <span className="tab-icon">👤</span><span className="tab-label">Profile</span>
+          </Link>
         </nav>
         <Analytics />
         <Clarity />

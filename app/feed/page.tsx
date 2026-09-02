@@ -7,6 +7,7 @@ import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
+import NewsRail from '@/components/NewsRail'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
@@ -113,7 +114,7 @@ export default async function FeedPage(props: {
 
   // Home keeps three headlines as a prompt, not as feed content — the
   // timeline itself stays real picks by real people.
-  const newsTeaser = (await fetchNews('Top', 3))
+  const newsTeaser = (await fetchNews('Top', 10))
 
   return (
     <div>
@@ -149,17 +150,7 @@ export default async function FeedPage(props: {
           </div>
         )}
 
-        {newsTeaser.length > 0 && (
-          <div className="trending-card">
-            <div className="trending-title">Today in sports</div>
-            {newsTeaser.map(n => (
-              <div className="trend-row" key={n.link}>
-                <a href={n.link} target="_blank" rel="noopener noreferrer" className="news-teaser-title">{n.title}</a>
-              </div>
-            ))}
-            <Link href="/feed?tab=news" className="news-cta">All headlines →</Link>
-          </div>
-        )}
+        <NewsRail items={newsTeaser} />
 
         {shaped.length === 0 && (
           <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>
