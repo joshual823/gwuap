@@ -6,6 +6,7 @@ import { isBullish } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
+import JoinCard from '@/components/JoinCard'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
@@ -44,49 +45,17 @@ export default async function FeedPage(props: {
               className={`chip ${lg === newsLeague ? 'active' : ''}`}>{lg}</Link>
           ))}
         </div>
-        {!user && (
-          <div className="signup-nudge">
-            <strong>Got a take on any of this?</strong>
-            <span>Say it. Takes don't need money on them.</span>
-            <Link href="/signup" className="btn">Get started</Link>
-          </div>
-        )}
+        {!user && <JoinCard />}
         <NewsList items={items} league={newsLeague === 'Top' ? 'Other' : newsLeague} />
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div>
-        {tabs}
-        <Scoreboard games={await fetchRailGames()} />
-        <div style={{ marginTop: 32, textAlign: 'center' }}>
-          <h1 className="display" style={{ fontSize: 26, lineHeight: 1.2 }}>
-            Talk sports with the people who know it best.
-          </h1>
-          <p style={{ color: 'var(--ink-dim)', margin: '14px 0 20px', lineHeight: 1.5 }}>
-            Post your picks, track your record, and back up your takes.
-            No screenshots required.
-          </p>
-          <p style={{ color: 'var(--ink-faint)', fontSize: 13.5, margin: '0 0 24px', lineHeight: 1.5 }}>
-            Everything you post is timestamped, so the receipts keep themselves.
-          </p>
-          <Link href="/signup" className="btn">Get started</Link>
-          <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 20 }}>
-            Just looking? <Link href="/feed?tab=news" style={{ color: 'var(--twitter-blue)', fontWeight: 600 }}>Browse today's headlines →</Link>
-          </p>
-        </div>
       </div>
     )
   }
 
   // Blocking used to write a row and change nothing — the feed never read
   // the table, so a blocked user's picks kept showing up.
-  const { data: blocks } = await supabase
-    .from('blocks')
-    .select('blocked_id')
-    .eq('blocker_id', user.id)
+  const { data: blocks } = user
+    ? await supabase.from('blocks').select('blocked_id').eq('blocker_id', user.id)
+    : { data: [] }
   const blockedIds = (blocks ?? []).map((b: any) => b.blocked_id)
 
   let query = supabase
@@ -151,6 +120,8 @@ export default async function FeedPage(props: {
       {tabs}
       <Scoreboard games={await fetchRailGames()} />
 
+      {!user && <JoinCard />}
+
       {tickerItems.length > 0 && (
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (
@@ -191,7 +162,11 @@ export default async function FeedPage(props: {
         )}
 
         {shaped.length === 0 && (
-          <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>No picks yet. Be the first to post one.</p>
+          <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>
+            {user
+              ? 'No picks yet. Be the first to post one.'
+              : 'No picks posted yet — the games above are live either way.'}
+          </p>
         )}
         {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
       </div>

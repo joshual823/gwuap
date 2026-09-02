@@ -58,7 +58,11 @@ async function fetchPath(path: string, league: string): Promise<Game[]> {
   try {
     const res = await fetch(
       `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`,
-      { next: { revalidate: 60 }, headers: { 'User-Agent': 'Gwuap/1.0 (+https://gwuap.co)' } },
+      // No custom User-Agent: ESPN 403s "Gwuap/1.0 (+https://gwuap.co)"
+      // while accepting the default, curl's, or a browser's. Took a
+      // header-by-header comparison to find, because every failure here
+      // is swallowed into an empty rail by design.
+      { next: { revalidate: 60 }, headers: { Accept: 'application/json' } },
     )
     if (!res.ok) return []
     const data = await res.json()
@@ -118,21 +122,36 @@ function sortGames(games: Game[]): Game[] {
 
 /**
  * Link to the post form with the matchup already filled in.
- * The spread goes on the favourite's cashtag, which is how a pick is
- * written: "$SEA -3.5".
+ *
+ * ESPN puts different things in `odds.details` depending on the sport:
+ * "SEA -3.5" is a point spread, "SD -166" is a moneyline. They're told
+ * apart by magnitude — American odds are never under 100, and a spread
+ * is essentially never over it. Getting this wrong would drop a
+ * moneyline into the cashtag as if it were a line.
  */
 export function postHrefForGame(game: Game): string {
   const params = new URLSearchParams({ league: game.league })
-  const favourite = game.spread?.trim().split(/\s+/)[0]?.toUpperCase()
-  const line = game.spread?.trim().split(/\s+/).slice(1).join(' ')
 
-  let primary = `$${game.home.code}`
-  let secondary = `$${game.away.code}`
-  if (favourite === game.away.code.toUpperCase()) {
-    primary = `$${game.away.code}`
-    secondary = `$${game.home.code}`
+  const parts = game.spread?.trim().split(/\s+/) ?? []
+  const favourite = parts[0]?.toUpperCase()
+  const figure = parts.slice(1).join(' ')
+  const magnitude = Math.abs(parseFloat(figure.replace(/[^0-9.\-]/g, '')))
+
+  const awayIsFavourite = favourite && favourite === game.away.code.toUpperCase()
+  let primary = `$${awayIsFavourite ? game.away.code : game.home.code}`
+  const secondary = `$${awayIsFavourite ? game.home.code : game.away.code}`
+
+  if (figure && Number.isFinite(magnitude)) {
+    if (magnitude >= 100) {
+      // Moneyline: the number is the price, so it belongs in the odds field.
+      params.set('bet', 'moneyline')
+      params.set('odds', figure.replace(/[^0-9+\-]/g, ''))
+    } else {
+      // Spread: the number is part of how the pick is written.
+      params.set('bet', 'spread')
+      primary = `${primary} ${figure}`
+    }
   }
-  if (line) primary = `${primary} ${line}`
 
   params.set('tag', primary)
   params.set('tag2', secondary)

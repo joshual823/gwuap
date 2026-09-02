@@ -347,4 +347,17 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .game-odds { display: flex; gap: 8px; margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); }
 .game-ou { color: var(--ink-faint); }
 
+/* Join card — lives inside the feed, not instead of it */
+.join-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; margin: 12px 4px 16px; text-align: center; }
+.join-avatars { display: flex; justify-content: center; margin-bottom: 10px; }
+.join-av { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--card); margin-left: -8px; }
+.join-av:first-child { margin-left: 0; }
+.join-av.a { background: linear-gradient(135deg, var(--brand), #0a4a10); }
+.join-av.b { background: linear-gradient(135deg, var(--twitter-blue), #0b3c5f); }
+.join-av.c { background: linear-gradient(135deg, var(--bear), #5c1319); }
+.join-card strong { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); }
+.join-card p { font-size: 13.5px; line-height: 1.5; color: var(--ink-dim); margin: 6px auto 14px; max-width: 320px; }
+.join-actions { display: flex; gap: 8px; justify-content: center; }
+.join-actions .btn { flex: 1; max-width: 150px; text-align: center; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

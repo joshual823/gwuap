@@ -66,7 +66,20 @@ export default function NewPickForm() {
     // Arriving from a game card: the opponent comes with it, and a
     // matchup means the bet is on the game, so default to a total.
     const presetTag2 = searchParams.get('tag2')
-    if (presetTag2) { setTag2(presetTag2.toUpperCase()); setKind('pick'); setBetType('total') }
+    if (presetTag2) { setTag2(presetTag2.toUpperCase()); setKind('pick') }
+    // A game card knows what kind of bet its line represents.
+    const presetBet = searchParams.get('bet')
+    if (presetBet && BET_TYPES.some(b => b.value === presetBet)) {
+      setKind('pick'); setBetType(presetBet as BetType)
+    }
+    const presetOdds = searchParams.get('odds')
+    const oddsMatch = presetOdds && /^([+-]?)(\d{3,6})$/.exec(presetOdds.trim())
+    if (oddsMatch) {
+      setKind('pick')
+      setOddsSign(oddsMatch[1] === '+' ? '+' : '-')
+      setOddsInput(oddsMatch[2])
+      if (!QUICK_ODDS.includes(`${oddsMatch[1] === '+' ? '+' : '-'}${oddsMatch[2]}`)) setOddsCustom(true)
+    }
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
       if (Number.isFinite(lastStake) && lastStake > 0) {
