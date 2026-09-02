@@ -10,6 +10,8 @@
 // Structured sports data (live scores, odds, injuries, player props) is a
 // different product with real pricing. This is headlines only, on purpose.
 
+import { SITE_NAME, SITE_URL } from './brand'
+
 export type NewsItem = {
   title: string
   link: string
@@ -115,7 +117,7 @@ async function fetchFrom(source: Source, limit: number): Promise<NewsItem[]> {
   try {
     const res = await fetch(source.url, {
       next: { revalidate: 900 },
-      headers: { 'User-Agent': 'Gwuap/1.0 (+https://gwuap.vercel.app)' },
+      headers: { 'User-Agent': `${SITE_NAME}/1.0 (+${SITE_URL})` },
     })
     if (!res.ok) return []
     const xml = await res.text()

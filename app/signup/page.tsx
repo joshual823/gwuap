@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import { SITE_NAME } from '@/lib/brand'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
@@ -80,7 +81,7 @@ export default function SignupPage() {
 
   return (
     <div style={{ maxWidth: 360, margin: '48px auto' }}>
-      <h1 className="display" style={{ fontSize: 28, marginBottom: 4 }}>Gwuap</h1>
+      <h1 className="display" style={{ fontSize: 28, marginBottom: 4 }}>{SITE_NAME}</h1>
       <p style={{ color: 'var(--ink-dim)', marginBottom: 24 }}>Create your account and start posting your picks.</p>
       <form onSubmit={handleSignup}>
         <input className="field" placeholder="Username" value={username}

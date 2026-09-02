@@ -4,6 +4,7 @@ import NewsList from '@/components/NewsList'
 import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
 import { isBullish } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
+import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -152,7 +153,7 @@ export default async function FeedPage(props: {
       <div style={{ padding: '0 4px' }}>
         {trending.length > 0 && (
           <div className="trending-card">
-            <div className="trending-title">Trending on Gwuap</div>
+            <div className="trending-title">Trending on {SITE_NAME}</div>
             {trending.map((t, i) => (
               <Link href={tickerHref(t.tag)} className="trend-row" key={t.tag}>
                 <span className="trend-rank">{i + 1}</span>

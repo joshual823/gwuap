@@ -1,10 +1,11 @@
 import './globals.css'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
+import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
 
 export const metadata = {
-  title: 'Gwuap — track your picks, follow the sharps',
-  description: 'A social feed for sports bettors: post your picks, track your record, follow the sharps.',
+  title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+  description: `A social feed for sports bettors: post your picks, track your record, follow the sharps.`,
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -44,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <header className="topbar">
           <div className="topbar-inner">
-            <Link href="/feed" className="wordmark">Gwuap</Link>
+            <Link href="/feed" className="wordmark">{SITE_NAME}</Link>
             {/* Chat and DMs aren't built yet (Sessions 9-10). The links
                 used to point at /chat and /dm, which 404, and carried
                 hardcoded "2" and "1" notification badges. Both are gone
