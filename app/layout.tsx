@@ -1,5 +1,5 @@
 import './globals.css'
-import { Plus_Jakarta_Sans, Archivo, JetBrains_Mono } from 'next/font/google'
+import { Inter, Manrope, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
@@ -11,22 +11,11 @@ import Clarity from '@/components/Clarity'
 // serial waterfall that left every page rendering in the system fallback
 // for the first few hundred milliseconds. That flash is what made it
 // look unfinished.
-// Inter was the problem as much as the loading was — it's the default
-// startup font, well made and completely anonymous. Plus Jakarta Sans
-// has actual letterform character at body size; Archivo is a slightly
-// condensed grotesque that reads editorial and sporty rather than SaaS.
-const body = Plus_Jakarta_Sans({
-  subsets: ['latin'], display: 'swap', variable: '--font-body',
-  weight: ['400', '500', '600', '700', '800'],
-})
-const display = Archivo({
-  subsets: ['latin'], display: 'swap', variable: '--font-display',
-  weight: ['600', '700', '800'],
-})
-const mono = JetBrains_Mono({
-  subsets: ['latin'], display: 'swap', variable: '--font-mono',
-  weight: ['500', '600', '700'],
-})
+// Variable fonts — no weight array — so one file per family covers every
+// weight instead of shipping five statics.
+const body = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-body' })
+const display = Manrope({ subsets: ['latin'], display: 'swap', variable: '--font-display' })
+const mono = JetBrains_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-mono' })
 
 export const viewport = {
   width: 'device-width',
