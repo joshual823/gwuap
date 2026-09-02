@@ -4,6 +4,7 @@ import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
 import GradeButtons from './GradeButtons'
 import LogoutButton from '@/components/LogoutButton'
+import ThemeToggle from '@/components/ThemeToggle'
 import EditProfile from './EditProfile'
 import Avatar from '@/components/Avatar'
 import MessageButton from './MessageButton'
@@ -91,6 +92,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         {user?.id === profile.id && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
             <EditProfile profile={profile as any} />
+            <ThemeToggle />
             <LogoutButton />
           </div>
         )}
