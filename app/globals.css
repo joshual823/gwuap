@@ -362,7 +362,8 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); flex: 0 0 auto; box-shadow: 0 0 0 3px rgba(0,200,5,0.2); }
 
 .game-row { display: flex; align-items: center; justify-content: space-between; padding: 1px 0; }
-.game-team { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink); }
+.game-team { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 108px; }
+.lg-tennis .game-team { font-size: 12px; letter-spacing: -0.02em; max-width: 124px; }
 .game-score { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 15px; color: var(--ink); }
 .game-status { margin-top: 6px; font-size: 11px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
 .game-status.in { color: var(--brand); font-weight: 700; }

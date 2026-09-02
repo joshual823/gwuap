@@ -28,19 +28,27 @@ export default function ScoreRail({ loop, children }: {
     if (!el || !loop) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
+    // Position is tracked here rather than read back from scrollLeft each
+    // frame. Some browsers round scrollLeft to whole pixels, so a 0.35px
+    // increment read back as 0 and the rail never moved — which is
+    // exactly what happened.
+    let pos = el.scrollLeft
     let frame = 0
+
     const step = () => {
       frame = requestAnimationFrame(step)
       if (paused.current || document.hidden) return
       const half = el.scrollWidth / 2
       if (half <= 0) return
-      el.scrollLeft += SPEED
-      if (el.scrollLeft >= half) el.scrollLeft -= half
+      pos += SPEED
+      if (pos >= half) pos -= half
+      el.scrollLeft = pos
     }
     frame = requestAnimationFrame(step)
 
     const hold = () => { paused.current = true }
-    const release = () => { paused.current = false }
+    // Pick up from wherever they scrolled to, not from our stale position.
+    const release = () => { pos = el.scrollLeft; paused.current = false }
 
     el.addEventListener('pointerenter', hold)
     el.addEventListener('pointerdown', hold)

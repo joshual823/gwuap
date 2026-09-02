@@ -35,13 +35,15 @@ const SCOREBOARDS: Record<string, string[]> = {
   'College Football': ['football/college-football'],
   'College Basketball': ['basketball/mens-college-basketball'],
   'UFC': ['mma/ufc'],
-  'Tennis': ['tennis/atp', 'tennis/wta'],
+  // One endpoint only: the ATP scoreboard already carries the women's
+  // and mixed groupings, so adding tennis/wta returns everything twice.
+  'Tennis': ['tennis/atp'],
   'Golf': ['golf/pga'],
   'Soccer': ['soccer/eng.1', 'soccer/usa.1', 'soccer/uefa.champions', 'soccer/esp.1'],
 }
 
 /** Leagues shown in the feed rail — kept small so it's a handful of cached fetches. */
-export const RAIL_LEAGUES = ['NFL', 'College Football', 'MLB', 'NBA', 'NHL']
+export const RAIL_LEAGUES = ['NFL', 'College Football', 'MLB', 'NBA', 'NHL', 'Tennis']
 
 export const LEAGUES_WITH_SCORES = Object.keys(SCOREBOARDS)
 
@@ -52,6 +54,58 @@ function side(competitor: any): GameSide {
     name: team.displayName ?? team.name ?? '',
     score: competitor?.score ?? null,
   }
+}
+
+/** Surname, uppercased — matches the ticker codes in lib/tickers.ts. */
+function athleteCode(athlete: any): string {
+  const last = athlete?.lastName || athlete?.displayName?.split(/\s+/).slice(-1)[0] || ''
+  return String(last).toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
+/**
+ * Tennis doesn't look like team sport. The scoreboard returns one event
+ * per tournament, with the whole draw nested under `groupings` — 239
+ * matches for a Grand Slam, nearly all finished. Only matches that
+ * haven't been played are worth showing.
+ */
+function parseTennis(data: any, league: string): Game[] {
+  const games: Game[] = []
+  for (const event of data?.events ?? []) {
+    for (const grouping of event?.groupings ?? []) {
+      for (const competition of grouping?.competitions ?? []) {
+        const state = competition?.status?.type?.state
+        if (state === 'post') continue          // the draw is mostly history
+        const competitors = competition?.competitors ?? []
+        if (competitors.length !== 2) continue  // skip doubles and byes
+        const [a, b] = competitors
+        const codeA = athleteCode(a?.athlete)
+        const codeB = athleteCode(b?.athlete)
+        if (!codeA || !codeB) continue
+
+        games.push({
+          id: String(competition.id ?? `${event.id}-${codeA}-${codeB}`),
+          league,
+          away: { code: codeA, name: a?.athlete?.displayName ?? codeA, score: null },
+          home: { code: codeB, name: b?.athlete?.displayName ?? codeB, score: null },
+          status: competition?.status?.type?.shortDetail ?? event?.name ?? '',
+          state: state === 'in' ? 'in' : 'pre',
+          startsAt: competition?.date ?? event?.date ?? null,
+          spread: null,
+          overUnder: null,
+        })
+      }
+    }
+  }
+  // A Grand Slam draw is hundreds of unplayed matches stretching a
+  // fortnight out. Only the next few are worth a card.
+  const seen = new Set<string>()
+  const unique = games.filter(g => {
+    const key = `${g.away.code}-${g.home.code}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  return sortGames(unique).slice(0, 8)
 }
 
 async function fetchPath(path: string, league: string): Promise<Game[]> {
@@ -66,6 +120,8 @@ async function fetchPath(path: string, league: string): Promise<Game[]> {
     )
     if (!res.ok) return []
     const data = await res.json()
+
+    if (path.startsWith('tennis/')) return parseTennis(data, league)
 
     const games: Game[] = []
     for (const event of data?.events ?? []) {
