@@ -6,7 +6,7 @@
  */
 export const SITE_NAME = 'Gwuap'
 export const SITE_TAGLINE = 'track your picks, follow the sharps'
-export const SITE_URL = 'https://gwuap.vercel.app'
+export const SITE_URL = 'https://gwuap.co'
 
 /**
  * Prefix for browser-stored preferences. Changing it silently resets
