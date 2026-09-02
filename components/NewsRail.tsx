@@ -10,7 +10,7 @@ export default function NewsRail({ items }: { items: NewsItem[] }) {
     <div className="board">
       <div className="board-head">
         <span className="board-title">Today in sports</span>
-        <Link href="/feed?tab=news" className="board-more">All headlines →</Link>
+        <Link href="/news" className="board-more">All headlines →</Link>
       </div>
       <div className="board-rail">
         <div className="board-track">

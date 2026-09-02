@@ -108,10 +108,11 @@ function parseTennis(data: any, league: string): Game[] {
   return sortGames(unique).slice(0, 8)
 }
 
-async function fetchPath(path: string, league: string): Promise<Game[]> {
+async function fetchPath(path: string, league: string, dates?: string): Promise<Game[]> {
   try {
+    const query = dates ? `?dates=${dates}` : ''
     const res = await fetch(
-      `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`,
+      `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard${query}`,
       // No custom User-Agent: ESPN 403s "Gwuap/1.0 (+https://gwuap.co)"
       // while accepting the default, curl's, or a browser's. Took a
       // header-by-header comparison to find, because every failure here
@@ -154,11 +155,32 @@ async function fetchPath(path: string, league: string): Promise<Game[]> {
 }
 
 /** Games for one category. Empty list if the league has no scoreboard. */
-export async function fetchGames(league: string): Promise<Game[]> {
+export async function fetchGames(league: string, dates?: string): Promise<Game[]> {
   const paths = SCOREBOARDS[league]
   if (!paths) return []
-  const batches = await Promise.all(paths.map(p => fetchPath(p, league)))
+  const batches = await Promise.all(paths.map(p => fetchPath(p, league, dates)))
   return sortGames(batches.flat())
+}
+
+function stamp(offsetDays: number): string {
+  const d = new Date()
+  d.setUTCDate(d.getUTCDate() + offsetDays)
+  return d.toISOString().slice(0, 10).replace(/-/g, '')
+}
+
+/**
+ * A window around today: finished games worth arguing about, and the
+ * ones you can still bet. ESPN takes `dates=YYYYMMDD-YYYYMMDD`.
+ *
+ * Tennis is excluded from the range — its scoreboard is one event per
+ * tournament carrying the whole draw already, so a date filter would
+ * narrow it to nothing.
+ */
+export async function fetchGamesWindow(
+  league: string, daysBack = 3, daysForward = 3,
+): Promise<Game[]> {
+  if (league === 'Tennis') return fetchGames(league)
+  return fetchGames(league, `${stamp(-daysBack)}-${stamp(daysForward)}`)
 }
 
 /** A merged rail across the leagues most likely to have something on. */

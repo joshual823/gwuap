@@ -1,57 +1,31 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
-import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
+import { fetchNews } from '@/lib/news'
 import { toneFor } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
 import NewsRail from '@/components/NewsRail'
+import FeedTabs from '@/components/FeedTabs'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
 export default async function FeedPage(props: {
-  searchParams: Promise<{ tab?: string; league?: string }>
+  searchParams: Promise<Record<string, string | undefined>>
 }) {
-  const searchParams = await props.searchParams
-  const tab = searchParams.tab === 'news' ? 'news' : 'home'
-  const newsLeague = NEWS_LEAGUES.includes(searchParams.league ?? '')
-    ? (searchParams.league as string)
-    : 'Top'
-
+  await props.searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const tabs = (
-    <div className="feed-tabs">
-      <Link href="/feed" className={`feed-tab ${tab === 'home' ? 'active' : ''}`}>Home</Link>
-      <Link href="/feed?tab=news" className={`feed-tab ${tab === 'news' ? 'active' : ''}`}>News</Link>
-    </div>
-  )
+  const tabs = <FeedTabs active="home" />
 
   // News needs no account. It's the one thing a cold visitor can actually
   // look at, which is the entire reason it exists — gating it behind
   // signup would show it only to people who are already convinced.
-  if (tab === 'news') {
-    const items = await fetchNews(newsLeague)
-    return (
-      <div>
-        {tabs}
-        <div className="chip-row">
-          {NEWS_LEAGUES.map(lg => (
-            <Link key={lg} href={`/feed?tab=news&league=${encodeURIComponent(lg)}`}
-              className={`chip ${lg === newsLeague ? 'active' : ''}`}>{lg}</Link>
-          ))}
-        </div>
-        {!user && <JoinCard />}
-        <NewsList items={items} league={newsLeague === 'Top' ? 'Other' : newsLeague} />
-      </div>
-    )
-  }
-
   // Blocking used to write a row and change nothing — the feed never read
   // the table, so a blocked user's picks kept showing up.
   const { data: blocks } = user
