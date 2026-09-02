@@ -203,22 +203,51 @@ full password reset with it on — `/reset/confirm` calls
 it. If Supabase doesn't exempt recovery sessions, resets break for
 exactly the people who need them.
 
+### Email and domain ✅ DONE
+
+- [x] **Domain: `gwuap.co`**, bought through Vercel so DNS configures
+      itself. `gwuap.vercel.app` still resolves, so nothing already
+      shared is broken. Both are on Supabase's redirect allowlist.
+      *Gotcha hit along the way:* buying a domain adds it to your Vercel
+      **account**; attaching it to the **project** is a separate step,
+      and until you do, the domain returns 404 with no certificate.
+- [x] **Resend** provisioned through the Vercel Marketplace (free plan).
+      DKIM, SPF and the return-path MX auto-configured because the
+      domain is on Vercel nameservers. DMARC (`p=none`) added manually —
+      Resend marks it optional, but Gmail and Yahoo expect it.
+- [x] **Supabase Custom SMTP** pointed at `smtp.resend.com:587`, sending
+      as `hello@gwuap.co` (not `noreply@`, which some filters penalise).
+- [x] **Password reset verified end to end on the live domain.**
+- [x] **Email templates** in `supabase/email-templates/`, replacing
+      Supabase's defaults — which are a bare link on a white page, the
+      same shape as a phishing mail.
+
+**Deliberately still OFF: email confirmation.** The reset mail lands in
+spam, because `gwuap.co` has no sending reputation yet — nothing is
+misconfigured, all four auth records pass. Someone requesting a reset
+knows to look in spam; a new signup doesn't. They'd hit "check your
+email", find nothing, and leave, and you would never know it happened.
+
+**Turn it on when you post the link somewhere you can't text the person**
+— a subreddit, a Discord, a bio. By then the domain will have sending
+history. It's one click, in Authentication → Providers → Email.
+
+**What you give up meanwhile:** someone can register an address they
+don't own. Among people you personally invited, negligible.
+
 ### What's left
 
-**1. A domain.** `gwuap.com` is taken by a parking service. A domain is
-needed for Resend to send to anyone but you, so it blocks password
-resets and email confirmation for strangers. It's also the real URL —
-switching needs zero code changes, just the new domain added to
-Supabase's redirect allowlist.
+**Nothing technical.** Every item in this guide is built, deployed,
+tested live and security-reviewed.
 
-**2. Resend** (chosen via `vercel integration discover --category
-messaging` — it's the only option). Supabase Auth sends the mail, so the
-work is: verify the domain in Resend, take the SMTP credentials, paste
-them into Supabase's Custom SMTP settings. ~1 hour, mostly waiting on
-DNS.
+**1. Seed the feed.** Still the actual blocker. Takes made it quick —
+cashtag, league, direction, a sentence. The news tab hands you prompts.
 
-**3. Seed the feed, then get people on it.** Still the actual blocker,
-and still not a coding problem. See Session 7.
+**2. Get people on it.** See Session 7. Tell the first few to check spam
+if a password reset doesn't arrive.
+
+**3. Then fix whatever they trip on.** That's the only item here that
+can't be started early, because it needs users to exist first.
 
 ## Session 6 — Make it not broken ✅ DONE (tested live)
 
