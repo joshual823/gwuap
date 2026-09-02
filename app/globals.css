@@ -73,9 +73,10 @@ html, body {
   padding: 0;
 }
 
-/* Space Grotesk on headings and the wordmark: enough character to not
-   look like a default, without being decorative. */
-h1, h2, h3, .display, .wordmark { font-family: var(--font-display), var(--font-body), sans-serif; font-weight: 700; letter-spacing: -0.025em; }
+/* Archivo on headings and the wordmark. Heavier and tighter than the
+   body face so the hierarchy is obvious at a glance instead of relying
+   on size alone. */
+h1, h2, h3, .display { font-family: var(--font-display), var(--font-body), sans-serif; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
 .mono, .odds, .record, .stat { font-family: var(--font-mono), ui-monospace, monospace; }
 
 a { color: inherit; text-decoration: none; }
@@ -89,7 +90,7 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid var(--line);
 }
 .topbar-inner { max-width: 460px; margin: 0 auto; padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; }
-.wordmark { font-weight: 800; font-size: 19px; color: var(--brand); letter-spacing: -0.02em; }
+.wordmark { font-family: var(--font-display), sans-serif; font-weight: 800; font-size: 21px; color: var(--brand); letter-spacing: -0.04em; }
 .top-icons { display: flex; gap: 16px; align-items: center; }
 .icon-wrap { position: relative; font-size: 17px; color: var(--ink-dim); }
 .badge { position: absolute; top: -5px; right: -8px; background: var(--bear); color: #fff; font-size: 9px; font-weight: 700; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -144,7 +145,7 @@ a { color: inherit; text-decoration: none; }
 
 /* Trending module */
 .trending-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin: 10px 4px 16px; padding: 12px; }
-.trending-title { font-size: 12px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.trending-title { font-family: var(--font-display), sans-serif; font-size: 12px; font-weight: 800; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
 .trend-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13.5px; }
 .trend-rank { width: 16px; color: var(--ink-faint); font-family: var(--font-mono), monospace; font-weight: 700; }
 
@@ -226,7 +227,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 /* Comment thread page (/post/[id]) */
 .back-link { display: inline-block; font-size: 13px; color: var(--ink-dim); margin-bottom: 4px; }
-.comments-heading { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin: 18px 0 4px; }
+.comments-heading { font-family: var(--font-display), sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); margin: 18px 0 4px; }
 
 .comment { display: flex; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
 .comment-avatar { width: 30px; height: 30px; }
@@ -302,7 +303,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 /* Feed tabs + news */
 .feed-tabs { display: flex; border-bottom: 1px solid var(--line); }
-.feed-tab { flex: 1; text-align: center; padding: 12px 0 10px; font-size: 14.5px; font-weight: 700; color: var(--ink-faint); border-bottom: 2px solid transparent; }
+.feed-tab { flex: 1; text-align: center; padding: 12px 0 10px; font-size: 15px; font-weight: 700; font-family: var(--font-display), sans-serif; letter-spacing: -0.01em; color: var(--ink-faint); border-bottom: 2px solid transparent; }
 .feed-tab.active { color: var(--ink); border-bottom-color: var(--brand); }
 
 .news-item { padding: 14px 4px; border-bottom: 1px solid var(--line); }
@@ -393,7 +394,7 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 /* Scoreboard rail — the one module that's alive without users */
 .board { margin: 10px 0 14px; }
 .board-head { display: flex; align-items: baseline; gap: 8px; padding: 0 4px 8px; }
-.board-title { font-size: 12px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+.board-title { font-family: var(--font-display), sans-serif; font-size: 12px; font-weight: 800; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
 .board-hint { font-size: 11.5px; color: var(--ink-dim); margin-left: auto; }
 .board-more { font-size: 12px; font-weight: 700; color: var(--brand); margin-left: auto; }
 

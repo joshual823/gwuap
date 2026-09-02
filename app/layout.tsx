@@ -1,5 +1,5 @@
 import './globals.css'
-import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, Archivo, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
@@ -11,25 +11,23 @@ import Clarity from '@/components/Clarity'
 // serial waterfall that left every page rendering in the system fallback
 // for the first few hundred milliseconds. That flash is what made it
 // look unfinished.
-const body = Inter({
+// Inter was the problem as much as the loading was — it's the default
+// startup font, well made and completely anonymous. Plus Jakarta Sans
+// has actual letterform character at body size; Archivo is a slightly
+// condensed grotesque that reads editorial and sporty rather than SaaS.
+const body = Plus_Jakarta_Sans({
   subsets: ['latin'], display: 'swap', variable: '--font-body',
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
 })
-const display = Space_Grotesk({
+const display = Archivo({
   subsets: ['latin'], display: 'swap', variable: '--font-display',
-  weight: ['500', '600', '700'],
+  weight: ['600', '700', '800'],
 })
 const mono = JetBrains_Mono({
   subsets: ['latin'], display: 'swap', variable: '--font-mono',
   weight: ['500', '600', '700'],
 })
 
-/**
- * viewport-fit=cover is what makes env(safe-area-inset-*) return real
- * numbers. Without it those insets are 0, so the fixed tab bar had no
- * bottom padding and sat underneath Safari's toolbar and the home
- * indicator — which is why it vanished at the ends of a scroll.
- */
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
