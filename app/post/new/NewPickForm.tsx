@@ -63,6 +63,10 @@ export default function NewPickForm() {
     // Arriving from a cashtag page: start with that ticker filled in.
     const presetTag = searchParams.get('tag')
     if (presetTag) setTag(presetTag.toUpperCase() + ' ')
+    // Arriving from a game card: the opponent comes with it, and a
+    // matchup means the bet is on the game, so default to a total.
+    const presetTag2 = searchParams.get('tag2')
+    if (presetTag2) { setTag2(presetTag2.toUpperCase()); setKind('pick'); setBetType('total') }
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
       if (Number.isFinite(lastStake) && lastStake > 0) {

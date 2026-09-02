@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import { isBullish } from '@/lib/odds'
+import { fetchGames } from '@/lib/scores'
+import Scoreboard from '@/components/Scoreboard'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,6 +46,10 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
     .order('created_at', { ascending: false })
     .limit(50)
 
+  // A ticker only belongs to one league, so take it from the first post.
+  // PostgREST returns a to-one embed as an object; the generated type says array.
+  const league: string | null = ((posts ?? [])[0] as any)?.category?.name ?? null
+
   const shaped = (posts ?? []).map((p: any) => ({
     ...p,
     comment_count: p.comments?.length ?? 0,
@@ -79,6 +85,10 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
           Nothing posted on {ticker} yet. Be the first.
         </p>
       )}
+
+      {league && <Scoreboard games={(await fetchGames(league)).filter(
+        g => g.home.code.toUpperCase() === bare || g.away.code.toUpperCase() === bare,
+      )} title={`${bare} games`} />}
 
       {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
     </div>

@@ -4,6 +4,8 @@ import NewsList from '@/components/NewsList'
 import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
 import { isBullish } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
+import { fetchRailGames } from '@/lib/scores'
+import Scoreboard from '@/components/Scoreboard'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
@@ -58,7 +60,8 @@ export default async function FeedPage(props: {
     return (
       <div>
         {tabs}
-        <div style={{ marginTop: 48, textAlign: 'center' }}>
+        <Scoreboard games={await fetchRailGames()} />
+        <div style={{ marginTop: 32, textAlign: 'center' }}>
           <h1 className="display" style={{ fontSize: 26, lineHeight: 1.2 }}>
             Talk sports with the people who know it best.
           </h1>
@@ -146,6 +149,8 @@ export default async function FeedPage(props: {
   return (
     <div>
       {tabs}
+      <Scoreboard games={await fetchRailGames()} />
+
       {tickerItems.length > 0 && (
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (

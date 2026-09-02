@@ -326,4 +326,25 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .vent-quiet { font-size: 13px; line-height: 1.5; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; margin: 0 0 14px; }
 .vent-quiet a { color: var(--brand); font-weight: 700; }
 
+/* Scoreboard rail — the one module that's alive without users */
+.board { margin: 10px 0 14px; }
+.board-head { display: flex; align-items: baseline; gap: 8px; padding: 0 4px 8px; }
+.board-title { font-size: 12px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.board-hint { font-size: 11.5px; color: var(--ink-faint); margin-left: auto; }
+.board-rail { display: flex; gap: 8px; overflow-x: auto; padding: 0 4px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.board-rail::-webkit-scrollbar { display: none; }
+
+.game { flex: 0 0 auto; width: 148px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.game-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.game-league { font-size: 10px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.game-status { font-size: 10.5px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 4px; }
+.game-status.in { color: var(--brand); font-weight: 700; }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); flex: 0 0 auto; }
+
+.game-row { display: flex; align-items: center; justify-content: space-between; padding: 1px 0; }
+.game-team { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13.5px; color: var(--ink); }
+.game-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink); }
+.game-odds { display: flex; gap: 8px; margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-dim); }
+.game-ou { color: var(--ink-faint); }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
