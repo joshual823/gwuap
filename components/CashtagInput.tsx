@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { searchTickers, isSupportedLeague, type Ticker } from '@/lib/tickers'
+import { createClient } from '@/lib/supabaseClient'
 
 /**
  * StockTwits-style cashtag field.
@@ -15,13 +16,19 @@ import { searchTickers, isSupportedLeague, type Ticker } from '@/lib/tickers'
  * the Chargers.
  */
 export default function CashtagInput({
-  value, onChange, league,
+  value, onChange, league, categoryId,
 }: {
   value: string
   onChange: (v: string) => void
   league: string | null
+  /** Scopes learned cashtags to the league, so $CHI in the NHL doesn't surface in the NBA. */
+  categoryId?: number | ''
 }) {
   const [open, setOpen] = useState(false)
+  // Cashtags other people have already used in this league. A fixed list
+  // can never cover Challenger tennis, college teams or lower-tier
+  // soccer — but anything posted once becomes suggestable forever.
+  const [learned, setLearned] = useState<Ticker[]>([])
   const [highlight, setHighlight] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -32,10 +39,41 @@ export default function CashtagInput({
   const rest = spaceAt === -1 ? '' : body.slice(spaceAt + 1)
   const stillTypingTicker = spaceAt === -1
 
-  const suggestions = useMemo<Ticker[]>(
+  const curated = useMemo<Ticker[]>(
     () => (stillTypingTicker ? searchTickers(league, ticker) : []),
     [league, ticker, stillTypingTicker],
   )
+
+  // Curated entries win; learned ones fill the tail.
+  const suggestions = useMemo<Ticker[]>(() => {
+    if (!stillTypingTicker) return []
+    const seen = new Set(curated.map(t => t.code))
+    return [...curated, ...learned.filter(t => !seen.has(t.code))].slice(0, 8)
+  }, [curated, learned, stillTypingTicker])
+
+  useEffect(() => {
+    const query = ticker.trim()
+    if (!stillTypingTicker || query.length < 2 || !categoryId) { setLearned([]); return }
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('posts')
+        .select('ticker')
+        .eq('category_id', categoryId)
+        .ilike('ticker', `$${query}%`)
+        .limit(60)
+      if (cancelled) return
+      const codes = new Set<string>()
+      for (const row of (data ?? []) as { ticker: string | null }[]) {
+        if (row.ticker) codes.add(row.ticker.replace(/^\$/, ''))
+      }
+      setLearned([...codes].sort().slice(0, 8).map(code => ({
+        code, name: 'used before', league: (league ?? 'Other') as Ticker['league'],
+      })))
+    }, 220)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [ticker, stillTypingTicker, categoryId, league])
 
   useEffect(() => { setHighlight(0) }, [ticker, league])
 
@@ -116,7 +154,7 @@ export default function CashtagInput({
       {!isSupportedLeague(league) && (
         <p className="cashtag-hint">
           {league
-            ? `No list for ${league} yet — type the cashtag yourself.`
+            ? `No set list for ${league} — type it once and it'll be suggested next time.`
             : 'Choose a league to get team suggestions.'}
         </p>
       )}

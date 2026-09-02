@@ -209,11 +209,11 @@ export default function NewPickForm() {
         </select>
 
         <label className="form-label">{showMatchup ? 'Teams' : 'Cashtag'}</label>
-        <CashtagInput value={tag} onChange={setTag} league={leagueName} />
+        <CashtagInput value={tag} onChange={setTag} league={leagueName} categoryId={categoryId} />
         {showMatchup && (
           <>
             <label className="form-label">Opponent — a total is on the game, not one team</label>
-            <CashtagInput value={tag2} onChange={setTag2} league={leagueName} />
+            <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
           </>
         )}
 
