@@ -83,6 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gwuap:theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}` }} />
       </head>
       <body>
+        <div className="app">
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/feed" className="wordmark">{SITE_NAME}</Link>
@@ -110,7 +111,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <main className="container">{children}</main>
+        <main className="scroll">
+          <div className="container">{children}</div>
+        </main>
         {/* Icon plus label: testers said they were guessing what the
             icons meant. A word under each removes the guessing. */}
         <nav className="tabbar">
@@ -130,6 +133,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <span className="tab-icon">👤</span><span className="tab-label">Profile</span>
           </Link>
         </nav>
+        </div>
         <Analytics />
         <Clarity />
       </body>
