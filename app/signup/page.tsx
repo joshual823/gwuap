@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import { SITE_NAME } from '@/lib/brand'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
@@ -92,6 +93,10 @@ export default function SignupPage() {
         <input className="field" placeholder="Password" type="password" value={password}
           onChange={e => setPassword(e.target.value)} required minLength={8} />
         <p className="field-hint">At least 8 characters. Length beats complexity — a few words you’ll remember is fine.</p>
+        <div className="signup-theme">
+          <ThemeToggle />
+        </div>
+
         {error && <p style={{ color: 'var(--bear)', fontSize: 14, marginBottom: 12 }}>{error}</p>}
         <button className="btn" type="submit" disabled={loading} style={{ width: '100%' }}>
           {loading ? 'Creating account…' : 'Sign up'}

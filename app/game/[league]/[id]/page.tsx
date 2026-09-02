@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { fetchGameDetail, fetchGames, postHrefForGame, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
+import WatchButton from '@/components/WatchButton'
 import { createClient } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
@@ -27,6 +28,10 @@ export default async function GamePage(props: {
   const live = detail.state === 'in'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const { data: watchRows } = user
+    ? await supabase.from('watchlist').select('ticker').eq('user_id', user.id)
+    : { data: [] }
+  const watchedCodes = (watchRows ?? []).map((w: any) => String(w.ticker).toUpperCase())
   const base = `/game/${encodeURIComponent(league)}/${encodeURIComponent(params.id)}`
 
   return (
@@ -85,6 +90,8 @@ export default async function GamePage(props: {
                 {side.logo && <img src={side.logo} alt="" className="gd-logo" loading="lazy" />}
                 {side.code}
                 {side.record && <span className="gd-record">{side.record}</span>}
+                <WatchButton ticker={side.code} league={league} viewerId={user?.id ?? null}
+                  initiallyWatched={watchedCodes.includes(side.code.toUpperCase())} />
               </td>
               {detail.periods.map((p, i) => <td key={p}>{side.byPeriod[i] ?? '–'}</td>)}
               <td className="gd-total">{side.score ?? '–'}</td>

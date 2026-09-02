@@ -118,8 +118,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Link href="/feed" className="tab active">
             <span className="tab-icon">⌂</span><span className="tab-label">Home</span>
           </Link>
-          <Link href="/search" className="tab">
-            <span className="tab-icon">🔍</span><span className="tab-label">Search</span>
+          <Link href="/watchlist" className="tab">
+            <span className="tab-icon">⭐</span><span className="tab-label">Watch</span>
           </Link>
           <Link href="/post/new" className="tab tab-center">
             <span className="tab-post">+</span><span className="tab-label">Post</span>

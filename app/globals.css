@@ -544,4 +544,14 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .gc-quick-btn { background: none; border: none; padding: 2px 4px; font-size: 17px; line-height: 1; cursor: pointer; border-radius: 6px; }
 .gc-quick-btn:hover { background: var(--card); }
 
+/* Watchlist star */
+.watch-btn { background: none; border: none; padding: 2px 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--ink-faint); font-size: 13px; font-weight: 700; }
+.watch-btn.on { color: var(--pending); }
+.watch-star { font-size: 17px; line-height: 1; }
+.watch-label { font-family: var(--font-body), sans-serif; font-size: 12.5px; }
+.watch-btn:disabled { opacity: 0.5; }
+
+.signup-theme { display: flex; justify-content: flex-start; margin: 4px 0 14px; }
+.signup-theme .theme-toggle { align-items: flex-start; width: 100%; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

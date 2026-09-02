@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import { isBullish } from '@/lib/odds'
 import { fetchGames } from '@/lib/scores'
+import WatchButton from '@/components/WatchButton'
 import Scoreboard from '@/components/Scoreboard'
 
 export const dynamic = 'force-dynamic'
@@ -46,6 +47,11 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
     .order('created_at', { ascending: false })
     .limit(50)
 
+  const { data: watchRow } = user
+    ? await supabase.from('watchlist').select('ticker').eq('user_id', user.id).eq('ticker', bare).maybeSingle()
+    : { data: null }
+  const watched = !!watchRow
+
   // A ticker only belongs to one league, so take it from the first post.
   // PostgREST returns a to-one embed as an object; the generated type says array.
   const league: string | null = ((posts ?? [])[0] as any)?.category?.name ?? null
@@ -66,6 +72,8 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
     <div style={{ marginTop: 20 }}>
       <div className="ticker-head">
         <h1 className="display mono" style={{ fontSize: 24, margin: 0 }}>{ticker}</h1>
+        <WatchButton ticker={ticker} league={league} viewerId={user?.id ?? null}
+          initiallyWatched={watched} label />
         <Link href={`/post/new?tag=${encodeURIComponent(ticker)}`} className="btn">Post on {ticker}</Link>
       </div>
 
