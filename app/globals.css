@@ -53,6 +53,14 @@
 /* League accents need less saturation on white to stay legible. */
 * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
+/* Figures sit in fixed-width columns instead of shuffling sideways as
+   digits change. Invisible until it's missing — it's most of why a
+   scoreboard or a leaderboard reads as considered rather than default. */
+.mono, .odds, .record, .stat, .amt,
+.game-score, .score-num, .gc-num, .lb-rank,
+.gd-box, .game-odds, .score-line, .cashtag,
+.ticker-item, .trend-pct { font-variant-numeric: tabular-nums; }
+
 /* App shell. The bottom bar used to be position:fixed, which anchors to
    the LAYOUT viewport — and on iOS that extends behind Safari's toolbar,
    so the bar hid under it. env(safe-area-inset-bottom) doesn't help:
