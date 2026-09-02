@@ -48,7 +48,7 @@ create table posts (
   tag text,                   -- short cashtag-style label, e.g. "$LAL -4.5"
   tag2 text,                  -- optional opponent cashtag, for totals
   -- backing/fading for team bets; over/under for totals and props
-  sentiment text default 'backing' check (sentiment in ('backing','fading','over','under')),
+  sentiment text default 'backing' check (sentiment in ('backing','fading','over','under','neutral')),
   post_kind text not null default 'pick' check (post_kind in ('take','pick')),
   bet_type text default 'moneyline' check (bet_type in (
     'moneyline','spread','total','player_prop','team_prop','parlay','future','other')),
@@ -62,6 +62,8 @@ create table posts (
   -- A take is never gradeable and carries no money; enforced here rather
   -- than only in the UI, since the anon key ships in every browser.
   constraint posts_take_not_graded_check check (post_kind = 'pick' or status = 'pending'),
+  -- Neutral is a take-only stance; a pick has money on a side by definition.
+  constraint posts_neutral_takes_only_check check (sentiment <> 'neutral' or post_kind = 'take'),
   constraint posts_take_no_money_check check (
     post_kind = 'pick'
     or (odds is null and stake is null and profit is null and potential_payout is null))

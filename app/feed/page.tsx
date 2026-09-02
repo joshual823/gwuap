@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
 import { fetchNews, NEWS_LEAGUES } from '@/lib/news'
-import { isBullish } from '@/lib/odds'
+import { toneFor } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
@@ -142,7 +142,7 @@ export default async function FeedPage(props: {
                 <span className="trend-rank">{i + 1}</span>
                 <span className="cashtag" style={{ fontSize: 12 }}>{t.tag}</span>
                 <span style={{ flex: 1, color: 'var(--ink-dim)' }}>{t.total} picks</span>
-                <span className="mono" style={{ color: isBullish(t.leader as any) ? 'var(--brand)' : 'var(--bear)', fontWeight: 700 }}>
+                <span className={`mono trend-pct ${toneFor(t.leader as any)}`}>
                   {t.pct}% {t.leader}
                 </span>
               </Link>

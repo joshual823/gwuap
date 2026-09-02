@@ -134,7 +134,7 @@ export default function NewPickForm() {
 
     if (!categoryId) { setError('Pick a league.'); return }
     if (!tag.trim()) { setError('Add a cashtag — it’s how posts get grouped.'); return }
-    if (!sentiment) { setError(`Pick a side — ${directions[0].label} or ${directions[1].label}.`); return }
+    if (!sentiment) { setError(kind === 'take' ? 'Backing, neutral, or fading?' : `Pick a side — ${directions[0].label} or ${directions[1].label}.`); return }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
@@ -236,9 +236,9 @@ export default function NewPickForm() {
 
         <label className="form-label">{showMatchup ? 'Over or under' : 'Which way'}</label>
         <div className="sentiment-toggle">
-          {directions.map((d, i) => (
+          {directions.map(d => (
             <button key={d.value} type="button" aria-pressed={sentiment === d.value}
-              className={sentiment === d.value ? `active ${i === 0 ? 'backing' : 'fading'}` : ''}
+              className={sentiment === d.value ? `active ${d.value}` : ''}
               onClick={() => setSentiment(d.value)}>{d.label}</button>
           ))}
         </div>

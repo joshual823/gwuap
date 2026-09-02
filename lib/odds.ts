@@ -21,7 +21,7 @@ export type PostKind = 'take' | 'pick'
  * Which way you're leaning. Team bets are backing/fading; totals and
  * props are over/under — "backing the Over" isn't a thing anyone says.
  */
-export type Direction = 'backing' | 'fading' | 'over' | 'under'
+export type Direction = 'backing' | 'fading' | 'over' | 'under' | 'neutral'
 
 /** Bet types priced on a number rather than a side. */
 const OVER_UNDER_BETS: BetType[] = ['total', 'player_prop', 'team_prop']
@@ -30,12 +30,29 @@ export function directionsFor(kind: PostKind, betType: BetType): { value: Direct
   if (kind === 'pick' && OVER_UNDER_BETS.includes(betType)) {
     return [{ value: 'over', label: 'Over' }, { value: 'under', label: 'Under' }]
   }
-  return [{ value: 'backing', label: 'Backing' }, { value: 'fading', label: 'Fading' }]
+  const sides: { value: Direction; label: string }[] = [
+    { value: 'backing', label: 'Backing' },
+    { value: 'fading', label: 'Fading' },
+  ]
+  // Takes can sit on the fence — you're offering a read, not a wager.
+  // Picks can't: money is on a side by definition.
+  if (kind === 'take') sides.splice(1, 0, { value: 'neutral', label: 'Neutral' })
+  return sides
 }
 
 /** True for the "more / yes" side, which the UI paints green. */
 export function isBullish(d: Direction): boolean {
   return d === 'backing' || d === 'over'
+}
+
+/**
+ * Three-way colour: neutral must not be painted red just because it
+ * isn't bullish. Anything reading a direction for colour should use
+ * this rather than isBullish alone.
+ */
+export function toneFor(d: Direction): 'up' | 'down' | 'flat' {
+  if (d === 'neutral') return 'flat'
+  return isBullish(d) ? 'up' : 'down'
 }
 
 /**
