@@ -342,43 +342,54 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .board-title { font-size: 12px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
 .board-hint { font-size: 11.5px; color: var(--ink-dim); margin-left: auto; }
 .board-more { font-size: 12px; font-weight: 700; color: var(--brand); margin-left: auto; }
+
+/* Always a real scroll container — ScoreRail drives scrollLeft, so a
+   finger or cursor takes over mid-drift instead of just freezing it. */
 .board-rail { overflow-x: auto; padding: 0 4px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .board-rail::-webkit-scrollbar { display: none; }
 .board-track { display: flex; gap: 8px; width: max-content; }
 
-/* Auto-scroll. Pauses on hover and touch; under reduced motion the
-   animation is off and the rail is a normal swipe, so movement is never
-   the only way to reach a card. */
-.board-rail.marquee { overflow: hidden; }
-.board-rail.marquee .board-track { animation: board-scroll linear infinite; }
-.board-rail.marquee:hover .board-track,
-.board-rail.marquee:focus-within .board-track,
-.board-rail.marquee:active .board-track { animation-play-state: paused; }
-@keyframes board-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@media (prefers-reduced-motion: reduce) { .board-rail.marquee { overflow-x: auto; } }
+.game { flex: 0 0 auto; width: 152px; background: var(--card-2); border: 1px solid var(--line);
+        border-top: 3px solid var(--lg, var(--ink-faint)); border-radius: 12px; padding: 9px 10px 10px; }
+.game.is-live { border-color: rgba(0,200,5,0.4); border-top-color: var(--brand); background: linear-gradient(180deg, rgba(0,200,5,0.07), var(--card-2) 60%); }
+
+.game-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+/* The league is the loudest thing on the card — it's how you know at a
+   glance whether this row is even your sport. */
+.game-league { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+               color: var(--lg, var(--ink)); background: var(--lg-bg, var(--card)); border-radius: 5px; padding: 2px 6px; white-space: nowrap; }
+.game-live { display: flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; color: var(--brand); }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); flex: 0 0 auto; box-shadow: 0 0 0 3px rgba(0,200,5,0.2); }
+
+.game-row { display: flex; align-items: center; justify-content: space-between; padding: 1px 0; }
+.game-team { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink); }
+.game-score { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 15px; color: var(--ink); }
+.game-status { margin-top: 6px; font-size: 11px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
+.game-status.in { color: var(--brand); font-weight: 700; }
+.game-odds { display: flex; gap: 8px; margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); }
+.game-ou { color: var(--ink-dim); }
+
+/* One accent per league. Each is a light tint plus a saturated text
+   colour, so they read on a near-black background without shouting. */
+.lg-nfl               { --lg: #4FA3FF; --lg-bg: rgba(79,163,255,0.14); }
+.lg-nba               { --lg: #FF9052; --lg-bg: rgba(255,144,82,0.14); }
+.lg-mlb               { --lg: #FF6B6B; --lg-bg: rgba(255,107,107,0.14); }
+.lg-nhl               { --lg: #6FE3FF; --lg-bg: rgba(111,227,255,0.14); }
+.lg-college-football  { --lg: #C08BFF; --lg-bg: rgba(192,139,255,0.14); }
+.lg-college-basketball{ --lg: #FFC24F; --lg-bg: rgba(255,194,79,0.14); }
+.lg-soccer            { --lg: #4FE38A; --lg-bg: rgba(79,227,138,0.14); }
+.lg-ufc               { --lg: #FF7A7A; --lg-bg: rgba(255,122,122,0.14); }
+.lg-boxing            { --lg: #FFA0C4; --lg-bg: rgba(255,160,196,0.14); }
+.lg-tennis            { --lg: #C6F04F; --lg-bg: rgba(198,240,79,0.14); }
+.lg-golf              { --lg: #7BE0B4; --lg-bg: rgba(123,224,180,0.14); }
 
 /* News as swipeable image cards */
-.news-card { flex: 0 0 auto; width: 230px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.news-card { flex: 0 0 auto; width: 230px; background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
 .news-card-img { width: 100%; height: 116px; object-fit: cover; display: block; background: var(--card-2); }
 .news-card-img.placeholder { background: linear-gradient(135deg, var(--card-2), var(--line)); }
 .news-card-body { padding: 10px 11px 12px; }
 .news-card-title { display: block; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--ink); }
 .news-card-meta { display: block; margin-top: 6px; font-size: 11px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; }
-
-
-
-.game { flex: 0 0 auto; width: 148px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
-.game-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
-.game-league { font-size: 10.5px; font-weight: 700; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.04em; }
-.game-status { font-size: 11px; color: var(--ink-dim); font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 4px; }
-.game-status.in { color: var(--brand); font-weight: 700; }
-.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--brand); flex: 0 0 auto; }
-
-.game-row { display: flex; align-items: center; justify-content: space-between; padding: 1px 0; }
-.game-team { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13.5px; color: var(--ink); }
-.game-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; color: var(--ink); }
-.game-odds { display: flex; gap: 8px; margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink); }
-.game-ou { color: var(--ink-dim); }
 
 /* Join card — lives inside the feed, not instead of it */
 .join-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 16px; margin: 12px 4px 16px; text-align: center; }
