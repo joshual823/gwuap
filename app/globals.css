@@ -452,4 +452,17 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .rt-mention { color: var(--twitter-blue); font-weight: 600; }
 .rt-cashtag { color: var(--brand); font-weight: 700; font-family: var(--font-mono), monospace; }
 
+/* Game / Chat toggle and the room itself */
+.gd-tabs { display: inline-flex; gap: 3px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin: 12px 0; }
+.gd-tab { padding: 6px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--ink-dim); }
+.gd-tab.active { background: var(--card-2); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+.gc-presence { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-dim); margin-bottom: 10px; }
+.gc-stream { display: flex; flex-direction: column; gap: 12px; max-height: 58vh; overflow-y: auto; padding: 2px 0 12px; }
+.gc-msg { display: flex; gap: 9px; }
+.gc-body { flex: 1; min-width: 0; }
+.gc-head { display: flex; align-items: baseline; gap: 7px; font-size: 13px; }
+.gc-text { font-size: 14.5px; line-height: 1.4; margin: 2px 0 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+.gc-form { border-top: 1px solid var(--line); padding-top: 12px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

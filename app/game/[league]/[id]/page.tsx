@@ -2,13 +2,18 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchGameDetail, fetchGames, postHrefForGame, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
+import GameChat from './GameChat'
+import { createClient } from '@/lib/supabaseServer'
 
 export const dynamic = 'force-dynamic'
 
 export default async function GamePage(props: {
   params: Promise<{ league: string; id: string }>
+  searchParams: Promise<{ tab?: string }>
 }) {
   const params = await props.params
+  const search = await props.searchParams
+  const tab = search.tab === 'chat' ? 'chat' : 'game'
   const league = decodeURIComponent(params.league)
   if (!LEAGUES_WITH_SCORES.includes(league)) notFound()
 
@@ -20,10 +25,13 @@ export default async function GamePage(props: {
   const game = (await fetchGames(league)).find(g => g.id === params.id)
 
   const live = detail.state === 'in'
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const base = `/game/${encodeURIComponent(league)}/${encodeURIComponent(params.id)}`
 
   return (
     <div style={{ marginTop: 16 }}>
-      <LiveRefresh active={live} />
+      <LiveRefresh active={live && tab === 'game'} />
       <Link href={`/scores/${encodeURIComponent(league)}`} className="back-link">← {league}</Link>
 
       <div className={`gd-head lg-${league.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
@@ -32,6 +40,15 @@ export default async function GamePage(props: {
           {live && <span className="live-dot" />}{detail.status}
         </span>
       </div>
+
+      <div className="gd-tabs">
+        <Link href={base} className={`gd-tab ${tab === 'game' ? 'active' : ''}`}>Game</Link>
+        <Link href={`${base}?tab=chat`} className={`gd-tab ${tab === 'chat' ? 'active' : ''}`}>Chat</Link>
+      </div>
+
+      {tab === 'chat' ? (
+        <GameChat gameKey={`${league}:${params.id}`} viewerId={user?.id ?? null} />
+      ) : (<>
 
       <table className="gd-box">
         <thead>
@@ -78,6 +95,7 @@ export default async function GamePage(props: {
       {live && (
         <p className="gd-note">Updating every 30 seconds while the game is on.</p>
       )}
+      </>)}
     </div>
   )
 }
