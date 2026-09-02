@@ -59,14 +59,15 @@ export default async function FeedPage(props: {
       <div>
         {tabs}
         <div style={{ marginTop: 48, textAlign: 'center' }}>
-          <h1 className="display" style={{ fontSize: 26 }}>Talk bets with people who actually bet.</h1>
-          <p style={{ color: 'var(--ink-dim)', margin: '12px 0 20px', lineHeight: 1.5 }}>
-            Post a take, drop a pick, argue about the spread. No tout accounts,
-            no screenshots — just the room.
+          <h1 className="display" style={{ fontSize: 26, lineHeight: 1.2 }}>
+            Talk sports with the people who know it best.
+          </h1>
+          <p style={{ color: 'var(--ink-dim)', margin: '14px 0 20px', lineHeight: 1.5 }}>
+            Post your picks, track your record, and back up your takes.
+            No screenshots required.
           </p>
           <p style={{ color: 'var(--ink-faint)', fontSize: 13.5, margin: '0 0 24px', lineHeight: 1.5 }}>
-            And if you want one, a record that keeps itself. Post your odds
-            before the game and it does the rest.
+            Everything you post is timestamped, so the receipts keep themselves.
           </p>
           <Link href="/signup" className="btn">Get started</Link>
           <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 20 }}>

@@ -5,7 +5,7 @@
  * name is still up for debate.
  */
 export const SITE_NAME = 'Gwuap'
-export const SITE_TAGLINE = 'where bettors talk'
+export const SITE_TAGLINE = 'talk sports, post picks, keep the receipts'
 export const SITE_URL = 'https://gwuap.co'
 
 /**
