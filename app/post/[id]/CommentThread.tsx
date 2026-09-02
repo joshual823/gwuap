@@ -1,11 +1,13 @@
 'use client'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseClient'
 import { tallyReactions } from '@/lib/reactions'
 import { timeAgo } from '@/lib/time'
 import ReactionBar from '@/components/ReactionBar'
+import MentionInput from '@/components/MentionInput'
+import RichText from '@/components/RichText'
 import DeleteComment from './DeleteComment'
 import Avatar from '@/components/Avatar'
 
@@ -33,7 +35,6 @@ export default function CommentThread({
   const [body, setBody] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const boxRef = useRef<HTMLTextAreaElement>(null)
 
   // Threading is one level deep. A reply to a reply attaches to the same
   // top-level parent and @-mentions the person instead — unlimited
@@ -54,7 +55,6 @@ export default function CommentThread({
     const username = c.author?.username ?? 'user'
     setReplyTo({ id: c.parent_id ?? c.id, username })
     setBody(prev => (prev.trim() ? prev : `@${username} `))
-    requestAnimationFrame(() => boxRef.current?.focus())
   }
 
   function cancelReply() {
@@ -97,7 +97,7 @@ export default function CommentThread({
             <span className="time">{timeAgo(c.created_at)}</span>
             {viewerId === c.author?.id && <DeleteComment commentId={c.id} />}
           </div>
-          <p className="comment-text">{c.body}</p>
+          <RichText text={c.body} className="comment-text" />
           <div className="comment-actions">
             <ReactionBar
               targetKind="comment"
@@ -141,14 +141,12 @@ export default function CommentThread({
               <button type="button" onClick={cancelReply} aria-label="Cancel reply">✕</button>
             </div>
           )}
-          <textarea
-            ref={boxRef}
-            className="field"
+          <MentionInput
             rows={2}
             maxLength={MAX_LENGTH}
-            placeholder={replyTo ? `Reply to @${replyTo.username}…` : 'Add a comment…'}
+            placeholder={replyTo ? `Reply to @${replyTo.username}…` : 'Add a comment… use @ for people, $ for teams'}
             value={body}
-            onChange={e => setBody(e.target.value)}
+            onChange={setBody}
           />
           <div className="comment-form-foot">
             <span className={`comment-count-left ${MAX_LENGTH - body.length < 50 ? 'low' : ''}`}>

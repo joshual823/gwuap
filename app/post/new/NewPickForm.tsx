@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
+import MentionInput from '@/components/MentionInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
@@ -251,9 +252,9 @@ export default function NewPickForm() {
           </p>
         )}
 
-        <textarea className="field" rows={3}
-          placeholder={kind === 'take' ? "What's your take?" : "What's the pick? Any reasoning?"}
-          value={caption} onChange={e => setCaption(e.target.value)} />
+        <MentionInput rows={3}
+          placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
+          value={caption} onChange={setCaption} />
 
         {kind === 'pick' && (
           <>

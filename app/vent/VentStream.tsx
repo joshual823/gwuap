@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseClient'
 import { timeAgo } from '@/lib/time'
 import Avatar from '@/components/Avatar'
 import VentActions from './VentActions'
+import RichText from '@/components/RichText'
 
 export type VentRow = {
   id: string
@@ -105,7 +106,7 @@ export default function VentStream({ initial, viewerId }: {
                 <VentActions messageId={m.id} authorId={m.author.id} viewerId={viewerId} />
               )}
             </div>
-            <p className="comment-text">{m.body}</p>
+            <RichText text={m.body} className="comment-text" />
           </div>
         </article>
       ))}

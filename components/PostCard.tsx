@@ -10,6 +10,7 @@ import { tickerHref } from '@/lib/ticker'
 import ReactionBar from './ReactionBar'
 import PostMenu from './PostMenu'
 import Avatar from './Avatar'
+import RichText from './RichText'
 
 type Post = {
   id: string
@@ -72,7 +73,7 @@ export default function PostCard({ post }: { post: Post }) {
           <span className={`sentiment ${post.sentiment}`}>{post.sentiment}</span>
         </div>
 
-        {post.caption && <p className="post-text">{post.caption}</p>}
+        {post.caption && <RichText text={post.caption} className="post-text" />}
 
         {post.slip_image_url && (
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />

@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import MentionInput from '@/components/MentionInput'
 
 const MAX = 1000
 
@@ -27,9 +28,9 @@ export default function VentComposer({ userId }: { userId: string }) {
 
   return (
     <form onSubmit={send} className="comment-form">
-      <textarea className="field" rows={3} maxLength={MAX}
+      <MentionInput rows={3} maxLength={MAX}
         placeholder="What's going on?"
-        value={body} onChange={e => setBody(e.target.value)} />
+        value={body} onChange={setBody} />
       <div className="comment-form-foot">
         <span className="comment-count-left">
           {MAX - body.length < 200 ? `${MAX - body.length} left` : ''}

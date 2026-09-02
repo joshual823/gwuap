@@ -1,9 +1,28 @@
 import './globals.css'
+import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
+
+// Self-hosted at build time. The old CSS @import made the browser fetch
+// our stylesheet, then Google's stylesheet, then the font files — a
+// serial waterfall that left every page rendering in the system fallback
+// for the first few hundred milliseconds. That flash is what made it
+// look unfinished.
+const body = Inter({
+  subsets: ['latin'], display: 'swap', variable: '--font-body',
+  weight: ['400', '500', '600', '700'],
+})
+const display = Space_Grotesk({
+  subsets: ['latin'], display: 'swap', variable: '--font-display',
+  weight: ['500', '600', '700'],
+})
+const mono = JetBrains_Mono({
+  subsets: ['latin'], display: 'swap', variable: '--font-mono',
+  weight: ['500', '600', '700'],
+})
 
 export const metadata = {
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
@@ -43,7 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${body.variable} ${display.variable} ${mono.variable}`}>
       <body>
         <header className="topbar">
           <div className="topbar-inner">
