@@ -42,6 +42,27 @@ const SCOREBOARDS: Record<string, string[]> = {
   'Soccer': ['soccer/eng.1', 'soccer/usa.1', 'soccer/uefa.champions', 'soccer/esp.1'],
 }
 
+/** ESPN path for a league, used by the game-detail endpoint. */
+export function espnPathFor(league: string): string | null {
+  return SCOREBOARDS[league]?.[0] ?? null
+}
+
+export type GameDetail = {
+  league: string
+  id: string
+  status: string
+  state: 'pre' | 'in' | 'post'
+  periods: string[]                 // column headings: 1 2 3 4, or innings
+  sides: {
+    code: string; name: string; score: string | null
+    record: string | null; byPeriod: string[]
+  }[]
+  odds: { label: string; value: string }[]
+  lastPlay: string | null
+  venue: string | null
+  broadcast: string | null
+}
+
 /** Leagues shown in the feed rail — kept small so it's a handful of cached fetches. */
 export const RAIL_LEAGUES = ['NFL', 'College Football', 'MLB', 'NBA', 'NHL', 'Tennis']
 
@@ -251,4 +272,68 @@ export function postHrefForGame(game: Game): string {
   params.set('tag', primary)
   params.set('tag2', secondary)
   return `/post/new?${params.toString()}`
+}
+
+
+/**
+ * Live detail for one game. ESPN's summary endpoint carries the score by
+ * period, the current situation, odds and broadcast — everything a
+ * scoreboard tap should reveal.
+ */
+export async function fetchGameDetail(league: string, id: string): Promise<GameDetail | null> {
+  const path = espnPathFor(league)
+  if (!path) return null
+  try {
+    const res = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/${path}/summary?event=${encodeURIComponent(id)}`,
+      { next: { revalidate: 30 }, headers: { Accept: 'application/json' } },
+    )
+    if (!res.ok) return null
+    const data = await res.json()
+
+    const competition = data?.header?.competitions?.[0]
+    if (!competition) return null
+
+    const stateRaw = competition?.status?.type?.state
+    const competitors = competition?.competitors ?? []
+
+    const sides = competitors.map((c: any) => ({
+      code: c?.team?.abbreviation ?? c?.team?.shortDisplayName ?? '',
+      name: c?.team?.displayName ?? '',
+      score: c?.score ?? null,
+      record: c?.record?.[0]?.displayValue ?? null,
+      byPeriod: (c?.linescores ?? []).map((l: any) => String(l?.displayValue ?? l?.value ?? '')),
+    }))
+    // Away first, to read the way a scoreboard is written.
+    const ordered = competitors[0]?.homeAway === 'home' ? [...sides].reverse() : sides
+
+    const longest = Math.max(0, ...ordered.map((s: any) => s.byPeriod.length))
+    const periods = Array.from({ length: longest }, (_, i) => String(i + 1))
+
+    const pick = data?.pickcenter?.[0]
+    const odds: { label: string; value: string }[] = []
+    if (pick?.details) odds.push({ label: 'Line', value: String(pick.details) })
+    if (typeof pick?.overUnder === 'number') odds.push({ label: 'O/U', value: String(pick.overUnder) })
+
+    return {
+      league,
+      id,
+      status: competition?.status?.type?.detail ?? '',
+      state: stateRaw === 'in' ? 'in' : stateRaw === 'post' ? 'post' : 'pre',
+      periods,
+      sides: ordered,
+      odds,
+      lastPlay: competition?.situation?.lastPlay?.text ?? null,
+      venue: data?.gameInfo?.venue?.fullName ?? null,
+      broadcast: data?.header?.competitions?.[0]?.broadcasts?.[0]?.media?.shortName
+        ?? data?.broadcasts?.[0]?.media?.shortName ?? null,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** Where a game card points: the detail view, which is also where you post from. */
+export function gameHref(game: Game): string {
+  return `/game/${encodeURIComponent(game.league)}/${encodeURIComponent(game.id)}`
 }

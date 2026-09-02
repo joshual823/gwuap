@@ -5,7 +5,7 @@ export default function FeedTabs({ active }: { active: 'home' | 'scores' }) {
   return (
     <div className="feed-tabs">
       <Link href="/feed" className={`feed-tab ${active === 'home' ? 'active' : ''}`}>Home</Link>
-      <Link href="/scores" className={`feed-tab ${active === 'scores' ? 'active' : ''}`}>Scores</Link>
+      <Link href="/scores" className={`feed-tab ${active === 'scores' ? 'active' : ''}`}>Games</Link>
     </div>
   )
 }

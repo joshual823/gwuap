@@ -419,4 +419,25 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .score-line.dim { color: var(--ink-dim); }
 .score-cta { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--brand); }
 
+/* Game detail */
+.gd-head { display: flex; align-items: center; gap: 10px; margin: 6px 0 12px; }
+.gd-status { display: flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink-dim); }
+.gd-status.in { color: var(--brand); font-weight: 700; }
+
+.gd-box { width: 100%; border-collapse: collapse; background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', monospace; }
+.gd-box th { font-size: 10.5px; font-weight: 700; color: var(--ink-faint); text-align: center; padding: 8px 4px; border-bottom: 1px solid var(--line); }
+.gd-box td { font-size: 14px; color: var(--ink); text-align: center; padding: 10px 4px; }
+.gd-box tr + tr td { border-top: 1px solid var(--line); }
+.gd-team { text-align: left !important; padding-left: 12px !important; font-weight: 700; display: flex; align-items: baseline; gap: 7px; }
+.gd-record { font-size: 11px; color: var(--ink-faint); font-weight: 400; }
+.gd-total { font-weight: 800; }
+.gd-box th.gd-total, .gd-box td.gd-total { padding-right: 12px; }
+
+.gd-lastplay { font-size: 13px; line-height: 1.5; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 12px 0 0; }
+.gd-lastplay strong { color: var(--ink); margin-right: 6px; }
+.gd-facts { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--ink); }
+.gd-k { color: var(--ink-faint); margin-right: 5px; }
+.gd-post { display: block; text-align: center; margin-top: 18px; }
+.gd-note { font-size: 12px; color: var(--ink-faint); text-align: center; margin-top: 10px; }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

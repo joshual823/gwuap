@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGamesWindow, LEAGUES_WITH_SCORES, postHrefForGame, type Game } from '@/lib/scores'
+import { fetchGamesWindow, LEAGUES_WITH_SCORES, gameHref, type Game } from '@/lib/scores'
 
 export const dynamic = 'force-dynamic'
 
 function GameRow({ game }: { game: Game }) {
   return (
-    <Link href={postHrefForGame(game)} className="score-row">
+    <Link href={gameHref(game)} className="score-row">
       <div className="score-teams">
         <div className="score-side">
           <span className="score-team">{game.away.code}</span>
@@ -24,7 +24,7 @@ function GameRow({ game }: { game: Game }) {
         {game.spread && <span className="score-line">{game.spread}</span>}
         {game.overUnder != null && <span className="score-line dim">o/u {game.overUnder}</span>}
       </div>
-      <span className="score-cta">Post →</span>
+      <span className="score-cta">Open →</span>
     </Link>
   )
 }
@@ -45,7 +45,7 @@ export default async function LeagueScoresPage(props: { params: Promise<{ league
       <Link href="/scores" className="back-link">← All scores</Link>
       <h1 className="display" style={{ fontSize: 22, margin: '4px 0 2px' }}>{league}</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 8 }}>
-        Tap any game to post a pick on it.
+        Tap any game for live detail and to post a pick.
       </p>
 
       {games.length === 0 && (

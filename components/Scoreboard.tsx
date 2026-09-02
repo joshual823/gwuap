@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { postHrefForGame, type Game } from '@/lib/scores'
+import { gameHref, type Game } from '@/lib/scores'
 import ScoreRail from './ScoreRail'
 
 /** Colour per league, so the board reads as a live board rather than a grey list. */
@@ -34,12 +34,12 @@ export default function Scoreboard({ games, title = 'Today', href, autoScroll = 
           : <span className="board-title">{title}</span>}
         {href
           ? <Link href={href} className="board-more">See all →</Link>
-          : <span className="board-hint">tap a game to post on it</span>}
+          : <span className="board-hint">tap a game for live detail</span>}
       </div>
       <ScoreRail loop={marquee}>
           {track.map((game, i) => (
             <Link
-              href={postHrefForGame(game)}
+              href={gameHref(game)}
               key={`${game.league}-${game.id}-${i}`}
               className={`game lg-${leagueSlug(game.league)} ${game.state === 'in' ? 'is-live' : ''}`}
               aria-hidden={marquee && i >= games.length ? true : undefined}
