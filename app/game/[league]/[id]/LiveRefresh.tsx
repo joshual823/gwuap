@@ -8,7 +8,10 @@ export default function LiveRefresh({ active }: { active: boolean }) {
   useEffect(() => {
     if (!active) return
     const id = setInterval(() => {
-      if (!document.hidden) router.refresh()
+      // Never refresh out from under someone mid-message.
+      const el = document.activeElement
+      const typing = el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement
+      if (!document.hidden && !typing) router.refresh()
     }, 30000)
     return () => clearInterval(id)
   }, [active, router])

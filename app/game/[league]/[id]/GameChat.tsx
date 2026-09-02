@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseClient'
 import { timeAgo } from '@/lib/time'
 import Avatar from '@/components/Avatar'
 import MentionInput from '@/components/MentionInput'
+import { REACTION_EMOJI } from '@/lib/reactions'
 import RichText from '@/components/RichText'
 
 type Author = { id: string; username: string; avatar_url: string | null }
@@ -124,6 +125,14 @@ export default function GameChat({ gameKey, viewerId }: {
           <MentionInput rows={2} maxLength={MAX} value={body} onChange={setBody}
             placeholder="Say something…" />
           <div className="comment-form-foot">
+            {/* One tap for the things people actually send in a game thread. */}
+            <div className="gc-quick">
+              {REACTION_EMOJI.slice(0, 6).map(e => (
+                <button key={e} type="button" className="gc-quick-btn"
+                  aria-label={`Add ${e}`}
+                  onClick={() => setBody(b => (b + e).slice(0, MAX))}>{e}</button>
+              ))}
+            </div>
             <span className="comment-count-left">
               {MAX - body.length < 100 ? `${MAX - body.length} left` : ''}
             </span>

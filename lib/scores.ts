@@ -8,7 +8,7 @@
 // project uses and it's been stable for years, but it isn't a contract.
 // Everything here fails to an empty list rather than an error.
 
-export type GameSide = { code: string; name: string; score: string | null }
+export type GameSide = { code: string; name: string; score: string | null; logo: string | null }
 
 export type Game = {
   id: string
@@ -55,10 +55,11 @@ export type GameDetail = {
   periods: string[]                 // column headings: 1 2 3 4, or innings
   sides: {
     code: string; name: string; score: string | null
-    record: string | null; byPeriod: string[]
+    record: string | null; byPeriod: string[]; logo: string | null
   }[]
   odds: { label: string; value: string }[]
   lastPlay: string | null
+  lastPlayKind: string | null
   venue: string | null
   broadcast: string | null
 }
@@ -74,6 +75,7 @@ function side(competitor: any): GameSide {
     code: team.abbreviation ?? team.shortDisplayName ?? '',
     name: team.displayName ?? team.name ?? '',
     score: competitor?.score ?? null,
+    logo: team.logo ?? null,
   }
 }
 
@@ -106,8 +108,8 @@ function parseTennis(data: any, league: string): Game[] {
         games.push({
           id: String(competition.id ?? `${event.id}-${codeA}-${codeB}`),
           league,
-          away: { code: codeA, name: a?.athlete?.displayName ?? codeA, score: null },
-          home: { code: codeB, name: b?.athlete?.displayName ?? codeB, score: null },
+          away: { code: codeA, name: a?.athlete?.displayName ?? codeA, score: null, logo: null },
+          home: { code: codeB, name: b?.athlete?.displayName ?? codeB, score: null, logo: null },
           status: competition?.status?.type?.shortDetail ?? event?.name ?? '',
           state: state === 'in' ? 'in' : 'pre',
           startsAt: competition?.date ?? event?.date ?? null,
@@ -303,6 +305,8 @@ export async function fetchGameDetail(league: string, id: string): Promise<GameD
       score: c?.score ?? null,
       record: c?.record?.[0]?.displayValue ?? null,
       byPeriod: (c?.linescores ?? []).map((l: any) => String(l?.displayValue ?? l?.value ?? '')),
+      // The summary nests logos differently from the scoreboard.
+      logo: c?.team?.logos?.[0]?.href ?? c?.team?.logo ?? null,
     }))
     // Away first, to read the way a scoreboard is written.
     const ordered = competitors[0]?.homeAway === 'home' ? [...sides].reverse() : sides
@@ -323,7 +327,12 @@ export async function fetchGameDetail(league: string, id: string): Promise<GameD
       periods,
       sides: ordered,
       odds,
-      lastPlay: competition?.situation?.lastPlay?.text ?? null,
+      // situation.lastPlay only exists for some sports; the plays array is
+      // the reliable source and carries a type label worth showing.
+      lastPlay: competition?.situation?.lastPlay?.text
+        ?? [...(data?.plays ?? [])].reverse().find((p: any) => p?.text)?.text
+        ?? null,
+      lastPlayKind: [...(data?.plays ?? [])].reverse().find((p: any) => p?.text)?.type?.text ?? null,
       venue: data?.gameInfo?.venue?.fullName ?? null,
       broadcast: data?.header?.competitions?.[0]?.broadcasts?.[0]?.media?.shortName
         ?? data?.broadcasts?.[0]?.media?.shortName ?? null,

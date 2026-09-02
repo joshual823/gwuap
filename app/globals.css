@@ -523,4 +523,25 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .theme-toggle .segment { margin-bottom: 0; }
 .theme-toggle .segment button { padding: 7px 11px; font-size: 11.5px; }
 
+/* Team logos */
+.game-side { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.game-logo { width: 17px; height: 17px; object-fit: contain; flex: 0 0 auto; }
+.gd-logo { width: 20px; height: 20px; object-fit: contain; margin-right: 2px; vertical-align: -4px; }
+
+/* Chat header: score stays in view while you talk */
+.gc-score { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+.gc-score-side { display: flex; align-items: center; gap: 7px; }
+.gc-logo { width: 22px; height: 22px; object-fit: contain; }
+.gc-code { font-family: var(--font-mono), monospace; font-weight: 700; font-size: 13px; color: var(--ink); }
+.gc-num { font-family: var(--font-mono), monospace; font-weight: 800; font-size: 16px; color: var(--ink); }
+.gc-state { margin-left: auto; display: flex; align-items: center; gap: 5px; font-family: var(--font-mono), monospace; font-size: 11.5px; color: var(--ink-dim); text-align: right; }
+.gc-state.in { color: var(--brand); font-weight: 700; }
+
+.gc-play { display: flex; flex-direction: column; gap: 3px; background: var(--tint-brand); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; margin-bottom: 12px; font-size: 13px; line-height: 1.4; color: var(--ink-dim); }
+.gc-play strong { font-family: var(--font-display), sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--brand); }
+
+.gc-quick { display: flex; gap: 2px; margin-right: auto; }
+.gc-quick-btn { background: none; border: none; padding: 2px 4px; font-size: 17px; line-height: 1; cursor: pointer; border-radius: 6px; }
+.gc-quick-btn:hover { background: var(--card); }
+
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

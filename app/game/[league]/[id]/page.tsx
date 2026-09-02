@@ -31,7 +31,7 @@ export default async function GamePage(props: {
 
   return (
     <div style={{ marginTop: 16 }}>
-      <LiveRefresh active={live && tab === 'game'} />
+      <LiveRefresh active={live} />
       <Link href={`/scores/${encodeURIComponent(league)}`} className="back-link">← {league}</Link>
 
       <div className={`gd-head lg-${league.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
@@ -47,7 +47,27 @@ export default async function GamePage(props: {
       </div>
 
       {tab === 'chat' ? (
-        <GameChat gameKey={`${league}:${params.id}`} viewerId={user?.id ?? null} />
+        <>
+          <div className="gc-score">
+            {detail.sides.map((side, n) => (
+              <div className="gc-score-side" key={n}>
+                {side.logo && <img src={side.logo} alt="" className="gc-logo" loading="lazy" />}
+                <span className="gc-code">{side.code}</span>
+                <span className="gc-num">{side.score ?? '–'}</span>
+              </div>
+            ))}
+            <span className={`gc-state ${detail.state}`}>
+              {live && <span className="live-dot" />}{detail.status}
+            </span>
+          </div>
+          {detail.lastPlay && (
+            <div className="gc-play">
+              {detail.lastPlayKind && <strong>{detail.lastPlayKind}</strong>}
+              <span>{detail.lastPlay}</span>
+            </div>
+          )}
+          <GameChat gameKey={`${league}:${params.id}`} viewerId={user?.id ?? null} />
+        </>
       ) : (<>
 
       <table className="gd-box">
@@ -62,6 +82,7 @@ export default async function GamePage(props: {
           {detail.sides.map(side => (
             <tr key={side.code}>
               <td className="gd-team">
+                {side.logo && <img src={side.logo} alt="" className="gd-logo" loading="lazy" />}
                 {side.code}
                 {side.record && <span className="gd-record">{side.record}</span>}
               </td>
