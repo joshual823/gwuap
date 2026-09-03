@@ -247,10 +247,28 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   instead.
 - **Block and ban filtering covers the feed only.** Profile pages and
   direct post links still render for blocked or banned users.
-- **Auto-grading needs `CRON_SECRET` set in Vercel** (Settings →
-  Environment Variables, any long random string). Without it `/api/grade`
-  answers 503 and nothing is ever graded — deliberately shut rather than
-  falling open, since that endpoint writes to every record on the site.
+- **Auto-grading is live and verified** (3 Sep 2026). `CRON_SECRET` is
+  set in Vercel Production, the cron shows as `/api/grade · 0 8 * * *`
+  under Settings → Cron Jobs, and the self-grading revoke checks out:
+  `authenticated` has no UPDATE on `posts` at all.
+  To re-check the revoke after any schema change:
+  ```sql
+  select privilege_type, column_name
+  from information_schema.column_privileges
+  where table_name = 'posts' and grantee = 'authenticated'
+    and privilege_type = 'UPDATE';
+  ```
+  Any row means self-grading is open again. Note the broader query
+  without the UPDATE filter returns ~72 rows and proves nothing —
+  SELECT and INSERT are supposed to be there.
+- **Hobby caps crons at once per day.** A more frequent expression fails
+  the deployment outright, so grading runs at 08:00 UTC with a one-hour
+  flexible window. On Pro this becomes hourly by editing one line in
+  `vercel.json`. Nothing else changes.
+- **`/api/grade` returns 503 without `CRON_SECRET`** rather than falling
+  open, since it writes to every record on the site. That also makes it
+  testable from outside: an unauthenticated request answering 401 rather
+  than 503 proves the variable is set, without knowing its value.
 - **Props, parlays and futures are never auto-graded** and don't count
   toward the leaderboard. No scoreline says whether a parlay's third leg
   hit. They stay postable and stay on profiles.
