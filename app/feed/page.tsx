@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
 import { fetchNews } from '@/lib/news'
-import { toneFor } from '@/lib/odds'
+import { toneFor, labelFor, type Direction } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
@@ -101,7 +101,7 @@ export default async function FeedPage(props: {
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (
             <Link key={p.id} href={tickerHref(p.tag)} className="ticker-item">
-              {p.tag} <span className={p.sentiment}>{p.sentiment}</span>
+              {p.tag} <span className={p.sentiment}>{labelFor(p.sentiment)}</span>
             </Link>
           ))}
         </div>
@@ -115,9 +115,11 @@ export default async function FeedPage(props: {
               <Link href={tickerHref(t.tag)} className="trend-row" key={t.tag}>
                 <span className="trend-rank">{i + 1}</span>
                 <span className="cashtag" style={{ fontSize: 12 }}>{t.tag}</span>
-                <span style={{ flex: 1, color: 'var(--ink-dim)' }}>{t.total} picks</span>
+                <span style={{ flex: 1, color: 'var(--ink-dim)' }}>
+                  {t.total} {t.total === 1 ? 'pick' : 'picks'}
+                </span>
                 <span className={`mono trend-pct ${toneFor(t.leader as any)}`}>
-                  {t.pct}% {t.leader}
+                  {t.pct}% {labelFor(t.leader as Direction)}
                 </span>
               </Link>
             ))}

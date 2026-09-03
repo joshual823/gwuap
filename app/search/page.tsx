@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseClient'
+import { labelFor, type Direction } from '@/lib/odds'
 import Avatar from '@/components/Avatar'
 
 type Person = { id: string; username: string; display_name: string | null; avatar_url: string | null }
@@ -76,7 +77,7 @@ export default function SearchPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3 }}>
               {p.tag && <span className="cashtag">{p.tag}</span>}
-              <span className={`sentiment ${p.sentiment}`}>{p.sentiment}</span>
+              <span className={`sentiment ${p.sentiment}`}>{labelFor(p.sentiment as Direction)}</span>
             </div>
             <div style={{ fontSize: 13, color: 'var(--ink-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               @{p.author?.username}{p.caption ? ` · ${p.caption}` : ''}

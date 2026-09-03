@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import {
-  BET_TYPES, parseAmericanOdds, profitOnWin, profitForStatus,
+  BET_TYPES, labelFor, parseAmericanOdds, profitOnWin, profitForStatus,
   formatUsd, formatSignedUsd, type BetType, type PickStatus, type PostKind, type Direction,
 } from '@/lib/odds'
 import { timeAgo } from '@/lib/time'
@@ -70,7 +70,7 @@ export default function PostCard({ post }: { post: Post }) {
           {post.tag && <Link href={tickerHref(post.tag)} className="cashtag">{post.tag}</Link>}
           {post.tag2 && <><span className="vs">vs</span><Link href={tickerHref(post.tag2)} className="cashtag">{post.tag2}</Link></>}
           {post.category && <span className="pill">{post.category.name}</span>}
-          <span className={`sentiment ${post.sentiment}`}>{post.sentiment}</span>
+          <span className={`sentiment ${post.sentiment}`}>{labelFor(post.sentiment)}</span>
         </div>
 
         {post.caption && <RichText text={post.caption} className="post-text" />}

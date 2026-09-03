@@ -26,6 +26,24 @@ export type Direction = 'backing' | 'fading' | 'over' | 'under' | 'neutral'
 /** Bet types priced on a number rather than a side. */
 const OVER_UNDER_BETS: BetType[] = ['total', 'player_prop', 'team_prop']
 
+/**
+ * How a direction is written when it's shown on its own — the ticker, the
+ * trending rows. Same words the post form offers, from one place, so what
+ * someone picks is what the feed prints back. Without this the raw column
+ * value leaks to the page and reads as "backing".
+ */
+const DIRECTION_LABELS: Record<Direction, string> = {
+  backing: 'Backing',
+  fading: 'Fading',
+  over: 'Over',
+  under: 'Under',
+  neutral: 'Neutral',
+}
+
+export function labelFor(d: Direction): string {
+  return DIRECTION_LABELS[d] ?? d
+}
+
 export function directionsFor(kind: PostKind, betType: BetType): { value: Direction; label: string }[] {
   if (kind === 'pick' && OVER_UNDER_BETS.includes(betType)) {
     return [{ value: 'over', label: 'Over' }, { value: 'under', label: 'Under' }]
