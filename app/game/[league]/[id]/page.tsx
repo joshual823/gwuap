@@ -5,6 +5,8 @@ import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
 import WatchButton from '@/components/WatchButton'
 import { createClient } from '@/lib/supabaseServer'
+import { projectPick } from '@/lib/grade'
+import { profitForStatus, formatSignedUsd, labelFor, type Direction } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +35,44 @@ export default async function GamePage(props: {
     : { data: [] }
   const watchedCodes = (watchRows ?? []).map((w: any) => String(w.ticker).toUpperCase())
   const gameKey = `${league}:${params.id}`
+
+  // Your own picks on this game, and where they stand right now.
+  // The point of this page is that you shouldn't have to open a
+  // sportsbook to find out whether you're up.
+  const { data: myPicks } = user
+    ? await supabase
+        .from('posts')
+        .select('id, tag, tag2, bet_type, sentiment, ticker, line, odds, stake, status, profit')
+        .eq('author_id', user.id)
+        .eq('game_id', params.id)
+        .eq('game_league', league)
+        .eq('post_kind', 'pick')
+        .order('created_at', { ascending: false })
+    : { data: null }
+
+  const positions = (myPicks ?? []).map((p: any) => {
+    const projected = game
+      ? projectPick({
+          betType: p.bet_type, sentiment: p.sentiment,
+          ticker: p.ticker, line: p.line == null ? null : Number(p.line),
+        }, game)
+      : null
+    const settled = p.status !== 'pending'
+    const outcome = settled ? p.status : projected
+    return {
+      ...p,
+      outcome,
+      settled,
+      money: p.profit ?? (outcome ? profitForStatus(outcome, p.odds, p.stake) : null),
+    }
+  })
+
+  // How busy the room is. A tab that says "Chat" tells you nothing about
+  // whether anyone is in there, which is most of why nobody opens it.
+  const { count: chatCount } = await supabase
+    .from('game_messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('game_key', gameKey)
   const base = `/game/${encodeURIComponent(league)}/${encodeURIComponent(params.id)}`
 
   return (
@@ -42,17 +82,74 @@ export default async function GamePage(props: {
 
       <div className={`gd-head lg-${league.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
         <span className="game-league">{league}</span>
+        {/* The state of the game is the first thing anyone needs and used
+            to be the faintest thing here — grey, small, indistinguishable
+            from the venue. It's a badge now. */}
+        <span className={`gd-state-badge ${detail.state}`}>
+          {live && <span className="live-dot" />}
+          {detail.state === 'post' ? 'FINAL' : detail.state === 'in' ? 'LIVE' : 'UPCOMING'}
+        </span>
+        {detail.state !== 'post' && <span className="gd-when">{detail.status}</span>}
         <WatchButton ticker={gameKey} league={league} kind="game" viewerId={user?.id ?? null}
           initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())} label />
-        <span className={`gd-status ${detail.state}`}>
-          {live && <span className="live-dot" />}{detail.status}
-        </span>
       </div>
 
       <div className="gd-tabs">
         <Link href={base} className={`gd-tab ${tab === 'game' ? 'active' : ''}`}>Game</Link>
-        <Link href={`${base}?tab=chat`} className={`gd-tab ${tab === 'chat' ? 'active' : ''}`}>Chat</Link>
+        <Link href={`${base}?tab=chat`} className={`gd-tab ${tab === 'chat' ? 'active' : ''}`}>
+          Chat{chatCount ? <span className="gd-tab-count">{chatCount}</span> : null}
+        </Link>
       </div>
+
+      {/* Your own money on this game. Sits above the box score because
+          it's the reason you opened the page. */}
+      {tab === 'game' && positions.length > 0 && (
+        <div className="position-card">
+          <div className="position-head">
+            <span>Your {positions.length === 1 ? 'pick' : 'picks'}</span>
+            {!detail.state.startsWith('post') && positions.some(p => !p.settled) && (
+              <span className="position-live">as it stands</span>
+            )}
+          </div>
+          {positions.map((p: any) => (
+            <div className="position-row" key={p.id}>
+              <div className="position-what">
+                <span className="cashtag">{p.tag}</span>
+                {p.bet_type === 'total' && p.line != null && (
+                  <span className="position-dir">{labelFor(p.sentiment as Direction)} {p.line}</span>
+                )}
+                {p.bet_type !== 'total' && (
+                  <span className="position-dir">{labelFor(p.sentiment as Direction)}</span>
+                )}
+                <span className="position-terms">{p.odds}{p.stake != null && ` · $${p.stake}`}</span>
+              </div>
+              <div className="position-state">
+                {p.outcome ? (
+                  <>
+                    <span className={`position-result ${p.outcome}`}>
+                      {p.settled ? p.outcome.toUpperCase()
+                        : p.outcome === 'win' ? 'WINNING'
+                        : p.outcome === 'loss' ? 'LOSING' : 'PUSH'}
+                    </span>
+                    {p.money != null && (
+                      <span className={`position-money ${p.money >= 0 ? 'pos' : 'neg'}`}>
+                        {formatSignedUsd(p.money)}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="position-result pending">No score yet</span>
+                )}
+              </div>
+            </div>
+          ))}
+          {!positions.every(p => p.settled) && (
+            <p className="position-note">
+              Settles itself from the final score — nothing to do.
+            </p>
+          )}
+        </div>
+      )}
 
       {tab === 'chat' ? (
         <>

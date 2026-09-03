@@ -88,12 +88,28 @@ function scoreOf(side: { score: string | null }): number | null {
  * grading it late.
  */
 export function gradePick(pick: GradeInput, game: Game): GradeResult {
-  if (!isGradeable(pick.betType)) return { blocked: 'unsupported-bet' }
-
   // Only a finished game settles anything. A game that was postponed or
   // abandoned never reaches 'post' on the scoreboard, so it simply stays
   // pending rather than being guessed at.
-  if (game.state !== 'post') return { blocked: 'not-final' }
+  if (isGradeable(pick.betType) && game.state !== 'post') return { blocked: 'not-final' }
+  return settle(pick, game)
+}
+
+/**
+ * Where a pick stands right now, mid-game.
+ *
+ * The same arithmetic as grading, without the requirement that the game
+ * be over. Nothing writes this to the database — it exists so someone
+ * watching a game can see whether they're up without opening their
+ * sportsbook, which is most of why they'd leave the page.
+ */
+export function projectPick(pick: GradeInput, game: Game): Outcome | null {
+  const r = settle(pick, game)
+  return 'outcome' in r ? r.outcome : null
+}
+
+function settle(pick: GradeInput, game: Game): GradeResult {
+  if (!isGradeable(pick.betType)) return { blocked: 'unsupported-bet' }
 
   const away = scoreOf(game.away)
   const home = scoreOf(game.home)

@@ -594,9 +594,25 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 .gd-status { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono), sans-serif; font-size: 13px; color: var(--ink-dim); }
 .gd-status.in { color: var(--brand); font-weight: 700; }
 
+/* Whether the game is on, over or yet to start is the first thing anyone
+   needs from this page. It used to be grey 13px text sitting next to the
+   venue, which is why the page read as flat. */
+.gd-state-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--card-2); color: var(--ink-dim); border: 1px solid var(--line);
+}
+.gd-state-badge.in { background: var(--brand); color: var(--btn-ink); border-color: transparent; }
+.gd-state-badge.post { background: var(--ink-faint); color: var(--bg); border-color: transparent; }
+.gd-when { font-size: 12.5px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+
 .gd-box { width: 100%; border-collapse: collapse; background: var(--card-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-family: var(--font-mono), sans-serif; }
 .gd-box th { font-size: 10.5px; font-weight: 700; color: var(--ink-faint); text-align: center; padding: 8px 4px; border-bottom: 1px solid var(--line); }
-.gd-box td { font-size: 14px; color: var(--ink); text-align: center; padding: 10px 4px; }
+.gd-box td { font-size: 14px; color: var(--ink-dim); text-align: center; padding: 10px 4px; }
+/* Per-inning numbers are reference; the total is the score. Weighting
+   them the same made the eye hunt for it. */
+.gd-box td.gd-total { font-size: 19px; color: var(--ink); }
 .gd-box tr + tr td { border-top: 1px solid var(--line); }
 .gd-team { text-align: left !important; padding-left: 12px !important; font-weight: 700; display: flex; align-items: baseline; gap: 7px; }
 .gd-record { font-size: 11px; color: var(--ink-faint); font-weight: 400; }
@@ -605,8 +621,10 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 .gd-lastplay { font-size: 13px; line-height: 1.5; color: var(--ink-dim); background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 12px 0 0; }
 .gd-lastplay strong { color: var(--ink); margin-right: 6px; }
-.gd-facts { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-family: var(--font-mono), sans-serif; font-size: 12.5px; color: var(--ink); }
-.gd-k { color: var(--ink-faint); margin-right: 5px; }
+.gd-facts { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+/* The label is scaffolding, the number is the point. They were the same
+   size and weight, so "Line" competed with "-175". */
+.gd-k { color: var(--ink-faint); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-right: 5px; }
 .gd-post { display: block; text-align: center; margin-top: 18px; }
 .gd-note { font-size: 12px; color: var(--ink-faint); text-align: center; margin-top: 10px; }
 
@@ -623,7 +641,12 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 /* Game / Chat toggle and the room itself */
 .gd-tabs { display: inline-flex; gap: 3px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin: 12px 0; }
-.gd-tab { padding: 6px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--ink-dim); }
+.gd-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--ink-dim); }
+.gd-tab-count {
+  font-size: 11px; font-weight: 800; min-width: 18px; text-align: center;
+  padding: 1px 6px; border-radius: 999px;
+  background: var(--brand); color: var(--btn-ink);
+}
 .gd-tab.active { background: var(--card-2); color: var(--ink); box-shadow: 0 1px 2px var(--shadow); }
 
 .gc-presence { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-dim); margin-bottom: 10px; }
@@ -671,5 +694,31 @@ input, textarea, select, button { font-family: inherit; font-size: 15px; }
 
 .watch-error { font-size: 11px; color: var(--bear); max-width: 220px; }
 .gd-head .watch-btn { margin-left: auto; }
+
+/* Your money on this game. Green or red at a glance, because the whole
+   point is not having to open a sportsbook to find out. */
+.position-card {
+  margin: 12px 0; padding: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.position-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.position-head > span:first-child { font-size: 13px; font-weight: 700; }
+.position-live { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); }
+.position-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 0; border-top: 1px solid var(--line);
+}
+.position-what { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; min-width: 0; }
+.position-dir { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.position-terms { font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.position-state { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.position-result { font-size: 11.5px; font-weight: 800; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 999px; }
+.position-result.win { background: var(--brand); color: var(--btn-ink); }
+.position-result.loss { background: var(--bear); color: #fff; }
+.position-result.push, .position-result.pending { background: var(--card-2); color: var(--ink-dim); border: 1px solid var(--line); }
+.position-money { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.position-money.pos { color: var(--brand); }
+.position-money.neg { color: var(--bear); }
+.position-note { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-faint); }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
