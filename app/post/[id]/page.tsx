@@ -4,8 +4,45 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import { attachGradeNotes } from '@/lib/gradeNotes'
 import CommentThread from './CommentThread'
+import { SITE_NAME } from '@/lib/brand'
+import { labelFor, type Direction } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
+
+/**
+ * A shared pick should read as the pick in the preview, not as the site.
+ * Next picks up opengraph-image.tsx in this folder on its own; this is
+ * the words that sit next to it.
+ */
+export async function generateMetadata(props: { params: Promise<{ id: string }> }) {
+  const { id } = await props.params
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('posts')
+    .select('tag, tag2, sentiment, post_kind, odds, stake, status, caption, author:profiles!posts_author_id_fkey ( username )')
+    .eq('id', id)
+    .maybeSingle()
+
+  const p = data as any
+  if (!p) return { title: `Pick — ${SITE_NAME}` }
+
+  const who = p.author?.username ? `@${p.author.username}` : 'Someone'
+  const what = [p.tag, p.tag2 && `vs ${p.tag2}`].filter(Boolean).join(' ')
+  const title = `${who}: ${what}`.trim()
+  const description = p.caption?.trim()
+    || [
+      p.post_kind === 'pick' ? labelFor(p.sentiment as Direction) : 'Take',
+      p.odds, p.stake != null ? `$${p.stake}` : null,
+      p.status !== 'pending' ? p.status.toUpperCase() : null,
+    ].filter(Boolean).join(' · ')
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: 'article' },
+    twitter: { card: 'summary_large_image' as const, title, description },
+  }
+}
 
 export default async function PostPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params

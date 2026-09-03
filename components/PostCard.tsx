@@ -11,6 +11,7 @@ import ReactionBar from './ReactionBar'
 import PostMenu from './PostMenu'
 import Avatar from './Avatar'
 import RichText from './RichText'
+import ShareButton from './ShareButton'
 import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
 
 type Post = {
@@ -40,6 +41,15 @@ type Post = {
 
 export default function PostCard({ post }: { post: Post }) {
   const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
+
+  // What lands in a text message alongside the link. The tag and the
+  // direction are the whole point of the post, so they lead.
+  const shareSummary = [
+    `@${post.author.username}`,
+    post.tag,
+    post.post_kind === 'pick' ? labelFor(post.sentiment) : 'take',
+    post.odds,
+  ].filter(Boolean).join(' · ')
 
   // Graded picks show what actually happened. Older picks graded before
   // Session 5 have no stored profit, so fall back to recomputing it.
@@ -134,6 +144,7 @@ export default function PostCard({ post }: { post: Post }) {
             <span style={{ fontSize: 15 }}>💬</span> {post.comment_count}
           </Link>
           <span className="action-btn">⟲</span>
+          <ShareButton postId={post.id} summary={shareSummary} />
         </div>
       </div>
     </article>
