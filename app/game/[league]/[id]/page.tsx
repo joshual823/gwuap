@@ -107,6 +107,10 @@ export default async function GamePage(props: {
         <p className="gd-lastplay"><strong>Last play</strong> {detail.lastPlay}</p>
       )}
 
+      {detail.summary && (
+        <p className="gd-lastplay"><strong>Result</strong> {detail.summary}</p>
+      )}
+
       {(detail.odds.length > 0 || detail.venue || detail.broadcast) && (
         <div className="gd-facts">
           {detail.odds.map(o => (

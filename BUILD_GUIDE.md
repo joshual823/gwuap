@@ -255,9 +255,19 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   earlier rejected Manrope/Inter pairing is still on `typography-preview`.
 - **Tennis has no ESPN summary endpoint.** `summary?event=` takes
   tournament event ids; tennis matches are competitions nested under
-  `groupings`. Detail pages fall back to the scoreboard row, so they show
-  the matchup, set scores and the line but no play-by-play. Any sport
+  `groupings`. Detail pages fall back to the scoreboard row. Any sport
   ESPN drops summary support for degrades the same way instead of 404ing.
+- **SofaScore and Tenipo are not usable as sources.** SofaScore's API
+  answers 403 to any server request regardless of headers, and Tenipo is
+  behind a Cloudflare bot challenge. Both were tested. Getting past them
+  means defeating bot protection, which breaks silently and often. The
+  scoreboard payload ESPN already returns carries most of the same
+  material, so that's where the tennis detail comes from: country flags,
+  draw and round, court, tiebreak scores and ESPN's own result line.
+- **What tennis still lacks** is live point-by-point — the 15/30/40
+  within a game, and who's serving. ESPN doesn't publish it. That needs
+  a paid feed (api-tennis.com, api-sports.io) and is the only reason to
+  add a provider.
 
 ---
 

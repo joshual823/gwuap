@@ -16,6 +16,13 @@ export type GameSide = {
 export type Game = {
   id: string
   league: string          // one of the app's category names
+  // Tennis only. A match needs its draw and round to mean anything —
+  // "Swiatek v Gauff" is a different event in the 2nd round than in a
+  // final, and the men's and women's draws run in the same feed.
+  draw?: string           // "Women's Singles"
+  round?: string          // "2nd Round"
+  court?: string          // "Court 5"
+  note?: string           // "Fearnley bt Baena 7-6 (7-3) 6-3"
   home: GameSide
   away: GameSide
   status: string          // "1:00 PM EDT", "Q3 4:22", "Final"
@@ -40,7 +47,7 @@ const SCOREBOARDS: Record<string, string[]> = {
   'UFC': ['mma/ufc'],
   // One endpoint only: the ATP scoreboard already carries the women's
   // and mixed groupings, so adding tennis/wta returns everything twice.
-  'Tennis': ['tennis/atp'],
+  'Tennis': ['tennis/atp', 'tennis/wta'],
   'Golf': ['golf/pga'],
   'Soccer': ['soccer/eng.1', 'soccer/usa.1', 'soccer/uefa.champions', 'soccer/esp.1'],
 }
@@ -61,6 +68,7 @@ export type GameDetail = {
     record: string | null; byPeriod: string[]; logo: string | null
   }[]
   odds: { label: string; value: string }[]
+  summary: string | null            // tennis: ESPN's one-line match result
   lastPlay: string | null
   lastPlayKind: string | null
   venue: string | null
@@ -98,6 +106,9 @@ function parseTennis(data: any, league: string, full = false): Game[] {
   const games: Game[] = []
   for (const event of data?.events ?? []) {
     for (const grouping of event?.groupings ?? []) {
+      // Doubles competitions carry no `athlete`, so they fall out at the
+      // code check below rather than needing a filter here.
+      const draw = grouping?.grouping?.displayName ?? undefined
       for (const competition of grouping?.competitions ?? []) {
         const state = competition?.status?.type?.state
         // The draw is mostly history, so finished matches stay out of the
@@ -112,22 +123,44 @@ function parseTennis(data: any, league: string, full = false): Game[] {
 
         // ESPN carries set-by-set linescores for tennis. The running score
         // is sets won, which is what a tennis scoreboard actually shows.
-        const setsA = (a?.linescores ?? []).map((l: any) => String(l?.value ?? l?.displayValue ?? ''))
-        const setsB = (b?.linescores ?? []).map((l: any) => String(l?.value ?? l?.displayValue ?? ''))
-        const setsWon = (mine: string[], theirs: string[]) =>
-          mine.reduce((n, v, i) => n + (Number(v) > Number(theirs[i] ?? NaN) ? 1 : 0), 0)
+        //
+        // Tiebreaks follow the convention every scoreboard uses: only the
+        // player who lost the set carries the breaker score, so 7-6 on a
+        // 7-3 breaker reads "7" and "6 (3)". Printing it on both lines
+        // would say the same thing twice and read as a 7-7 set.
+        const rawA = a?.linescores ?? []
+        const rawB = b?.linescores ?? []
+        const gamesIn = (l: any) => Number(l?.value ?? l?.displayValue ?? NaN)
+        const setScores = (mine: any[], theirs: any[]) => mine.map((l: any, i: number) => {
+          const games = String(l?.value ?? l?.displayValue ?? '')
+          const lost = gamesIn(l) < gamesIn(theirs[i])
+          return l?.tiebreak != null && lost ? `${games} (${l.tiebreak})` : games
+        })
+        const setsA = setScores(rawA, rawB)
+        const setsB = setScores(rawB, rawA)
+        const setsWon = (mine: any[], theirs: any[]) =>
+          mine.reduce((n: number, l: any, i: number) =>
+            n + (gamesIn(l) > gamesIn(theirs[i]) ? 1 : 0), 0)
 
         games.push({
           id: String(competition.id ?? `${event.id}-${codeA}-${codeB}`),
           league,
+          // Tennis has no crests, but ESPN ships a country flag per
+          // athlete, which is what every tennis scoreboard shows instead.
           away: {
-            code: codeA, name: a?.athlete?.displayName ?? codeA, logo: null,
-            score: setsA.length ? String(setsWon(setsA, setsB)) : null, byPeriod: setsA,
+            code: codeA, name: a?.athlete?.displayName ?? codeA,
+            logo: a?.athlete?.flag?.href ?? null,
+            score: rawA.length ? String(setsWon(rawA, rawB)) : null, byPeriod: setsA,
           },
           home: {
-            code: codeB, name: b?.athlete?.displayName ?? codeB, logo: null,
-            score: setsB.length ? String(setsWon(setsB, setsA)) : null, byPeriod: setsB,
+            code: codeB, name: b?.athlete?.displayName ?? codeB,
+            logo: b?.athlete?.flag?.href ?? null,
+            score: rawB.length ? String(setsWon(rawB, rawA)) : null, byPeriod: setsB,
           },
+          draw,
+          round: competition?.round?.displayName ?? undefined,
+          court: competition?.venue?.court ?? undefined,
+          note: (competition?.notes ?? []).find((n: any) => n?.text)?.text ?? undefined,
           status: competition?.status?.type?.shortDetail ?? event?.name ?? '',
           state: state === 'in' ? 'in' : state === 'post' ? 'post' : 'pre',
           startsAt: competition?.date ?? event?.date ?? null,
@@ -206,7 +239,18 @@ export async function fetchGames(
   const paths = SCOREBOARDS[league]
   if (!paths) return []
   const batches = await Promise.all(paths.map(p => fetchPath(p, league, dates, full)))
-  return sortGames(batches.flat())
+
+  // Merged paths can return the same match twice — during a Grand Slam the
+  // ATP and WTA endpoints both return the whole tournament, every draw
+  // included. Ids are unique per match, so dedup on those. Soccer merges
+  // genuinely different competitions, so nothing collides there.
+  const seen = new Set<string>()
+  const unique = batches.flat().filter(g => {
+    if (seen.has(g.id)) return false
+    seen.add(g.id)
+    return true
+  })
+  return sortGames(unique)
 }
 
 function stamp(offsetDays: number): string {
@@ -351,6 +395,7 @@ async function fetchSummaryDetail(league: string, id: string): Promise<GameDetai
       periods,
       sides: ordered,
       odds,
+      summary: null,
       // situation.lastPlay only exists for some sports; the plays array is
       // the reliable source and carries a type label worth showing.
       lastPlay: competition?.situation?.lastPlay?.text
@@ -387,17 +432,22 @@ function detailFromGame(league: string, game: Game): GameDetail {
   // Column headings only where there's something to head: tennis sets.
   const longest = Math.max(0, game.away.byPeriod?.length ?? 0, game.home.byPeriod?.length ?? 0)
 
+  // "Women's Singles · 2nd Round" ahead of the time or the result, so a
+  // tennis page says what the match actually is.
+  const context = [game.draw, game.round].filter(Boolean).join(' · ')
+
   return {
     league,
     id: game.id,
-    status: game.status,
+    status: context ? `${context} · ${game.status}` : game.status,
     state: game.state,
     periods: Array.from({ length: longest }, (_, i) => String(i + 1)),
     sides: [side(game.away), side(game.home)],
     odds,
+    summary: game.note ?? null,
     lastPlay: null,
     lastPlayKind: null,
-    venue: null,
+    venue: game.court ?? null,
     broadcast: null,
   }
 }
