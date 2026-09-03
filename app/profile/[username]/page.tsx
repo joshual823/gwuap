@@ -119,28 +119,42 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         )}
       </div>
 
-      <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14, flexWrap: 'wrap' }}>
-        <span><strong>{wins}-{losses}</strong> record</span>
-        {winPct !== null && <span>{winPct}% win rate</span>}
-        {selfGraded > 0 && (
-          <span style={{ color: 'var(--ink-faint)' }}>
-            {selfGraded} self-graded
-          </span>
+      {/* The record is what someone came here to judge, so the three
+          numbers that constitute it get their own block each, with the
+          label under the figure rather than beside it. Everything else
+          is a count, and counts belong on one quiet line. */}
+      <div className="stat-strip">
+        <div className="stat-block">
+          <span className="stat-figure">{wins}-{losses}</span>
+          <span className="stat-label">Record</span>
+        </div>
+        {winPct !== null && (
+          <div className="stat-block">
+            <span className="stat-figure">{winPct}%</span>
+            <span className="stat-label">Win rate</span>
+          </div>
         )}
         {graded.length > 0 && (
-          <span className={`amt ${totalProfit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(totalProfit)}</span>
+          <div className="stat-block">
+            <span className={`stat-figure ${totalProfit >= 0 ? 'pos' : 'neg'}`}>
+              {formatSignedUsd(totalProfit)}
+            </span>
+            <span className="stat-label">Profit</span>
+          </div>
         )}
-        {ungraded.length > 0 && (
-          <span style={{ color: 'var(--pending)' }}>{ungraded.length} ungraded</span>
-        )}
-        <span>{picks.length} picks</span>
-        {takeCount > 0 && <span>{takeCount} takes</span>}
+      </div>
+
+      <div className="stat-counts">
+        <span>{picks.length} {picks.length === 1 ? 'pick' : 'picks'}</span>
+        {takeCount > 0 && <span>{takeCount} {takeCount === 1 ? 'take' : 'takes'}</span>}
         <Link href={`/profile/${profile.username}/followers`} className="record-link">
-          <strong>{followerCount ?? 0}</strong> followers
+          <strong>{followerCount ?? 0}</strong> {followerCount === 1 ? 'follower' : 'followers'}
         </Link>
         <Link href={`/profile/${profile.username}/following`} className="record-link">
           <strong>{followingCount ?? 0}</strong> following
         </Link>
+        {selfGraded > 0 && <span className="stat-caveat">{selfGraded} self-graded</span>}
+        {ungraded.length > 0 && <span className="stat-open">{ungraded.length} still open</span>}
       </div>
 
       {user?.id === profile.id && ungraded.length > 0 && (

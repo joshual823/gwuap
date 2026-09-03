@@ -367,6 +367,13 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Picks made before migration 022 have no `game_id`**, so they can't be
   auto-graded and don't rank. They age out of the 30-day window on their
   own; the ones already graded are marked `graded_by = 'user'`.
+- **Type hierarchy, applied consistently.** Three rules, taken from the
+  game-page pass and used site-wide: a label is scaffolding so it goes
+  small, uppercase and faint (`.stat-key`, `.stat-label`, `.gd-k`); the
+  number is the point so it goes larger and bolder with tabular figures;
+  and a status is a badge, never grey text. When a label and its value
+  are the same size, a row reads as one undifferentiated string — which
+  is what made the game page look flat.
 - **Fonts.** Now Inter, one family everywhere, matching Polymarket —
   their markup references Inter and no other face. Headings are 700, not
   800. The `--font-display` and `--font-mono` tokens still exist and
