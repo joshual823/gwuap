@@ -2,9 +2,10 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
-import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
+import ContestBanner from '@/components/ContestBanner'
 
 // Self-hosted at build time. The old CSS @import made the browser fetch
 // our stylesheet, then Google's stylesheet, then the font files — a
@@ -39,9 +40,29 @@ export const viewport = {
   ],
 }
 
+// metadataBase is what makes the generated opengraph-image resolve to an
+// absolute URL. Without it the tag ships a relative path, and every
+// messaging app drops the image silently — the link still previews, just
+// with no picture, which is easy to miss and the whole point of this.
+const SHARE_DESCRIPTION =
+  'Post your picks and the final score grades them — no self-reporting, no cropped screenshots. Talk sports with people who keep the receipts.'
+
 export const metadata = {
+  metadataBase: new URL(SITE_URL),
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
-  description: `Talk sports with the people who know it best. Post your picks, track your record, and back up your takes.`,
+  description: SHARE_DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SHARE_DESCRIPTION,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    description: SHARE_DESCRIPTION,
+  },
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -83,6 +104,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <div className="app">
+        {/* Logged-out only: the pitch is for people who haven't joined,
+            and it would be noise above a feed you already use. */}
+        {!user && <ContestBanner />}
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/feed" className="wordmark">{SITE_NAME}</Link>

@@ -261,6 +261,18 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   Any row means self-grading is open again. Note the broader query
   without the UPDATE filter returns ~72 rows and proves nothing —
   SELECT and INSERT are supposed to be there.
+- **The launch contest lives in `lib/contest.ts`** — prize, deadline and
+  minimum picks in one place, because they appear on the banner, the
+  contest page and the share card. Change the date there and everything
+  follows. The banner hides itself once `hasEnded()`.
+- **Share previews are generated, not stored.** `app/opengraph-image.tsx`
+  renders a 1200×630 PNG at build from the same constants, so the prize
+  on the card can't drift from the prize on the site. `metadataBase` in
+  `app/layout.tsx` is what makes the tag absolute — without it messaging
+  apps drop the image silently and the link still previews, just with no
+  picture, which is easy to miss.
+- **No migration needed for the contest.** It reads the existing
+  leaderboard view.
 - **Feed preferences (migration 023).** Up to 3 leagues per profile,
   chosen at signup and editable from Edit profile. Null/empty means the
   default mix, so nothing changed for existing accounts and logged-out
