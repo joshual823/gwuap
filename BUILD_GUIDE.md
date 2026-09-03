@@ -267,6 +267,13 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   sit pending forever". Before a cash prize, silence was survivable;
   with one, a pick that never grades and never explains itself reads as
   the contest being rigged.
+- **`SUPABASE_SERVICE_ROLE_KEY` must exist in Vercel Production.** It was
+  missing until 3 Sep 2026 and nothing noticed, because only two things
+  use `createAdminClient()`: the grading job and admin ban/remove. The
+  moderation buttons would have thrown a 500 the first time they were
+  pressed. If either ever fails oddly, check this variable first.
+  Re-adding it: delete and re-create rather than edit — the value box
+  shows a masked placeholder, and saving over that stores an empty value.
 - **Hourly grading runs from GitHub Actions**
   (`.github/workflows/grade.yml`), because Hobby refuses sub-daily crons.
   Needs `CRON_SECRET` in the repo's Actions secrets, matching Vercel's.
