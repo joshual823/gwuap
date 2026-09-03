@@ -76,6 +76,12 @@ export default async function FeedPage(props: {
       tagCounts[t][p.sentiment] = (tagCounts[t][p.sentiment] ?? 0) + 1
     }
   }
+  // A tag needs a few picks behind it before a percentage means anything.
+  // One pick rendering as "100% Backing" reads like a statistic when it's
+  // one person's post, which makes the panel look thinner than saying
+  // nothing would. Below the threshold the whole card hides itself.
+  const MIN_TRENDING_PICKS = 3
+
   const trending = Object.entries(tagCounts)
     .map(([tag, counts]) => {
       const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
@@ -83,6 +89,7 @@ export default async function FeedPage(props: {
       const [leader, leadCount] = entries[0]
       return { tag, total, leader, pct: Math.round((100 * leadCount) / total) }
     })
+    .filter(t => t.total >= MIN_TRENDING_PICKS)
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
 
