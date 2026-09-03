@@ -281,6 +281,12 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   `/api/grade` only ever moves a pick out of 'pending'. The workflow
   fails loudly on any non-200 — a 401 means the two secrets disagree, and
   a silent pass there would look identical to working.
+- **Rewriting a shared check constraint restates every value.** The
+  `notifications_type_check` list has been widened twice — 008 defined
+  four types, 011 added the two DM ones, 026 added repost. Rebuilding it
+  from any single migration's definition silently drops the others, and
+  Postgres only catches it if rows already use them. Before touching that
+  constraint, grep every migration for what inserts into the column.
 - **Reposts (migration 026).** A repost is a take with `repost_of` set,
   so it carries no money of its own and the existing take constraints
   already forbid odds and stake. `repost_of` always points at an

@@ -32,9 +32,18 @@ begin
 end $$;
 
 -- ---- notify the original author ------------------------------
+-- The full list, not just the four from migration 008. Migration 011
+-- widened this for direct messages, and rewriting it from the original
+-- definition silently drops whatever was added since — which fails
+-- loudly here only because rows already exist using them. Anything that
+-- rewrites this constraint has to restate every type in use.
 alter table notifications drop constraint if exists notifications_type_check;
 alter table notifications add constraint notifications_type_check
-  check (type in ('reaction','comment','reply','follow','repost'));
+  check (type in (
+    'reaction', 'comment', 'reply', 'follow',   -- 008
+    'dm_request', 'dm_message',                 -- 011
+    'repost'                                    -- this migration
+  ));
 
 create or replace function notify_on_repost()
 returns trigger language plpgsql security definer set search_path = public as $$
