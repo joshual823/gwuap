@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGameDetail, fetchGames, postHrefForGame, LEAGUES_WITH_SCORES } from '@/lib/scores'
+import { fetchGameDetail, fetchGames, postHrefForGame, postHrefForMarket, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
 import WatchButton from '@/components/WatchButton'
@@ -121,7 +121,40 @@ export default async function GamePage(props: {
         </div>
       )}
 
-      {game && (
+      {/* Real prices, tapped rather than typed. The whole reason this is
+          here instead of a blank odds field is that a pick posted from a
+          market is a selection with a provenance, while a typed one is a
+          claim — and only one of those is worth putting on a leaderboard. */}
+      {game && (game.markets?.length ?? 0) > 0 && (
+        <div className="markets">
+          <div className="markets-head">
+            <span>Post a pick</span>
+            {game.book && <span className="markets-book">odds from {game.book}</span>}
+          </div>
+          {(['moneyline', 'spread', 'total'] as const).map(kind => {
+            const row = game.markets!.filter(m => m.kind === kind)
+            if (row.length === 0) return null
+            return (
+              <div className="market-row" key={kind}>
+                <span className="market-kind">
+                  {kind === 'moneyline' ? 'Moneyline' : kind === 'spread' ? 'Spread' : 'Total'}
+                </span>
+                {row.map(m => (
+                  <Link key={`${m.kind}-${m.side}`} href={postHrefForMarket(game, m)} className="market-btn">
+                    <span className="market-pick">{m.label}</span>
+                    <span className="market-odds">{m.odds}</span>
+                  </Link>
+                ))}
+              </div>
+            )
+          })}
+          <Link href={postHrefForGame(game)} className="market-custom">
+            Something else — post a custom pick
+          </Link>
+        </div>
+      )}
+
+      {game && (game.markets?.length ?? 0) === 0 && (
         <Link href={postHrefForGame(game)} className="btn gd-post">
           Post a pick on this game
         </Link>

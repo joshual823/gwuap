@@ -28,6 +28,9 @@ type Post = {
   grade_note?: string | null
   /** 'auto' from the final score, 'user' self-reported, 'admin' settled by hand. */
   graded_by?: string | null
+  /** 'book' if the price came from a real posted market, 'custom' if typed. */
+  odds_source?: string | null
+  odds_book?: string | null
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -86,6 +89,13 @@ export default function PostCard({ post }: { post: Post }) {
             <span className="stamp self" title="Graded by the author before auto-grading existed">self-graded</span>}
           {post.post_kind === 'pick' && post.status !== 'pending' && post.graded_by === 'admin' &&
             <span className="stamp settled" title="Settled by an admin because the scoreboard couldn't">reviewed</span>}
+          {/* Where the price came from. Only the typed ones are marked:
+              a real market is the default claim, and badging that too
+              would imply the custom ones are equally normal. */}
+          {post.post_kind === 'pick' && post.odds_source === 'custom' && post.odds &&
+            <span className="stamp custom" title="This price was entered by the author, not taken from a book">custom odds</span>}
+          {post.post_kind === 'pick' && post.odds_source === 'book' && post.odds_book &&
+            <span className="stamp booked" title={`Price taken from ${post.odds_book}`}>{post.odds_book}</span>}
           {/* Everyone sees that a pick is held rather than quietly not
               counting — with a prize on the board, an invisible hold is
               indistinguishable from a rigged one. */}

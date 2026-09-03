@@ -18,9 +18,29 @@ export type GameSide = {
   label?: string             // "F. Auger-Aliassime"
 }
 
+/**
+ * One real, priced thing you can bet on this game.
+ *
+ * The point of carrying these is that a pick can then be a selection
+ * rather than a typed claim: the price came from a book at a moment,
+ * instead of from whatever the author felt like entering.
+ */
+export type Market = {
+  kind: 'moneyline' | 'spread' | 'total'
+  /** Which side of it. Team code for moneyline and spread. */
+  side: 'home' | 'away' | 'over' | 'under'
+  code: string | null     // team abbreviation, or null for a total
+  line: number | null     // -1.5 on a spread, 8.5 on a total
+  odds: string            // American, as written: "-159", "+131"
+  label: string           // "PIT -1.5", "Over 8.5"
+}
+
 export type Game = {
   id: string
   league: string          // one of the app's category names
+  /** Real priced markets, when the book has posted them. */
+  markets?: Market[]
+  book?: string           // who priced them, e.g. "DraftKings"
   // Tennis only. A match needs its draw and round to mean anything —
   // "Swiatek v Gauff" is a different event in the 2nd round than in a
   // final, and the men's and women's draws run in the same feed.
@@ -192,6 +212,62 @@ function parseTennis(data: any, league: string, full = false): Game[] {
   return full ? sortGames(unique) : sortGames(unique).slice(0, 8)
 }
 
+/**
+ * The priced markets on a game, from the book ESPN carries.
+ *
+ * Only offered before kick-off: once a game starts ESPN drops the odds
+ * block entirely, and a stale price shown as if it were live would be
+ * worse than showing nothing.
+ *
+ * Anything missing is skipped rather than defaulted. A market with a
+ * guessed price is exactly the thing this exists to prevent.
+ */
+function parseMarkets(odds: any, awayCode: string, homeCode: string): Market[] {
+  if (!odds) return []
+  const markets: Market[] = []
+
+  const priceOf = (node: any): string | null => {
+    const raw = node?.close?.odds ?? node?.current?.odds ?? node?.open?.odds
+    if (raw == null) return null
+    const text = String(raw).trim()
+    if (!text) return null
+    // American odds are written with a sign; ESPN sometimes omits the +.
+    return /^[+-]/.test(text) ? text : `+${text}`
+  }
+  const lineOf = (node: any): number | null => {
+    const raw = node?.close?.line ?? node?.current?.line ?? node?.open?.line
+    if (raw == null) return null
+    const n = parseFloat(String(raw).replace(/[^0-9.\-]/g, ''))
+    return Number.isFinite(n) ? n : null
+  }
+
+  for (const [side, code] of [['away', awayCode], ['home', homeCode]] as const) {
+    const ml = priceOf(odds?.moneyline?.[side])
+    if (ml) {
+      markets.push({ kind: 'moneyline', side, code, line: null, odds: ml, label: `${code} ${ml}` })
+    }
+    const sp = odds?.pointSpread?.[side]
+    const spOdds = priceOf(sp)
+    const spLine = lineOf(sp)
+    if (spOdds && spLine !== null) {
+      const written = spLine > 0 ? `+${spLine}` : String(spLine)
+      markets.push({ kind: 'spread', side, code, line: spLine, odds: spOdds, label: `${code} ${written}` })
+    }
+  }
+
+  for (const side of ['over', 'under'] as const) {
+    const t = odds?.total?.[side]
+    const tOdds = priceOf(t)
+    const tLine = lineOf(t)
+    if (tOdds && tLine !== null) {
+      const word = side === 'over' ? 'Over' : 'Under'
+      markets.push({ kind: 'total', side, code: null, line: tLine, odds: tOdds, label: `${word} ${tLine}` })
+    }
+  }
+
+  return markets
+}
+
 async function fetchPath(
   path: string, league: string, dates?: string, full = false,
 ): Promise<Game[]> {
@@ -232,6 +308,11 @@ async function fetchPath(
         startsAt: event?.date ?? null,
         spread: odds?.details ?? null,
         overUnder: typeof odds?.overUnder === 'number' ? odds.overUnder : null,
+        // Only while it's still a game you can bet on.
+        markets: stateRaw === 'pre'
+          ? parseMarkets(odds, side(away).code, side(home).code)
+          : undefined,
+        book: odds?.provider?.name ?? undefined,
       })
     }
     return games
@@ -326,6 +407,40 @@ function sortGames(games: Game[]): Game[] {
  * is essentially never over it. Getting this wrong would drop a
  * moneyline into the cashtag as if it were a line.
  */
+/**
+ * The post form, filled in from a real market rather than from a guess.
+ *
+ * Everything the pick needs travels in the link — which side, which
+ * line, and the price the book was showing — so the form has nothing to
+ * ask and nothing to let someone quietly change.
+ */
+export function postHrefForMarket(game: Game, market: Market): string {
+  const params = new URLSearchParams({ league: game.league, game: game.id, src: 'book' })
+  if (game.book) params.set('book', game.book)
+  params.set('bet', market.kind)
+  params.set('odds', market.odds)
+
+  if (market.kind === 'total') {
+    // A total is on the game, so it carries both teams and a direction.
+    params.set('tag', `$${game.away.code}`)
+    params.set('tag2', `$${game.home.code}`)
+    params.set('dir', market.side)          // over | under
+    if (market.line !== null) params.set('line', String(market.line))
+  } else {
+    const other = market.side === 'away' ? game.home.code : game.away.code
+    // The spread is part of how the pick reads, the way a slip writes it.
+    const written = market.line === null
+      ? ''
+      : ` ${market.line > 0 ? '+' : ''}${market.line}`
+    params.set('tag', `$${market.code}${written}`)
+    params.set('tag2', `$${other}`)
+    params.set('dir', 'backing')
+    if (market.line !== null) params.set('line', String(market.line))
+  }
+
+  return `/post/new?${params.toString()}`
+}
+
 export function postHrefForGame(game: Game): string {
   const params = new URLSearchParams({ league: game.league })
 

@@ -281,6 +281,15 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   `/api/grade` only ever moves a pick out of 'pending'. The workflow
   fails loudly on any non-200 — a 401 means the two secrets disagree, and
   a silent pass there would look identical to working.
+- **Picks can be posted from real markets (migration 025).** ESPN's
+  scoreboard carries DraftKings prices per side — moneyline, spread and
+  total — for games that haven't started. Tapping one fills the form and
+  records `odds_source = 'book'`; typing a price records `'custom'` and
+  labels the post. Editing the odds after arriving from a market clears
+  the book flag, because the number is no longer theirs.
+  Only pre-game: ESPN drops the odds block once a game starts, and a
+  stale price shown as live would be worse than none.
+  Props, parlays and alternate lines have no source and stay custom.
 - **Self-graded records say so.** Picks settled before auto-grading carry
   `graded_by = 'user'` and now render a "self-graded" stamp, with a count
   on the profile header. The header is what gets screenshotted, and a

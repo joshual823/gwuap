@@ -47,6 +47,11 @@ export default function NewPickForm() {
   const [gameId, setGameId] = useState<string | null>(null)
   const [gameLeague, setGameLeague] = useState<string | null>(null)
   const [line, setLine] = useState('')
+  // Set when the pick came from tapping a real posted market. Editing the
+  // odds clears it: the moment the number stops being the book's, saying
+  // it came from the book would be false.
+  const [book, setBook] = useState<string | null>(null)
+  const [fromBook, setFromBook] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,6 +96,18 @@ export default function NewPickForm() {
     // A spread carries its own number; a total carries the game's.
     const presetLine = searchParams.get('line') ?? searchParams.get('total')
     if (presetLine && Number.isFinite(Number(presetLine))) setLine(presetLine)
+
+    // Arrived by tapping a real market: the direction comes with it, and
+    // the price is the book's until the author changes it.
+    if (searchParams.get('src') === 'book') {
+      setFromBook(true)
+      setBook(searchParams.get('book'))
+      setKind('pick')
+    }
+    const presetDir = searchParams.get('dir')
+    if (presetDir && ['backing', 'fading', 'over', 'under'].includes(presetDir)) {
+      setSentiment(presetDir as Direction)
+    }
     const presetOdds = searchParams.get('odds')
     const oddsMatch = presetOdds && /^([+-]?)(\d{3,6})$/.exec(presetOdds.trim())
     if (oddsMatch) {
@@ -157,7 +174,13 @@ export default function NewPickForm() {
     return { win: profitOnWin(oddsValue, stake), payout: payoutOnWin(oddsValue, stake) }
   }, [oddsValue, stake, stakeValid])
 
+  // Any edit to the price means it is no longer the book's, whatever the
+  // link said. Keeping the 'book' label after that would be the exact
+  // false claim this feature exists to remove.
+  function touchOdds() { setFromBook(false) }
+
   function chooseOdds(o: string) {
+    touchOdds()
     setOddsCustom(false)
     setOddsSign(o[0] as '+' | '-')
     setOddsInput(o.slice(1))
@@ -221,6 +244,8 @@ export default function NewPickForm() {
       game_id: gameId,
       game_league: gameId ? gameLeague : null,
       line: wantsLine ? lineValue : null,
+      odds_source: fromBook ? 'book' : 'custom',
+      odds_book: fromBook ? book : null,
     })
 
     setLoading(false)
@@ -322,6 +347,17 @@ export default function NewPickForm() {
         {kind === 'pick' && (
           <>
             <label className="form-label">Odds</label>
+            {fromBook ? (
+              <p className="odds-locked">
+                {oddsText} — the price {book ?? 'the book'} was showing when you
+                tapped it. Change it and this becomes a custom pick.
+              </p>
+            ) : gameId && (
+              <p className="form-hint">
+                Typed prices are marked <strong>custom</strong>. Tap a market on the
+                game page to post at a real one.
+              </p>
+            )}
             <div className="chip-line">
               <div className="chip-scroll" ref={oddsScrollRef}>
                 {QUICK_ODDS.map(o => (
@@ -332,21 +368,21 @@ export default function NewPickForm() {
               </div>
               <button type="button" aria-pressed={oddsCustom}
                 className={`chip chip-pinned ${oddsCustom ? 'active' : ''}`}
-                onClick={() => setOddsCustom(true)}>Custom</button>
+                onClick={() => { touchOdds(); setOddsCustom(true) }}>Custom</button>
             </div>
             {oddsCustom && (
               <div className="odds-row">
                 <div className="segment compact" style={{ flex: '0 0 auto' }}>
                   <button type="button" aria-pressed={oddsSign === '-'}
                     className={oddsSign === '-' ? 'active' : ''}
-                    onClick={() => setOddsSign('-')}>− fav</button>
+                    onClick={() => { touchOdds(); setOddsSign('-') }}>− fav</button>
                   <button type="button" aria-pressed={oddsSign === '+'}
                     className={oddsSign === '+' ? 'active' : ''}
-                    onClick={() => setOddsSign('+')}>+ dog</button>
+                    onClick={() => { touchOdds(); setOddsSign('+') }}>+ dog</button>
                 </div>
                 <input className="field mono odds-input" inputMode="numeric" autoFocus
                   value={oddsInput} placeholder="110"
-                  onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
+                  onChange={e => { touchOdds(); setOddsInput(e.target.value.replace(/[^0-9]/g, '')) }} />
               </div>
             )}
 

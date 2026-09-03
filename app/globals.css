@@ -150,6 +150,34 @@ a { color: inherit; text-decoration: none; }
    next to the result rather than competing with it. */
 .stamp.self { background: var(--ink-faint); }
 .stamp.settled { background: var(--twitter-blue); }
+.stamp.custom { background: var(--ink-faint); }
+.stamp.booked { background: var(--card-2); color: var(--ink-dim); border: 1px solid var(--line); }
+
+/* Real markets, laid out the way a book lays them out: the kind on the
+   left, the priced options beside it. */
+.markets { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.markets-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+.markets-head > span:first-child { font-weight: 700; font-size: 14px; }
+.markets-book { font-size: 11.5px; color: var(--ink-faint); }
+.market-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.market-kind { flex: 0 0 68px; font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.03em; }
+.market-btn {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card-2);
+}
+.market-pick { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.market-odds { font-size: 13px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
+.market-custom { display: block; text-align: center; font-size: 12.5px; color: var(--ink-dim); padding: 8px 0 2px; }
+
+/* The price arrived from a book. States the consequence of editing it
+   rather than disabling the field — someone with a better price
+   elsewhere is allowed, they just get labelled. */
+.odds-locked {
+  font-size: 12.5px; color: var(--brand); line-height: 1.45;
+  margin: 6px 0 8px; padding: 8px 10px;
+  background: var(--tint-brand); border-radius: 10px;
+}
 .review-why {
   font-size: 12.5px; color: var(--pending); line-height: 1.45;
   margin: 8px 0 0; padding: 8px 10px;
