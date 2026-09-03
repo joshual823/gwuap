@@ -36,7 +36,10 @@ export default async function LeagueScoresPage(props: { params: Promise<{ league
 
   const games = await fetchGamesWindow(league)
   const live = games.filter(g => g.state === 'in')
-  const upcoming = games.filter(g => g.state === 'pre')
+  // A Grand Slam draw is a couple of hundred unplayed matches stretching a
+  // fortnight out. Sorted soonest-first, so this is roughly the next two
+  // days of play rather than an arbitrary slice of the draw.
+  const upcoming = games.filter(g => g.state === 'pre').slice(0, 60)
   // Three days of baseball is ~90 finished games. Nobody scrolls that.
   const recent = games.filter(g => g.state === 'post').reverse().slice(0, 24)
 

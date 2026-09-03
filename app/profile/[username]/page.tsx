@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
@@ -109,8 +110,12 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         )}
         <span>{picks.length} picks</span>
         {takeCount > 0 && <span>{takeCount} takes</span>}
-        <span>{followerCount ?? 0} followers</span>
-        <span>{followingCount ?? 0} following</span>
+        <Link href={`/profile/${profile.username}/followers`} className="record-link">
+          <strong>{followerCount ?? 0}</strong> followers
+        </Link>
+        <Link href={`/profile/${profile.username}/following`} className="record-link">
+          <strong>{followingCount ?? 0}</strong> following
+        </Link>
       </div>
 
       {user?.id === profile.id && ungraded.length > 0 && (

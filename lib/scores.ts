@@ -278,7 +278,10 @@ function stamp(offsetDays: number): string {
 export async function fetchGamesWindow(
   league: string, daysBack = 3, daysForward = 3,
 ): Promise<Game[]> {
-  if (league === 'Tennis') return fetchGames(league)
+  // Tennis gets the whole draw, not the handful the cards are capped to.
+  // The cap exists so a Grand Slam doesn't flood the rail; a league page
+  // asking for a window wants everything that's on.
+  if (league === 'Tennis') return fetchGames(league, undefined, true)
   return fetchGames(league, `${stamp(-daysBack)}-${stamp(daysForward)}`)
 }
 

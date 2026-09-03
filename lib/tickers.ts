@@ -318,10 +318,51 @@ export const TICKERS: Ticker[] = [
   { code: 'BENN', name: 'Conor Benn', league: 'Boxing' },
   { code: 'CHARLO', name: 'Jermell Charlo', league: 'Boxing' },
   { code: 'RAMIREZ', name: 'Gilberto Ramirez', league: 'Boxing', aliases: ['zurdo'] },
+
+  // ---- Table Tennis (36) ----
+  // Codes are given name rather than surname wherever the surname is
+  // shared — three of the world's best women are surnamed Wang, and a
+  // cashtag has to point at one person.
+  { code: 'CHUQIN', name: 'Wang Chuqin', league: 'Table Tennis', aliases: ['wang chuqin'] },
+  { code: 'ZHENDONG', name: 'Fan Zhendong', league: 'Table Tennis', aliases: ['fan zhendong'] },
+  { code: 'MALONG', name: 'Ma Long', league: 'Table Tennis', aliases: ['ma long', 'dragon'] },
+  { code: 'SHIDONG', name: 'Lin Shidong', league: 'Table Tennis', aliases: ['lin shidong'] },
+  { code: 'JINGKUN', name: 'Liang Jingkun', league: 'Table Tennis', aliases: ['liang jingkun'] },
+  { code: 'MOREGARD', name: 'Truls Moregard', league: 'Table Tennis', aliases: ['truls'] },
+  { code: 'CALDERANO', name: 'Hugo Calderano', league: 'Table Tennis', aliases: ['hugo'] },
+  { code: 'FLEBRUN', name: 'Felix Lebrun', league: 'Table Tennis', aliases: ['felix lebrun'] },
+  { code: 'ALEBRUN', name: 'Alexis Lebrun', league: 'Table Tennis', aliases: ['alexis lebrun'] },
+  { code: 'THARIMOTO', name: 'Tomokazu Harimoto', league: 'Table Tennis', aliases: ['tomokazu'] },
+  { code: 'OVTCHAROV', name: 'Dimitrij Ovtcharov', league: 'Table Tennis', aliases: ['dima'] },
+  { code: 'BOLL', name: 'Timo Boll', league: 'Table Tennis', aliases: ['timo'] },
+  { code: 'JORGIC', name: 'Darko Jorgic', league: 'Table Tennis' },
+  { code: 'KALLBERG', name: 'Anton Kallberg', league: 'Table Tennis' },
+  { code: 'LINYUNJU', name: 'Lin Yun-Ju', league: 'Table Tennis', aliases: ['silent assassin'] },
+  { code: 'WOOJIN', name: 'Jang Woojin', league: 'Table Tennis', aliases: ['jang woojin'] },
+  { code: 'FRANZISKA', name: 'Patrick Franziska', league: 'Table Tennis' },
+  { code: 'GAUZY', name: 'Simon Gauzy', league: 'Table Tennis' },
+  { code: 'JHA', name: 'Kanak Jha', league: 'Table Tennis' },
+  { code: 'ARUNA', name: 'Quadri Aruna', league: 'Table Tennis' },
+  { code: 'YINGSHA', name: 'Sun Yingsha', league: 'Table Tennis', aliases: ['sun yingsha'] },
+  { code: 'MANYU', name: 'Wang Manyu', league: 'Table Tennis', aliases: ['wang manyu'] },
+  { code: 'CHENMENG', name: 'Chen Meng', league: 'Table Tennis', aliases: ['chen meng'] },
+  { code: 'YIDI', name: 'Wang Yidi', league: 'Table Tennis', aliases: ['wang yidi'] },
+  { code: 'XINGTONG', name: 'Chen Xingtong', league: 'Table Tennis', aliases: ['chen xingtong'] },
+  { code: 'KUAIMAN', name: 'Kuai Man', league: 'Table Tennis', aliases: ['kuai man'] },
+  { code: 'ZHUYULING', name: 'Zhu Yuling', league: 'Table Tennis', aliases: ['zhu yuling'] },
+  { code: 'HAYATA', name: 'Hina Hayata', league: 'Table Tennis', aliases: ['hina'] },
+  { code: 'ITO', name: 'Mima Ito', league: 'Table Tennis', aliases: ['mima'] },
+  { code: 'HIRANO', name: 'Miu Hirano', league: 'Table Tennis', aliases: ['miu'] },
+  { code: 'MHARIMOTO', name: 'Miwa Harimoto', league: 'Table Tennis', aliases: ['miwa'] },
+  { code: 'SHINYUBIN', name: 'Shin Yubin', league: 'Table Tennis', aliases: ['shin yubin'] },
+  { code: 'SZOCS', name: 'Bernadette Szocs', league: 'Table Tennis', aliases: ['bernadette'] },
+  { code: 'ADIAZ', name: 'Adriana Diaz', league: 'Table Tennis', aliases: ['adriana diaz'] },
+  { code: 'POLCANOVA', name: 'Sofia Polcanova', league: 'Table Tennis', aliases: ['sofia'] },
+  { code: 'CHENGICHING', name: 'Cheng I-Ching', league: 'Table Tennis', aliases: ['cheng i-ching'] },
 ]
 
 /** Leagues we have a ticker list for. Anything else stays free text. */
-export const SUPPORTED_LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL', 'Tennis', 'UFC', 'Boxing'] as const
+export const SUPPORTED_LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL', 'Tennis', 'Table Tennis', 'UFC', 'Boxing'] as const
 export type League = (typeof SUPPORTED_LEAGUES)[number]
 
 export function isSupportedLeague(league: string | null | undefined): boolean {

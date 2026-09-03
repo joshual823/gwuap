@@ -100,6 +100,11 @@ a { color: inherit; text-decoration: none; }
    its own rather than needing a rule or a coloured band under it. */
 .page-title { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; margin: 14px 0 12px; }
 
+/* Follower / following counts are links now. Underline on hover only, so
+   the stat row still reads as a row of stats rather than a row of links. */
+.record-link { color: inherit; }
+.record-link:hover { text-decoration: underline; }
+
 
 /* Top bar: minimal, Twitter-style */
 .topbar {
