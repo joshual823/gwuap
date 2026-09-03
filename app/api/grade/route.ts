@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabaseServer'
 import { fetchGamesWindow, type Game } from '@/lib/scores'
-import { gradePick, GRADEABLE_BET_TYPES } from '@/lib/grade'
+import { gradePick, needsReview, GRADEABLE_BET_TYPES } from '@/lib/grade'
 import { profitForStatus } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -75,27 +75,56 @@ export async function GET(request: Request) {
   const skipped: Record<string, number> = {}
   const note = (why: string) => { skipped[why] = (skipped[why] ?? 0) + 1 }
 
+  // Marks a pick as needing a human. Written on the row rather than only
+  // into this response, because the response is a log line nobody reads
+  // and the admin queue is a page somebody does.
+  let flagged = 0
+  const flag = async (id: string, reason: string) => {
+    flagged++
+    await supabase
+      .from('posts')
+      .update({ grade_note: reason, grade_checked_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('status', 'pending')
+  }
+
   for (const pick of pending) {
     const game = byLeague.get(pick.game_league as string)?.get(pick.game_id as string)
     if (!game) { note('game not on the scoreboard'); continue }
 
-    const outcome = gradePick({
+    const result = gradePick({
       betType: pick.bet_type,
       sentiment: pick.sentiment,
       ticker: pick.ticker,
       line: pick.line == null ? null : Number(pick.line),
     }, game)
 
-    if (!outcome) { note('not settled yet'); continue }
+    if ('blocked' in result) {
+      note(result.blocked)
+      // A game that hasn't finished is the system working, so it isn't
+      // worth a note on the row. Anything else will sit pending forever
+      // unless a person looks at it, so it gets flagged for review.
+      if (needsReview(result.blocked)) await flag(pick.id, result.blocked)
+      continue
+    }
 
+    const outcome = result.outcome
     const profit = profitForStatus(outcome, pick.odds, pick.stake)
     // A win we can't price is a data problem, not a result. Leave it
-    // pending and let it show up as ungraded rather than booking $0.
-    if (profit === null && outcome !== 'void') { note('could not price the payout'); continue }
+    // pending and send it for review rather than booking $0 against
+    // somebody's record.
+    if (profit === null && outcome !== 'void') {
+      note('could not price the payout')
+      await flag(pick.id, 'unpriceable')
+      continue
+    }
 
     const { error: updateError } = await supabase
       .from('posts')
-      .update({ status: outcome, profit, graded_at: new Date().toISOString(), graded_by: 'auto' })
+      .update({
+        status: outcome, profit, graded_at: new Date().toISOString(),
+        graded_by: 'auto', grade_note: null,
+      })
       .eq('id', pick.id)
       .eq('status', 'pending')     // never regrade something already settled
 
@@ -106,6 +135,7 @@ export async function GET(request: Request) {
   return Response.json({
     checked: pending.length,
     graded: results.length,
+    flaggedForReview: flagged,
     byOutcome: results.reduce((m: Record<string, number>, r) => {
       m[r.status] = (m[r.status] ?? 0) + 1
       return m

@@ -261,6 +261,21 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   Any row means self-grading is open again. Note the broader query
   without the UPDATE filter returns ~72 rows and proves nothing —
   SELECT and INSERT are supposed to be there.
+- **Picks the grader refuses now say why** and land in a review queue at
+  the top of `/admin`. `gradePick` returns `{outcome}` or `{blocked}`;
+  `needsReview()` separates "the game hasn't finished" from "this will
+  sit pending forever". Before a cash prize, silence was survivable;
+  with one, a pick that never grades and never explains itself reads as
+  the contest being rigged.
+- **An admin cannot grade their own pick.** Enforced in
+  `/api/admin/grade`, not in the UI, and the button is replaced by an
+  explanation rather than hidden. There is one admin who may enter their
+  own contest, so this is the accusation the prize invites — refusing it
+  in code makes the answer verifiable.
+- **Manual grading uses the service role**, never a grant. Granting
+  update on posts back to `authenticated` would reopen the self-grading
+  hole 022 closed, so the exception lives behind an is_admin check in a
+  route instead.
 - **The launch contest lives in `lib/contest.ts`** — prize, deadline and
   minimum picks in one place, because they appear on the banner, the
   contest page and the share card. Change the date there and everything

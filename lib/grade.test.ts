@@ -1,4 +1,4 @@
-import { gradePick, isGradeable } from './grade'
+import { gradePick, isGradeable, needsReview, BLOCKED_LABELS } from './grade'
 import type { Game } from './scores'
 
 function game(awayCode: string, awayScore: string | null, homeCode: string, homeScore: string | null,
@@ -11,7 +11,16 @@ function game(awayCode: string, awayScore: string | null, homeCode: string, home
 }
 
 let pass = 0, fail = 0
-function check(label: string, got: unknown, want: unknown) {
+// gradePick returns a result object now. Tests still read as "this pick
+// should be a win", so unwrap here rather than in thirty call sites.
+function unwrap(r: any) {
+  if (r && typeof r === 'object' && 'outcome' in r) return r.outcome
+  if (r && typeof r === 'object' && 'blocked' in r) return null
+  return r
+}
+
+function check(label: string, gotRaw: unknown, want: unknown) {
+  const got = unwrap(gotRaw)
   const ok = got === want
   ok ? pass++ : fail++
   if (!ok) console.log(`  FAIL ${label}: got ${got}, want ${want}`)
@@ -59,6 +68,42 @@ check('total w/ backing',     gradePick({betType:'total',sentiment:'backing',tic
 console.log('CASE / FORMAT TOLERANCE')
 check('lowercase no dollar',  gradePick({betType:'moneyline',sentiment:'backing',ticker:'sf',line:null}, g), 'win')
 check('draw -> push',         gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, game('SF','20','LAR','20')), 'push')
+
+console.log('REFUSALS SAY WHY — this is what feeds the review queue')
+function blockedReason(r: any) { return r && 'blocked' in r ? r.blocked : `graded:${r?.outcome}` }
+const g2 = (a: string | null, h: string | null, st: Game['state'] = 'post') => game('SF', a, 'LAR', h, st)
+
+check('unfinished game is waiting, not stuck',
+  blockedReason(gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, g2('27','20','in'))),
+  'not-final')
+check('finished with no score needs a human',
+  blockedReason(gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, g2(null,null))),
+  'no-score')
+check('parlay is unsupported, not broken',
+  blockedReason(gradePick({betType:'parlay',sentiment:'backing',ticker:'$SF',line:null}, g)),
+  'unsupported-bet')
+check('wrong team named',
+  blockedReason(gradePick({betType:'moneyline',sentiment:'backing',ticker:'$KC',line:null}, g)),
+  'team-not-in-game')
+check('spread with no number',
+  blockedReason(gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:null}, g)),
+  'missing-line')
+check('total with no number',
+  blockedReason(gradePick({betType:'total',sentiment:'over',ticker:null,line:null}, g)),
+  'missing-line')
+check('neutral has no side',
+  blockedReason(gradePick({betType:'moneyline',sentiment:'neutral',ticker:'$SF',line:null}, g)),
+  'no-side')
+
+console.log('ONLY THE STUCK ONES REACH THE QUEUE')
+check('waiting is not review',       needsReview('not-final'), false)
+check('unsupported is not review',   needsReview('unsupported-bet'), false)
+check('no score IS review',          needsReview('no-score'), true)
+check('wrong team IS review',        needsReview('team-not-in-game'), true)
+check('missing line IS review',      needsReview('missing-line'), true)
+check('every reason has a label',
+  (['not-final','no-score','unsupported-bet','team-not-in-game','missing-line','no-side'] as const)
+    .every(r => typeof BLOCKED_LABELS[r] === 'string' && BLOCKED_LABELS[r].length > 0), true)
 
 console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
 
