@@ -80,7 +80,12 @@ export default async function FeedPage(props: {
   // are the same team and used to count as two separate trends.
   const tagCounts: Record<string, Record<string, number>> = {}
   for (const p of shaped) {
-    for (const t of [p.ticker ?? tickerOf(p.tag), p.ticker2 ?? tickerOf(p.tag2)]) {
+    // A total is on the game, so it counts under both teams. A spread or
+    // moneyline is on one of them — now that those keep an opponent tag
+    // too, counting it under both would say someone was backing the team
+    // they bet against.
+    const opponent = p.bet_type === 'total' ? (p.ticker2 ?? tickerOf(p.tag2)) : null
+    for (const t of [p.ticker ?? tickerOf(p.tag), opponent]) {
       if (!t) continue
       tagCounts[t] = tagCounts[t] ?? {}
       tagCounts[t][p.sentiment] = (tagCounts[t][p.sentiment] ?? 0) + 1

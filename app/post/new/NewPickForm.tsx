@@ -234,7 +234,11 @@ export default function NewPickForm() {
       category_id: categoryId,
       post_kind: 'pick',
       tag: tag.trim(),
-      tag2: showMatchup && tag2.trim() ? tag2.trim() : null,
+      // Kept for any pick tied to a fixture, not just the ones that ask
+      // for an opponent. A spread arriving from a game card knows who it
+      // is against, and dropping that made "$CHW +1.5" read as a bet on
+      // nobody in particular.
+      tag2: (showMatchup || gameId) && tag2.trim() ? tag2.trim() : null,
       sentiment,
       caption: caption.trim(),
       bet_type: betType,
