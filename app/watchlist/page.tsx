@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { fetchGames, gameHref, LEAGUES_WITH_SCORES, type Game } from '@/lib/scores'
 import { tickerHref } from '@/lib/ticker'
 import PostCard from '@/components/PostCard'
+import { attachGradeNotes } from '@/lib/gradeNotes'
 import WatchButton from '@/components/WatchButton'
 
 export const dynamic = 'force-dynamic'
@@ -83,6 +84,10 @@ export default async function WatchlistPage() {
     viewer_id: user.id,
   }))
 
+
+  // Why a pending pick isn't graded, when there's a reason worth showing.
+  const withNotes = await attachGradeNotes(supabase, shaped)
+
   return (
     <div style={{ marginTop: 24 }}>
       <h1 className="display" style={{ fontSize: 22, marginBottom: 10 }}>Watchlist</h1>
@@ -122,7 +127,7 @@ export default async function WatchlistPage() {
           Nobody's posted on these yet. Be first.
         </p>
       )}
-      {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
+      {withNotes.map((post: any) => <PostCard key={post.id} post={post} />)}
     </div>
   )
 }

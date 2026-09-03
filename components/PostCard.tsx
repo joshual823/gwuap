@@ -11,6 +11,7 @@ import ReactionBar from './ReactionBar'
 import PostMenu from './PostMenu'
 import Avatar from './Avatar'
 import RichText from './RichText'
+import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
 
 type Post = {
   id: string
@@ -22,6 +23,8 @@ type Post = {
   stake: number | null
   profit: number | null
   status: PickStatus
+  /** Set only when auto-grading refused this pick and a person must decide. */
+  grade_note?: string | null
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -63,6 +66,11 @@ export default function PostCard({ post }: { post: Post }) {
           {post.post_kind === 'take' && <span className="stamp take">take</span>}
           {post.post_kind === 'pick' && post.status !== 'pending' &&
             <span className={`stamp ${post.status}`}>{post.status}</span>}
+          {/* Everyone sees that a pick is held rather than quietly not
+              counting — with a prize on the board, an invisible hold is
+              indistinguishable from a rigged one. */}
+          {post.post_kind === 'pick' && post.status === 'pending' && post.grade_note &&
+            <span className="stamp review">under review</span>}
           <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id} />
         </div>
 
@@ -91,6 +99,17 @@ export default function PostCard({ post }: { post: Post }) {
             <span className="stat-key">TO WIN <span className="stat-val">{formatUsd(toWin)}</span></span>
           )}
         </div>
+        )}
+
+        {/* The author gets the reason, not just the badge. Someone whose
+            pick isn't counting during a contest should be able to see why
+            without asking, and most of these are fixable facts rather
+            than verdicts. */}
+        {post.grade_note && post.viewer_id === post.author.id && (
+          <p className="review-why">
+            {BLOCKED_LABELS[post.grade_note as Blocked] ?? post.grade_note}. An
+            admin will settle it — it isn&apos;t counting toward your record yet.
+          </p>
         )}
 
         <div className="action-row">

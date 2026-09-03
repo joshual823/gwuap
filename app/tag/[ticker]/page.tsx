@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import { attachGradeNotes } from '@/lib/gradeNotes'
 import { isBullish } from '@/lib/odds'
 import { fetchGames } from '@/lib/scores'
 import WatchButton from '@/components/WatchButton'
@@ -68,6 +69,10 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
   const entries = Object.entries(counts).sort((a, b) => b[1] - a[1])
   const total = entries.reduce((sum, [, n]) => sum + n, 0)
 
+
+  // Why a pending pick isn't graded, when there's a reason worth showing.
+  const withNotes = await attachGradeNotes(supabase, shaped)
+
   return (
     <div style={{ marginTop: 20 }}>
       <div className="ticker-head">
@@ -98,7 +103,7 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
         g => g.home.code.toUpperCase() === bare || g.away.code.toUpperCase() === bare,
       )} title={`${bare} games`} />}
 
-      {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
+      {withNotes.map((post: any) => <PostCard key={post.id} post={post} />)}
     </div>
   )
 }

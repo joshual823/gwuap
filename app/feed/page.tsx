@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import { attachGradeNotes } from '@/lib/gradeNotes'
 import NewsList from '@/components/NewsList'
 import { fetchNewsMixed } from '@/lib/news'
 import { toneFor, labelFor, type Direction } from '@/lib/odds'
@@ -106,6 +107,10 @@ export default async function FeedPage(props: {
   // timeline itself stays real picks by real people.
   const newsTeaser = (await fetchNewsMixed(newsLeaguesFor(preferred), 10))
 
+
+  // Why a pending pick isn't graded, when there's a reason worth showing.
+  const withNotes = await attachGradeNotes(supabase, shaped)
+
   return (
     <div>
       {tabs}
@@ -151,7 +156,7 @@ export default async function FeedPage(props: {
               : 'No picks posted yet — the games above are live either way.'}
           </p>
         )}
-        {shaped.map((post: any) => <PostCard key={post.id} post={post} />)}
+        {withNotes.map((post: any) => <PostCard key={post.id} post={post} />)}
       </div>
     </div>
   )

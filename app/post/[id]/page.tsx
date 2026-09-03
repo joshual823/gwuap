@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import { attachGradeNotes } from '@/lib/gradeNotes'
 import CommentThread from './CommentThread'
 
 export const dynamic = 'force-dynamic'
@@ -44,11 +45,14 @@ export default async function PostPage(props: { params: Promise<{ id: string }> 
     .eq('post_id', params.id)
     .order('created_at', { ascending: true })
 
+
+  const withNotes = await attachGradeNotes(supabase, [post])
+
   return (
     <div style={{ marginTop: 16 }}>
       <Link href="/feed" className="back-link">← Back to feed</Link>
 
-      <PostCard post={post} />
+      <PostCard post={withNotes[0] ?? post} />
 
       <CommentThread
         postId={post.id}

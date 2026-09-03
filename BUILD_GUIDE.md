@@ -267,6 +267,11 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   sit pending forever". Before a cash prize, silence was survivable;
   with one, a pick that never grades and never explains itself reads as
   the contest being rigged.
+- **A held pick says so on the card.** Everyone sees an "under review"
+  stamp; the author also gets the reason. Attached by
+  `lib/gradeNotes.ts` in its own query rather than folded into the post
+  selects — those build the feed and every profile, and adding a column
+  to them breaks the page until the migration runs.
 - **An admin cannot grade their own pick.** Enforced in
   `/api/admin/grade`, not in the UI, and the button is replaced by an
   explanation rather than hidden. There is one admin who may enter their

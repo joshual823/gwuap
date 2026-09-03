@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import { attachGradeNotes } from '@/lib/gradeNotes'
 import ProfileActions from './ProfileActions'
 import LogoutButton from '@/components/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -78,6 +79,10 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
     0,
   )
 
+
+  // Why a pending pick isn't graded, when there's a reason worth showing.
+  const withNotes = await attachGradeNotes(supabase, posts)
+
   return (
     <div style={{ marginTop: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -139,7 +144,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
 
       <h2 style={{ fontSize: 16, marginTop: 28, color: 'var(--ink-dim)' }}>Posts</h2>
       {posts.length === 0 && <p style={{ color: 'var(--ink-dim)' }}>Nothing posted yet.</p>}
-      {posts.map((post: any) => (
+      {withNotes.map((post: any) => (
         <div key={post.id}>
           <PostCard post={post} />
         </div>
