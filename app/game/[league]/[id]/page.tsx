@@ -91,7 +91,7 @@ export default async function GamePage(props: {
             <tr key={side.code}>
               <td className="gd-team">
                 {side.logo && <img src={side.logo} alt="" className="gd-logo" loading="lazy" />}
-                {side.code}
+                {side.label ?? side.code}
                 {side.record && <span className="gd-record">{side.record}</span>}
                 <WatchButton ticker={side.code} league={league} viewerId={user?.id ?? null}
                   initiallyWatched={watchedCodes.includes(side.code.toUpperCase())} />

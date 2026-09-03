@@ -11,6 +11,11 @@
 export type GameSide = {
   code: string; name: string; score: string | null; logo: string | null
   byPeriod?: string[]        // tennis set scores; absent for team sports
+  // What to print. Team sports show the abbreviation and don't set this.
+  // Tennis codes are stripped of punctuation because they double as
+  // watchlist tickers, which turns Auger-Aliassime into AUGERALIASSIME —
+  // fine as a key, unreadable as a label.
+  label?: string             // "F. Auger-Aliassime"
 }
 
 export type Game = {
@@ -66,6 +71,7 @@ export type GameDetail = {
   sides: {
     code: string; name: string; score: string | null
     record: string | null; byPeriod: string[]; logo: string | null
+    label?: string
   }[]
   odds: { label: string; value: string }[]
   summary: string | null            // tennis: ESPN's one-line match result
@@ -149,11 +155,13 @@ function parseTennis(data: any, league: string, full = false): Game[] {
           // athlete, which is what every tennis scoreboard shows instead.
           away: {
             code: codeA, name: a?.athlete?.displayName ?? codeA,
+            label: a?.athlete?.shortName ?? undefined,
             logo: a?.athlete?.flag?.href ?? null,
             score: rawA.length ? String(setsWon(rawA, rawB)) : null, byPeriod: setsA,
           },
           home: {
             code: codeB, name: b?.athlete?.displayName ?? codeB,
+            label: b?.athlete?.shortName ?? undefined,
             logo: b?.athlete?.flag?.href ?? null,
             score: rawB.length ? String(setsWon(rawB, rawA)) : null, byPeriod: setsB,
           },
@@ -424,6 +432,7 @@ function detailFromGame(league: string, game: Game): GameDetail {
     record: null,
     byPeriod: s.byPeriod ?? [],
     logo: s.logo ?? null,
+    label: s.label,
   })
   const odds: { label: string; value: string }[] = []
   if (game.spread) odds.push({ label: 'Line', value: String(game.spread) })

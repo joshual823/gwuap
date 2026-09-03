@@ -54,7 +54,7 @@ export default function Scoreboard({ games, title = 'Today', href, autoScroll = 
                 <div className="game-row" key={n}>
                   <span className="game-side">
                     {side.logo && <img src={side.logo} alt="" className="game-logo" loading="lazy" />}
-                    <span className="game-team">{side.code}</span>
+                    <span className="game-team">{side.label ?? side.code}</span>
                   </span>
                   {game.state !== 'pre' && <span className="game-score">{side.score}</span>}
                 </div>
