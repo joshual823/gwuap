@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import NewsList from '@/components/NewsList'
-import { fetchNews } from '@/lib/news'
+import { fetchNewsMixed } from '@/lib/news'
 import { toneFor, labelFor, type Direction } from '@/lib/odds'
 import { tickerOf, tickerHref } from '@/lib/ticker'
 import { fetchRailGames } from '@/lib/scores'
+import { cleanPreferences, railLeaguesFor, newsLeaguesFor } from '@/lib/preferences'
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
 import NewsRail from '@/components/NewsRail'
@@ -20,6 +21,14 @@ export default async function FeedPage(props: {
   await props.searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // What this person follows, if they said. A logged-out visitor has no
+  // preferences to read and gets the default mix, which is the point of
+  // the rail existing at all.
+  const { data: prefRow } = user
+    ? await supabase.from('profiles').select('preferred_leagues').eq('id', user.id).maybeSingle()
+    : { data: null }
+  const preferred = cleanPreferences(prefRow?.preferred_leagues)
 
   const tabs = <FeedTabs active="home" />
 
@@ -95,12 +104,12 @@ export default async function FeedPage(props: {
 
   // Home keeps three headlines as a prompt, not as feed content — the
   // timeline itself stays real picks by real people.
-  const newsTeaser = (await fetchNews('Top', 10))
+  const newsTeaser = (await fetchNewsMixed(newsLeaguesFor(preferred), 10))
 
   return (
     <div>
       {tabs}
-      <Scoreboard games={await fetchRailGames()} />
+      <Scoreboard games={await fetchRailGames(16, railLeaguesFor(preferred))} />
 
       {!user && <JoinCard />}
 

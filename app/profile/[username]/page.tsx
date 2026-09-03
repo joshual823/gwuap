@@ -25,6 +25,14 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
 
   if (!profile) notFound()
 
+  // Read separately rather than as part of the select above. Folding a new
+  // column into that query means the whole thing fails until the migration
+  // runs, and since it gates notFound(), every profile on the site would
+  // 404. An error here just leaves the picker empty.
+  const { data: prefRow } = await supabase
+    .from('profiles').select('preferred_leagues').eq('id', profile.id).maybeSingle()
+  const preferredLeagues = (prefRow?.preferred_leagues as string[] | null) ?? null
+
   const [{ count: followerCount }, { count: followingCount }, { data: myFollow }] = await Promise.all([
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profile.id),
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profile.id),
@@ -91,7 +99,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         )}
         {user?.id === profile.id && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-            <EditProfile profile={profile as any} />
+            <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues }} />
             <ThemeToggle />
             <LogoutButton />
           </div>

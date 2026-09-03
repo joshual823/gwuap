@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test:grade": "tsx lib/grade.test.ts"
+    "test:grade": "tsx lib/grade.test.ts",
+    "test": "tsx lib/grade.test.ts && tsx lib/preferences.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

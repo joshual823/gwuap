@@ -286,8 +286,8 @@ export async function fetchGamesWindow(
 }
 
 /** A merged rail across the leagues most likely to have something on. */
-export async function fetchRailGames(limit = 16): Promise<Game[]> {
-  const batches = await Promise.all(RAIL_LEAGUES.map(l => fetchGames(l)))
+export async function fetchRailGames(limit = 16, leagues: string[] = RAIL_LEAGUES): Promise<Game[]> {
+  const batches = await Promise.all(leagues.map(l => fetchGames(l)))
 
   // Interleave the leagues instead of sorting purely by time. On a
   // September afternoon a straight sort is fifteen baseball games and

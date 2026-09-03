@@ -113,6 +113,39 @@ export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]>
   return []
 }
 
+/**
+ * Headlines across several leagues, interleaved rather than concatenated.
+ *
+ * Straight concatenation would give three NFL stories then three NBA
+ * ones, so the second and third choices never appear above the fold.
+ * Round-robin means each chosen league is represented from the first row.
+ *
+ * Falls back to Top when nothing comes back — a quiet league in the
+ * off-season shouldn't leave the carousel empty.
+ */
+export async function fetchNewsMixed(leagues: string[], limit = 15): Promise<NewsItem[]> {
+  if (leagues.length === 0) return fetchNews('Top', limit)
+
+  const batches = await Promise.all(leagues.map(l => fetchNews(l, limit)))
+  const mixed: NewsItem[] = []
+  const seen = new Set<string>()
+
+  for (let round = 0; mixed.length < limit; round++) {
+    let added = false
+    for (const batch of batches) {
+      const item = batch[round]
+      if (!item || seen.has(item.link)) continue
+      seen.add(item.link)
+      mixed.push(item)
+      added = true
+      if (mixed.length >= limit) break
+    }
+    if (!added) break
+  }
+
+  return mixed.length > 0 ? mixed : fetchNews('Top', limit)
+}
+
 async function fetchFrom(source: Source, limit: number): Promise<NewsItem[]> {
   try {
     const res = await fetch(source.url, {

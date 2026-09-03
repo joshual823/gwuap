@@ -3,11 +3,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import { squareResize, MAX_SOURCE_BYTES } from '@/lib/image'
+import LeaguePicker from '@/components/LeaguePicker'
+import { cleanPreferences, MAX_PREFERRED } from '@/lib/preferences'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
 export default function EditProfile({ profile }: {
-  profile: { id: string; username: string; display_name: string | null; bio: string | null; avatar_url: string | null }
+  profile: {
+    id: string; username: string; display_name: string | null
+    bio: string | null; avatar_url: string | null
+    preferred_leagues?: string[] | null
+  }
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -16,6 +22,7 @@ export default function EditProfile({ profile }: {
   const [displayName, setDisplayName] = useState(profile.display_name ?? '')
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [leagues, setLeagues] = useState<string[]>(cleanPreferences(profile.preferred_leagues))
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -76,6 +83,9 @@ export default function EditProfile({ profile }: {
         display_name: displayName.trim() || null,
         bio: bio.trim() || null,
         avatar_url: avatarUrl,
+        // Empty means no preference, which is the default mix rather than
+        // an empty feed — so clearing every league is a valid choice.
+        preferred_leagues: leagues.length > 0 ? leagues : null,
       })
       .eq('id', profile.id)
 
@@ -118,6 +128,13 @@ export default function EditProfile({ profile }: {
       <label className="form-label">Bio</label>
       <textarea className="field" rows={2} value={bio} placeholder="Optional"
         onChange={e => setBio(e.target.value)} maxLength={200} />
+
+      <label className="form-label">Sports you follow</label>
+      <p className="field-hint">
+        Up to {MAX_PREFERRED}. Your scores and headlines lead with these.
+        Choose none and you get a bit of everything.
+      </p>
+      <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
 
       {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
       <div style={{ display: 'flex', gap: 8 }}>

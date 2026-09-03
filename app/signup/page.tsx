@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import { SITE_NAME } from '@/lib/brand'
 import ThemeToggle from '@/components/ThemeToggle'
+import LeaguePicker from '@/components/LeaguePicker'
+import { MAX_PREFERRED } from '@/lib/preferences'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
@@ -15,6 +17,13 @@ export default function SignupPage() {
   const [username, setUsername] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  // The account exists by the time this shows, so the leagues step is a
+  // save-or-skip rather than part of creating it. Someone who closes the
+  // tab here has a working account with no preferences, which is the same
+  // outcome as skipping.
+  const [step, setStep] = useState<'account' | 'leagues'>('account')
+  const [leagues, setLeagues] = useState<string[]>([])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -76,8 +85,47 @@ export default function SignupPage() {
       return
     }
 
+    setLoading(false)
+    setStep('leagues')
+  }
+
+  async function saveLeagues(chosen: string[]) {
+    setLoading(true)
+    // A failure here isn't worth blocking on — the account is made and
+    // no preference just means the default mix.
+    if (chosen.length > 0) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles')
+          .update({ preferred_leagues: chosen })
+          .eq('id', user.id)
+      }
+    }
     router.push('/feed')
     router.refresh()
+  }
+
+  if (step === 'leagues') {
+    return (
+      <div style={{ maxWidth: 360, margin: '48px auto' }}>
+        <h1 className="display" style={{ fontSize: 26, marginBottom: 4 }}>What do you follow?</h1>
+        <p style={{ color: 'var(--ink-dim)', marginBottom: 18 }}>
+          Pick up to {MAX_PREFERRED} and your scores and headlines lead with them.
+          You can change this any time.
+        </p>
+
+        <LeaguePicker value={leagues} onChange={setLeagues} disabled={loading} />
+
+        <button className="btn" style={{ width: '100%', marginTop: 10 }} disabled={loading}
+          onClick={() => saveLeagues(leagues)}>
+          {loading ? 'Saving…' : leagues.length > 0 ? 'Done' : 'Continue'}
+        </button>
+        <button className="btn secondary" style={{ width: '100%', marginTop: 8 }} disabled={loading}
+          onClick={() => saveLeagues([])}>
+          Skip — show me everything
+        </button>
+      </div>
+    )
   }
 
   return (

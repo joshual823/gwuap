@@ -261,6 +261,18 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   Any row means self-grading is open again. Note the broader query
   without the UPDATE filter returns ~72 rows and proves nothing —
   SELECT and INSERT are supposed to be there.
+- **Feed preferences (migration 023).** Up to 3 leagues per profile,
+  chosen at signup and editable from Edit profile. Null/empty means the
+  default mix, so nothing changed for existing accounts and logged-out
+  visitors are unaffected. The rail and the news carousel put chosen
+  leagues first and then *always* backfill with the default mix — a
+  literal filter would give someone who picks NFL, College Football and
+  NBA an empty rail every June, which is the dead feed the scoreboard
+  exists to prevent. `npm test` covers that case.
+- **Adding a profile column? Read it in its own query.** Folding one into
+  the main profile select breaks that query until the migration runs, and
+  because it gates `notFound()`, every profile page on the site 404s.
+  Caught exactly that during 023.
 - **Hobby caps crons at once per day.** A more frequent expression fails
   the deployment outright, so grading runs at 08:00 UTC with a one-hour
   flexible window. On Pro this becomes hourly by editing one line in
