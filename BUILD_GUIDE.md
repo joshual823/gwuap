@@ -247,8 +247,17 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   instead.
 - **Block and ban filtering covers the feed only.** Profile pages and
   direct post links still render for blocked or banned users.
-- **Fonts.** A Manrope/Inter version lives on the `typography-preview`
-  branch, rejected on look. One merge away if you revisit.
+- **Fonts.** Now Inter, one family everywhere, matching Polymarket —
+  their markup references Inter and no other face. Headings are 700, not
+  800. The `--font-display` and `--font-mono` tokens still exist and
+  point at the body face, so a future change is two lines in
+  `app/layout.tsx` plus the tokens, not a sweep through components. The
+  earlier rejected Manrope/Inter pairing is still on `typography-preview`.
+- **Tennis has no ESPN summary endpoint.** `summary?event=` takes
+  tournament event ids; tennis matches are competitions nested under
+  `groupings`. Detail pages fall back to the scoreboard row, so they show
+  the matchup, set scores and the line but no play-by-play. Any sport
+  ESPN drops summary support for degrades the same way instead of 404ing.
 
 ---
 
