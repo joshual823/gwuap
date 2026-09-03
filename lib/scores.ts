@@ -8,7 +8,10 @@
 // project uses and it's been stable for years, but it isn't a contract.
 // Everything here fails to an empty list rather than an error.
 
-export type GameSide = { code: string; name: string; score: string | null; logo: string | null }
+export type GameSide = {
+  code: string; name: string; score: string | null; logo: string | null
+  byPeriod?: string[]        // tennis set scores; absent for team sports
+}
 
 export type Game = {
   id: string
@@ -91,13 +94,15 @@ function athleteCode(athlete: any): string {
  * matches for a Grand Slam, nearly all finished. Only matches that
  * haven't been played are worth showing.
  */
-function parseTennis(data: any, league: string): Game[] {
+function parseTennis(data: any, league: string, full = false): Game[] {
   const games: Game[] = []
   for (const event of data?.events ?? []) {
     for (const grouping of event?.groupings ?? []) {
       for (const competition of grouping?.competitions ?? []) {
         const state = competition?.status?.type?.state
-        if (state === 'post') continue          // the draw is mostly history
+        // The draw is mostly history, so finished matches stay out of the
+        // cards — but the detail page still has to be able to find one.
+        if (state === 'post' && !full) continue
         const competitors = competition?.competitors ?? []
         if (competitors.length !== 2) continue  // skip doubles and byes
         const [a, b] = competitors
@@ -105,13 +110,26 @@ function parseTennis(data: any, league: string): Game[] {
         const codeB = athleteCode(b?.athlete)
         if (!codeA || !codeB) continue
 
+        // ESPN carries set-by-set linescores for tennis. The running score
+        // is sets won, which is what a tennis scoreboard actually shows.
+        const setsA = (a?.linescores ?? []).map((l: any) => String(l?.value ?? l?.displayValue ?? ''))
+        const setsB = (b?.linescores ?? []).map((l: any) => String(l?.value ?? l?.displayValue ?? ''))
+        const setsWon = (mine: string[], theirs: string[]) =>
+          mine.reduce((n, v, i) => n + (Number(v) > Number(theirs[i] ?? NaN) ? 1 : 0), 0)
+
         games.push({
           id: String(competition.id ?? `${event.id}-${codeA}-${codeB}`),
           league,
-          away: { code: codeA, name: a?.athlete?.displayName ?? codeA, score: null, logo: null },
-          home: { code: codeB, name: b?.athlete?.displayName ?? codeB, score: null, logo: null },
+          away: {
+            code: codeA, name: a?.athlete?.displayName ?? codeA, logo: null,
+            score: setsA.length ? String(setsWon(setsA, setsB)) : null, byPeriod: setsA,
+          },
+          home: {
+            code: codeB, name: b?.athlete?.displayName ?? codeB, logo: null,
+            score: setsB.length ? String(setsWon(setsB, setsA)) : null, byPeriod: setsB,
+          },
           status: competition?.status?.type?.shortDetail ?? event?.name ?? '',
-          state: state === 'in' ? 'in' : 'pre',
+          state: state === 'in' ? 'in' : state === 'post' ? 'post' : 'pre',
           startsAt: competition?.date ?? event?.date ?? null,
           spread: null,
           overUnder: null,
@@ -120,7 +138,9 @@ function parseTennis(data: any, league: string): Game[] {
     }
   }
   // A Grand Slam draw is hundreds of unplayed matches stretching a
-  // fortnight out. Only the next few are worth a card.
+  // fortnight out. Only the next few are worth a card — but that's a
+  // display rule, so it must not apply when a caller is looking a
+  // specific match up by id.
   const seen = new Set<string>()
   const unique = games.filter(g => {
     const key = `${g.away.code}-${g.home.code}`
@@ -128,10 +148,12 @@ function parseTennis(data: any, league: string): Game[] {
     seen.add(key)
     return true
   })
-  return sortGames(unique).slice(0, 8)
+  return full ? sortGames(unique) : sortGames(unique).slice(0, 8)
 }
 
-async function fetchPath(path: string, league: string, dates?: string): Promise<Game[]> {
+async function fetchPath(
+  path: string, league: string, dates?: string, full = false,
+): Promise<Game[]> {
   try {
     const query = dates ? `?dates=${dates}` : ''
     const res = await fetch(
@@ -145,7 +167,7 @@ async function fetchPath(path: string, league: string, dates?: string): Promise<
     if (!res.ok) return []
     const data = await res.json()
 
-    if (path.startsWith('tennis/')) return parseTennis(data, league)
+    if (path.startsWith('tennis/')) return parseTennis(data, league, full)
 
     const games: Game[] = []
     for (const event of data?.events ?? []) {
@@ -178,10 +200,12 @@ async function fetchPath(path: string, league: string, dates?: string): Promise<
 }
 
 /** Games for one category. Empty list if the league has no scoreboard. */
-export async function fetchGames(league: string, dates?: string): Promise<Game[]> {
+export async function fetchGames(
+  league: string, dates?: string, full = false,
+): Promise<Game[]> {
   const paths = SCOREBOARDS[league]
   if (!paths) return []
-  const batches = await Promise.all(paths.map(p => fetchPath(p, league, dates)))
+  const batches = await Promise.all(paths.map(p => fetchPath(p, league, dates, full)))
   return sortGames(batches.flat())
 }
 
@@ -282,7 +306,7 @@ export function postHrefForGame(game: Game): string {
  * period, the current situation, odds and broadcast — everything a
  * scoreboard tap should reveal.
  */
-export async function fetchGameDetail(league: string, id: string): Promise<GameDetail | null> {
+async function fetchSummaryDetail(league: string, id: string): Promise<GameDetail | null> {
   const path = espnPathFor(league)
   if (!path) return null
   try {
@@ -340,6 +364,61 @@ export async function fetchGameDetail(league: string, id: string): Promise<GameD
   } catch {
     return null
   }
+}
+
+/**
+ * Build a detail view out of a scoreboard row. Less than the summary gives
+ * us — no box score, no last play — but it has the teams, the score and the
+ * line, which is enough for a real page.
+ */
+function detailFromGame(league: string, game: Game): GameDetail {
+  const side = (s: GameSide) => ({
+    code: s.code,
+    name: s.name,
+    score: s.score != null ? String(s.score) : null,
+    record: null,
+    byPeriod: s.byPeriod ?? [],
+    logo: s.logo ?? null,
+  })
+  const odds: { label: string; value: string }[] = []
+  if (game.spread) odds.push({ label: 'Line', value: String(game.spread) })
+  if (typeof game.overUnder === 'number') odds.push({ label: 'O/U', value: String(game.overUnder) })
+
+  // Column headings only where there's something to head: tennis sets.
+  const longest = Math.max(0, game.away.byPeriod?.length ?? 0, game.home.byPeriod?.length ?? 0)
+
+  return {
+    league,
+    id: game.id,
+    status: game.status,
+    state: game.state,
+    periods: Array.from({ length: longest }, (_, i) => String(i + 1)),
+    sides: [side(game.away), side(game.home)],
+    odds,
+    lastPlay: null,
+    lastPlayKind: null,
+    venue: null,
+    broadcast: null,
+  }
+}
+
+/**
+ * The summary endpoint is the good source, but it doesn't cover everything.
+ * Tennis is the clear case: matches are competitions nested inside a
+ * tournament event, and `summary?event=` only accepts event ids, so it
+ * answers 400 for every match id we hold. That made every tennis card
+ * open a 404 even though the scoreboard behind it was correct.
+ *
+ * So fall back to the scoreboard row whenever the summary can't answer.
+ * This is deliberately not tennis-specific — any game ESPN has no summary
+ * for now renders instead of 404ing.
+ */
+export async function fetchGameDetail(league: string, id: string): Promise<GameDetail | null> {
+  const detail = await fetchSummaryDetail(league, id)
+  if (detail) return detail
+
+  const game = (await fetchGames(league, undefined, true)).find(g => g.id === id)
+  return game ? detailFromGame(league, game) : null
 }
 
 /** Where a game card points: the detail view, which is also where you post from. */

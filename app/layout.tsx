@@ -1,5 +1,5 @@
 import './globals.css'
-import { Plus_Jakarta_Sans, Archivo, JetBrains_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE } from '@/lib/brand'
@@ -9,24 +9,25 @@ import Clarity from '@/components/Clarity'
 // Self-hosted at build time. The old CSS @import made the browser fetch
 // our stylesheet, then Google's stylesheet, then the font files — a
 // serial waterfall that left every page rendering in the system fallback
-// for the first few hundred milliseconds. That flash is what made it
-// look unfinished.
-// Inter was the problem as much as the loading was — it's the default
-// startup font, well made and completely anonymous. Plus Jakarta Sans
-// has actual letterform character at body size; Archivo is a slightly
-// condensed grotesque that reads editorial and sporty rather than SaaS.
-const body = Plus_Jakarta_Sans({
+// for the first few hundred milliseconds.
+//
+// One family for everything, which is what Polymarket actually does —
+// their markup references Inter and nothing else, no display face and no
+// monospace. The calm comes from using a single well-made grotesque at
+// different weights rather than from pairing faces.
+const inter = Inter({
   subsets: ['latin'], display: 'swap', variable: '--font-body',
   weight: ['400', '500', '600', '700', '800'],
 })
-const display = Archivo({
-  subsets: ['latin'], display: 'swap', variable: '--font-display',
-  weight: ['600', '700', '800'],
-})
-const mono = JetBrains_Mono({
-  subsets: ['latin'], display: 'swap', variable: '--font-mono',
-  weight: ['500', '600', '700'],
-})
+
+// The display and mono tokens stay in the stylesheet so components don't
+// have to change and the whole site can be re-themed from one place. They
+// just point at the body face now. Inline so they land on the same element
+// next/font defines --font-body on, where they're guaranteed to resolve.
+const fontTokens = {
+  '--font-display': 'var(--font-body)',
+  '--font-mono': 'var(--font-body)',
+} as React.CSSProperties
 
 export const viewport = {
   width: 'device-width',
@@ -76,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 
   return (
-    <html lang="en" className={`${body.variable} ${display.variable} ${mono.variable}`}>
+    <html lang="en" className={inter.variable} style={fontTokens}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('gwuap:theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}` }} />
       </head>

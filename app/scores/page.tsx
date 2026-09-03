@@ -14,6 +14,8 @@ export default async function ScoresPage() {
     <div>
       <FeedTabs active="scores" />
 
+      <h1 className="page-title">Sports Live</h1>
+
       {withGames.length === 0 && (
         <p style={{ color: 'var(--ink-dim)', marginTop: 20 }}>
           Nothing on right now. Check back closer to game time.
