@@ -267,6 +267,18 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   sit pending forever". Before a cash prize, silence was survivable;
   with one, a pick that never grades and never explains itself reads as
   the contest being rigged.
+- **Hourly grading runs from GitHub Actions**
+  (`.github/workflows/grade.yml`), because Hobby refuses sub-daily crons.
+  Needs `CRON_SECRET` in the repo's Actions secrets, matching Vercel's.
+  The Vercel daily cron stays as a backstop; running both is safe because
+  `/api/grade` only ever moves a pick out of 'pending'. The workflow
+  fails loudly on any non-200 — a 401 means the two secrets disagree, and
+  a silent pass there would look identical to working.
+- **Self-graded records say so.** Picks settled before auto-grading carry
+  `graded_by = 'user'` and now render a "self-graded" stamp, with a count
+  on the profile header. The header is what gets screenshotted, and a
+  100% win rate with no provenance is the exact claim this site says it
+  doesn't accept.
 - **A held pick says so on the card.** Everyone sees an "under review"
   stamp; the author also gets the reason. Attached by
   `lib/gradeNotes.ts` in its own query rather than folded into the post

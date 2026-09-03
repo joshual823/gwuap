@@ -25,6 +25,8 @@ type Post = {
   status: PickStatus
   /** Set only when auto-grading refused this pick and a person must decide. */
   grade_note?: string | null
+  /** 'auto' from the final score, 'user' self-reported, 'admin' settled by hand. */
+  graded_by?: string | null
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -66,6 +68,14 @@ export default function PostCard({ post }: { post: Post }) {
           {post.post_kind === 'take' && <span className="stamp take">take</span>}
           {post.post_kind === 'pick' && post.status !== 'pending' &&
             <span className={`stamp ${post.status}`}>{post.status}</span>}
+          {/* How it was settled, whenever that isn't the scoreboard.
+              A self-graded record is a claim rather than a result, and a
+              site that says it doesn't take self-reporting has to show
+              which of its own numbers came from it. */}
+          {post.post_kind === 'pick' && post.status !== 'pending' && post.graded_by === 'user' &&
+            <span className="stamp self" title="Graded by the author before auto-grading existed">self-graded</span>}
+          {post.post_kind === 'pick' && post.status !== 'pending' && post.graded_by === 'admin' &&
+            <span className="stamp settled" title="Settled by an admin because the scoreboard couldn't">reviewed</span>}
           {/* Everyone sees that a pick is held rather than quietly not
               counting — with a prize on the board, an invisible hold is
               indistinguishable from a rigged one. */}

@@ -80,8 +80,16 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   )
 
 
-  // Why a pending pick isn't graded, when there's a reason worth showing.
+  // Why a pending pick isn't graded, and how the settled ones were settled.
   const withNotes = await attachGradeNotes(supabase, posts)
+
+  // Records from before auto-grading are self-reported. Saying so on the
+  // profile matters more than saying it on each post: the header is the
+  // number that gets screenshotted, and "100% win rate" with no
+  // provenance is exactly the claim this site says it doesn't accept.
+  const selfGraded = withNotes.filter(
+    (p: any) => p.post_kind === 'pick' && p.status !== 'pending' && p.graded_by === 'user',
+  ).length
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -114,6 +122,11 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
       <div className="record mono" style={{ display: 'flex', gap: 20, marginTop: 12, fontSize: 14, flexWrap: 'wrap' }}>
         <span><strong>{wins}-{losses}</strong> record</span>
         {winPct !== null && <span>{winPct}% win rate</span>}
+        {selfGraded > 0 && (
+          <span style={{ color: 'var(--ink-faint)' }}>
+            {selfGraded} self-graded
+          </span>
+        )}
         {graded.length > 0 && (
           <span className={`amt ${totalProfit >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(totalProfit)}</span>
         )}

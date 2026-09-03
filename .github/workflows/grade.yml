@@ -1,0 +1,45 @@
+# Hourly grading.
+#
+# Vercel's Hobby plan refuses any cron that runs more than once a day, so
+# the schedule in vercel.json is a daily 08:00 UTC backstop. This runs the
+# same endpoint hourly for free. Both are safe to run as often as they
+# like: /api/grade only ever moves a pick out of 'pending', so a second
+# run over the same data grades nothing twice.
+name: Grade picks
+
+on:
+  schedule:
+    # :17 rather than :00 — the top of the hour is when every scheduled
+    # workflow on GitHub fires at once and the queue backs up.
+    - cron: '17 * * * *'
+  workflow_dispatch:        # so you can trigger it by hand from the Actions tab
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Settle finished games
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set in this repository's secrets."
+            echo "Settings -> Secrets and variables -> Actions -> New repository secret"
+            exit 1
+          fi
+
+          code=$(curl -sS -o response.json -w '%{http_code}' --max-time 120 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://gwuap.co/api/grade)
+
+          echo "HTTP $code"
+          cat response.json
+          echo
+
+          # 401 means the secret here and the one in Vercel disagree; 503
+          # means Vercel has none at all. Both are silent failures if this
+          # step is allowed to pass, and silence is the whole problem.
+          if [ "$code" != "200" ]; then
+            echo "::error::Grading failed with HTTP $code"
+            exit 1
+          fi
