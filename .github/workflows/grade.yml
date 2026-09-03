@@ -36,10 +36,14 @@ jobs:
           cat response.json
           echo
 
-          # 401 means the secret here and the one in Vercel disagree; 503
-          # means Vercel has none at all. Both are silent failures if this
-          # step is allowed to pass, and silence is the whole problem.
+          # The body carries the reason. Put it in the annotation rather
+          # than only in the log: the summary page is what you actually
+          # look at, and "HTTP 500" on its own sent us round the houses
+          # twice before this line existed.
           if [ "$code" != "200" ]; then
-            echo "::error::Grading failed with HTTP $code"
+            reason=$(tr -d '\n' < response.json)
+            echo "::error::Grading failed with HTTP $code — $reason"
             exit 1
           fi
+
+          echo "::notice::$(tr -d '\n' < response.json)"
