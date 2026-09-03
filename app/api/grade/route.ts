@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabaseServer'
-import { fetchGames, type Game } from '@/lib/scores'
+import { fetchGamesWindow, type Game } from '@/lib/scores'
 import { gradePick, GRADEABLE_BET_TYPES } from '@/lib/grade'
 import { profitForStatus } from '@/lib/odds'
 
@@ -12,6 +12,12 @@ export const maxDuration = 60
  * Runs on a schedule (see vercel.json) rather than on request, because
  * grading is the one thing on this site that has to happen whether or
  * not anybody is looking at it.
+ *
+ * Daily at 08:00 UTC — 4am Eastern, after even a west-coast night game
+ * has finished. Not because daily is ideal, but because Vercel's Hobby
+ * plan rejects any cron that would run more than once a day, and a
+ * more frequent expression fails the deployment outright. On Pro this
+ * becomes hourly by editing one line in vercel.json.
  *
  * Two rules it never breaks:
  *   - It only ever moves a pick out of 'pending'. Nothing already graded
@@ -53,10 +59,15 @@ export async function GET(request: Request) {
 
   // One fetch per league, not per pick. Fifty picks on the same Sunday
   // slate is one call to the NFL scoreboard.
+  //
+  // The window matters more than it looks. ESPN's scoreboard returns the
+  // current day unless asked otherwise, and this runs at 4am Eastern —
+  // by which point last night's games have rolled off "today" and would
+  // never be found. Four days back covers a weekend plus a slow run.
   const leagues = [...new Set(pending.map(p => p.game_league).filter(Boolean) as string[])]
   const byLeague = new Map<string, Map<string, Game>>()
   await Promise.all(leagues.map(async league => {
-    const games = await fetchGames(league, undefined, true)
+    const games = await fetchGamesWindow(league, 4, 1)
     byLeague.set(league, new Map(games.map(g => [g.id, g])))
   }))
 
