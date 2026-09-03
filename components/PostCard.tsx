@@ -12,6 +12,7 @@ import PostMenu from './PostMenu'
 import Avatar from './Avatar'
 import RichText from './RichText'
 import ShareButton from './ShareButton'
+import RepostButton from './RepostButton'
 import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
 
 type Post = {
@@ -31,6 +32,9 @@ type Post = {
   /** 'book' if the price came from a real posted market, 'custom' if typed. */
   odds_source?: string | null
   odds_book?: string | null
+  /** The post being passed along, when this is a repost. */
+  reposted?: any | null
+  repost_count?: number
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -113,6 +117,42 @@ export default function PostCard({ post }: { post: Post }) {
 
         {post.caption && <RichText text={post.caption} className="post-text" />}
 
+        {/* The pick being passed along, shown whole. A repost that only
+            said "@someone reposted this" would make the reader tap
+            through to find out whether it's worth reading. */}
+        {post.reposted && (
+          <Link href={`/post/${post.reposted.id}`} className="quoted">
+            <div className="quoted-head">
+              <Avatar url={post.reposted.author?.avatar_url} size={20} />
+              <span className="uname">@{post.reposted.author?.username}</span>
+              <span className="dot">·</span>
+              <span className="time">{timeAgo(post.reposted.created_at)}</span>
+              {post.reposted.post_kind === 'pick' && post.reposted.status !== 'pending' && (
+                <span className={`stamp ${post.reposted.status}`}>{post.reposted.status}</span>
+              )}
+            </div>
+            {post.reposted.tag && (
+              <div className="quoted-tags">
+                <span className="cashtag">{post.reposted.tag}</span>
+                {post.reposted.tag2 && <span className="vs">vs</span>}
+                {post.reposted.tag2 && <span className="cashtag">{post.reposted.tag2}</span>}
+                {post.reposted.post_kind === 'pick' && (
+                  <span className={`sentiment ${post.reposted.sentiment}`}>
+                    {labelFor(post.reposted.sentiment as Direction)}
+                  </span>
+                )}
+              </div>
+            )}
+            {post.reposted.caption && <p className="quoted-text">{post.reposted.caption}</p>}
+            {post.reposted.odds && (
+              <p className="quoted-line">
+                {post.reposted.odds}
+                {post.reposted.stake != null && ` · $${post.reposted.stake}`}
+              </p>
+            )}
+          </Link>
+        )}
+
         {post.slip_image_url && (
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
@@ -153,7 +193,13 @@ export default function PostCard({ post }: { post: Post }) {
           <Link href={`/post/${post.id}`} className="action-btn">
             <span style={{ fontSize: 15 }}>💬</span> {post.comment_count}
           </Link>
-          <span className="action-btn">⟲</span>
+          {/* A repost of a repost points at the original, so chains stay
+              one level deep and the card always shows the real pick. */}
+          <RepostButton
+            targetId={post.reposted?.id ?? post.id}
+            viewerId={post.viewer_id}
+            count={post.repost_count ?? 0}
+          />
           <ShareButton postId={post.id} summary={shareSummary} />
         </div>
       </div>

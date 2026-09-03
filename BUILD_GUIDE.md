@@ -281,6 +281,20 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   `/api/grade` only ever moves a pick out of 'pending'. The workflow
   fails loudly on any non-200 — a 401 means the two secrets disagree, and
   a silent pass there would look identical to working.
+- **Reposts (migration 026).** A repost is a take with `repost_of` set,
+  so it carries no money of its own and the existing take constraints
+  already forbid odds and stake. `repost_of` always points at an
+  original — reposting a repost resolves to the pick — so chains stay
+  one level deep and a card always shows the real thing.
+- **`lib/postMeta.ts` is where anything extra on a card comes from** —
+  grade notes, odds provenance, the quoted post, repost counts. All of
+  it in separate queries, because folding a new column into the main post
+  selects breaks the feed and every profile until the migration runs.
+- **Sportsbook APIs are not usable.** DraftKings answers 403 (Akamai) and
+  FanDuel 400 to a server request; both were tested. It doesn't matter,
+  because ESPN's odds *are* DraftKings — same numbers, through an
+  endpoint meant to be read. Player props, alternate lines and live
+  in-game odds are the gap, and they need a paid feed.
 - **Picks can be posted from real markets (migration 025).** ESPN's
   scoreboard carries DraftKings prices per side — moneyline, spread and
   total — for games that haven't started. Tapping one fills the form and

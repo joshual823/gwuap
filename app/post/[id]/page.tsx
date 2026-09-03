@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
-import { attachGradeNotes } from '@/lib/gradeNotes'
+import { attachPostMeta } from '@/lib/postMeta'
 import CommentThread from './CommentThread'
 import { SITE_NAME } from '@/lib/brand'
 import { labelFor, type Direction } from '@/lib/odds'
@@ -83,7 +83,7 @@ export default async function PostPage(props: { params: Promise<{ id: string }> 
     .order('created_at', { ascending: true })
 
 
-  const withNotes = await attachGradeNotes(supabase, [post])
+  const withNotes = await attachPostMeta(supabase, [post])
 
   return (
     <div style={{ marginTop: 16 }}>

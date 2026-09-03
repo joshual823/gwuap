@@ -153,6 +153,19 @@ a { color: inherit; text-decoration: none; }
 .stamp.custom { background: var(--ink-faint); }
 .stamp.booked { background: var(--card-2); color: var(--ink-dim); border: 1px solid var(--line); }
 
+/* A quoted post. Bordered and inset so it reads as someone else's, and
+   shown whole so the reader doesn't have to tap through to judge it. */
+.quoted {
+  display: block; margin: 8px 0 2px; padding: 10px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card-2);
+}
+.quoted-head { display: flex; align-items: center; gap: 6px; font-size: 12.5px; margin-bottom: 6px; }
+.quoted-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.quoted-text { margin: 4px 0 0; font-size: 13.5px; color: var(--ink); }
+.quoted-line { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.repost-menu { width: 240px; padding: 10px; }
+.repost-menu .field { margin-bottom: 6px; }
+
 /* Real markets, laid out the way a book lays them out: the kind on the
    left, the priced options beside it. */
 .markets { margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; }

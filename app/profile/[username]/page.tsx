@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
-import { attachGradeNotes } from '@/lib/gradeNotes'
+import { attachPostMeta } from '@/lib/postMeta'
 import ProfileActions from './ProfileActions'
 import LogoutButton from '@/components/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -81,7 +81,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
 
 
   // Why a pending pick isn't graded, and how the settled ones were settled.
-  const withNotes = await attachGradeNotes(supabase, posts)
+  const withNotes = await attachPostMeta(supabase, posts)
 
   // Records from before auto-grading are self-reported. Saying so on the
   // profile matters more than saying it on each post: the header is the

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
-import { attachGradeNotes } from '@/lib/gradeNotes'
+import { attachPostMeta } from '@/lib/postMeta'
 import NewsList from '@/components/NewsList'
 import { fetchNewsMixed } from '@/lib/news'
 import { toneFor, labelFor, type Direction } from '@/lib/odds'
@@ -109,7 +109,7 @@ export default async function FeedPage(props: {
 
 
   // Why a pending pick isn't graded, when there's a reason worth showing.
-  const withNotes = await attachGradeNotes(supabase, shaped)
+  const withNotes = await attachPostMeta(supabase, shaped)
 
   return (
     <div>

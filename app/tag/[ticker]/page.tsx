@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
-import { attachGradeNotes } from '@/lib/gradeNotes'
+import { attachPostMeta } from '@/lib/postMeta'
 import { isBullish } from '@/lib/odds'
 import { fetchGames } from '@/lib/scores'
 import WatchButton from '@/components/WatchButton'
@@ -71,7 +71,7 @@ export default async function TickerPage(props: { params: Promise<{ ticker: stri
 
 
   // Why a pending pick isn't graded, when there's a reason worth showing.
-  const withNotes = await attachGradeNotes(supabase, shaped)
+  const withNotes = await attachPostMeta(supabase, shaped)
 
   return (
     <div style={{ marginTop: 20 }}>
