@@ -14,8 +14,8 @@ export default async function LeaderboardPage() {
     <div style={{ marginTop: 24 }}>
       <h1 className="display" style={{ fontSize: 22 }}>Leaderboard</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 16 }}>
-        Win rate and profit over the last 30 days · minimum 5 graded picks ·
-        at least 80% of settled picks graded
+        Win rate and profit over the last 30 days · minimum 5 settled picks ·
+        graded automatically from the final score, never self-reported
       </p>
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '2px 14px' }}>
         {(rows ?? []).map((r: any, i: number) => {
@@ -45,7 +45,7 @@ export default async function LeaderboardPage() {
           )
         })}
         {(!rows || rows.length === 0) && (
-          <p style={{ color: 'var(--ink-dim)', padding: '16px 0' }}>No qualifying records yet — post and grade at least 5 picks to appear here.</p>
+          <p style={{ color: 'var(--ink-dim)', padding: '16px 0' }}>No qualifying records yet — post 5 picks on a game and they'll settle themselves once it finishes.</p>
         )}
       </div>
     </div>

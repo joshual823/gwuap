@@ -41,6 +41,13 @@ export default function NewPickForm() {
   const stakeScrollRef = useRef<HTMLDivElement>(null)
   const didScrollRef = useRef(false)
 
+  // Which fixture this pick settles against, and the number it turns on.
+  // Both arrive from a game card; a pick typed freehand has neither and
+  // simply never gets auto-graded.
+  const [gameId, setGameId] = useState<string | null>(null)
+  const [gameLeague, setGameLeague] = useState<string | null>(null)
+  const [line, setLine] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -73,6 +80,17 @@ export default function NewPickForm() {
     if (presetBet && BET_TYPES.some(b => b.value === presetBet)) {
       setKind('pick'); setBetType(presetBet as BetType)
     }
+    // The fixture, so the pick can be settled against its final score.
+    const presetGame = searchParams.get('game')
+    const presetLeague = searchParams.get('league')
+    if (presetGame && presetLeague) {
+      setGameId(presetGame)
+      setGameLeague(presetLeague)
+      setKind('pick')
+    }
+    // A spread carries its own number; a total carries the game's.
+    const presetLine = searchParams.get('line') ?? searchParams.get('total')
+    if (presetLine && Number.isFinite(Number(presetLine))) setLine(presetLine)
     const presetOdds = searchParams.get('odds')
     const oddsMatch = presetOdds && /^([+-]?)(\d{3,6})$/.exec(presetOdds.trim())
     if (oddsMatch) {
@@ -95,6 +113,22 @@ export default function NewPickForm() {
   const showMatchup = wantsMatchup(kind, betType)
   const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
+
+  // Changing the league away from the game's means the pick is no longer
+  // about that fixture. Keeping the id would settle it against a game the
+  // author never bet on, so it's dropped instead.
+  useEffect(() => {
+    if (gameId && leagueName && gameLeague && leagueName !== gameLeague) {
+      setGameId(null)
+      setGameLeague(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leagueName])
+
+  // Only two bet types turn on a number, and only those are auto-graded.
+  const wantsLine = kind === 'pick' && (betType === 'spread' || betType === 'total')
+  const lineValue = line.trim() === '' ? null : Number(line)
+  const lineValid = lineValue === null || Number.isFinite(lineValue)
 
   // Bet type is asked first, so this almost never fires — it's here for
   // the case where someone goes back and changes it, since "backing" is
@@ -166,6 +200,10 @@ export default function NewPickForm() {
       setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
       return
     }
+    if (wantsLine && !lineValid) {
+      setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
+      return
+    }
 
     setLoading(true)
     const { error: insertError } = await supabase.from('posts').insert({
@@ -180,6 +218,9 @@ export default function NewPickForm() {
       odds: oddsText,
       stake,
       potential_payout: payoutOnWin(oddsValue, stake),
+      game_id: gameId,
+      game_league: gameId ? gameLeague : null,
+      line: wantsLine ? lineValue : null,
     })
 
     setLoading(false)
@@ -233,6 +274,28 @@ export default function NewPickForm() {
             <label className="form-label">Opponent — a total is on the game, not one team</label>
             <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
           </>
+        )}
+
+        {wantsLine && (
+          <>
+            <label className="form-label">
+              {betType === 'total' ? 'The total' : 'The spread'}
+            </label>
+            <input
+              className="field"
+              type="text"
+              inputMode="decimal"
+              value={line}
+              onChange={e => setLine(e.target.value)}
+              placeholder={betType === 'total' ? '47.5' : '-3.5'}
+            />
+          </>
+        )}
+
+        {gameId && (
+          <p className="form-hint">
+            Graded automatically from the final score.
+          </p>
         )}
 
         <label className="form-label">{showMatchup ? 'Over or under' : 'Which way'}</label>

@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import ProfileActions from './ProfileActions'
-import GradeButtons from './GradeButtons'
 import LogoutButton from '@/components/LogoutButton'
 import ThemeToggle from '@/components/ThemeToggle'
 import EditProfile from './EditProfile'
@@ -120,11 +119,12 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
 
       {user?.id === profile.id && ungraded.length > 0 && (
         <div className="grade-nudge">
-          <strong>{ungraded.length} pick{ungraded.length === 1 ? '' : 's'} still ungraded.</strong>
+          <strong>{ungraded.length} pick{ungraded.length === 1 ? '' : 's'} still open.</strong>
           <span>
-            They're over a week old, so they've almost certainly settled. Ungraded
-            picks are shown publicly and keep you off the leaderboard — grade the
-            losses too or the record means nothing.
+            Picks made on a game settle themselves once it finishes. These are
+            either still waiting on a result, or aren't tied to a fixture —
+            props, parlays and futures can't be settled from a scoreline, so
+            they stay open and don't count toward your record.
           </span>
         </div>
       )}
@@ -134,9 +134,6 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
       {posts.map((post: any) => (
         <div key={post.id}>
           <PostCard post={post} />
-          {user?.id === profile.id && post.post_kind === 'pick' && post.status === 'pending' && (
-            <GradeButtons postId={post.id} odds={post.odds} stake={post.stake} />
-          )}
         </div>
       ))}
     </div>

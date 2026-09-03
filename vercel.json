@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/grade", "schedule": "17 * * * *" }
+  ]
+}

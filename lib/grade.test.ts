@@ -1,0 +1,66 @@
+import { gradePick, isGradeable } from './grade'
+import type { Game } from './scores'
+
+function game(awayCode: string, awayScore: string | null, homeCode: string, homeScore: string | null,
+              state: Game['state'] = 'post'): Game {
+  return {
+    id: 'x', league: 'NFL', state, status: '', startsAt: null, spread: null, overUnder: null,
+    away: { code: awayCode, name: awayCode, score: awayScore, logo: null },
+    home: { code: homeCode, name: homeCode, score: homeScore, logo: null },
+  }
+}
+
+let pass = 0, fail = 0
+function check(label: string, got: unknown, want: unknown) {
+  const ok = got === want
+  ok ? pass++ : fail++
+  if (!ok) console.log(`  FAIL ${label}: got ${got}, want ${want}`)
+  else console.log(`  ok   ${label} -> ${got}`)
+}
+
+// SF 27, LAR 20. SF won by 7.
+const g = game('SF', '27', 'LAR', '20')
+
+console.log('MONEYLINE')
+check('back SF (won)',        gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, g), 'win')
+check('fade SF (won)',        gradePick({betType:'moneyline',sentiment:'fading', ticker:'$SF',line:null}, g), 'loss')
+check('back LAR (lost)',      gradePick({betType:'moneyline',sentiment:'backing',ticker:'$LAR',line:null}, g), 'loss')
+check('fade LAR (lost)',      gradePick({betType:'moneyline',sentiment:'fading', ticker:'$LAR',line:null}, g), 'win')
+
+console.log('SPREAD — SF won by 7')
+check('SF -3.5 backing',      gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-3.5}, g), 'win')
+check('SF -7.5 backing',      gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-7.5}, g), 'loss')
+check('SF -7 backing (push)', gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-7}, g), 'push')
+check('SF -3.5 fading',       gradePick({betType:'spread',sentiment:'fading', ticker:'$SF',line:-3.5}, g), 'loss')
+check('SF -7.5 fading',       gradePick({betType:'spread',sentiment:'fading', ticker:'$SF',line:-7.5}, g), 'win')
+check('LAR +7.5 backing',     gradePick({betType:'spread',sentiment:'backing',ticker:'$LAR',line:7.5}, g), 'win')
+check('LAR +3.5 backing',     gradePick({betType:'spread',sentiment:'backing',ticker:'$LAR',line:3.5}, g), 'loss')
+check('LAR +7 backing(push)', gradePick({betType:'spread',sentiment:'backing',ticker:'$LAR',line:7}, g), 'push')
+
+console.log('TOTAL — combined 47')
+check('over 44.5',            gradePick({betType:'total',sentiment:'over', ticker:null,line:44.5}, g), 'win')
+check('over 50.5',            gradePick({betType:'total',sentiment:'over', ticker:null,line:50.5}, g), 'loss')
+check('under 50.5',           gradePick({betType:'total',sentiment:'under',ticker:null,line:50.5}, g), 'win')
+check('under 44.5',           gradePick({betType:'total',sentiment:'under',ticker:null,line:44.5}, g), 'loss')
+check('over 47 (push)',       gradePick({betType:'total',sentiment:'over', ticker:null,line:47}, g), 'push')
+
+console.log('REFUSALS — must return null, never a guess')
+check('game not final',       gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, game('SF','27','LAR','20','in')), null)
+check('no score yet',         gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, game('SF',null,'LAR',null)), null)
+check('parlay',               gradePick({betType:'parlay',sentiment:'backing',ticker:'$SF',line:null}, g), null)
+check('player prop',          gradePick({betType:'player_prop',sentiment:'over',ticker:'$SF',line:20}, g), null)
+check('future',               gradePick({betType:'future',sentiment:'backing',ticker:'$SF',line:null}, g), null)
+check('ticker not in game',   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$KC',line:null}, g), null)
+check('spread without line',  gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:null}, g), null)
+check('total without line',   gradePick({betType:'total',sentiment:'over',ticker:null,line:null}, g), null)
+check('neutral sentiment',    gradePick({betType:'moneyline',sentiment:'neutral',ticker:'$SF',line:null}, g), null)
+check('total w/ backing',     gradePick({betType:'total',sentiment:'backing',ticker:'$SF',line:44.5}, g), null)
+
+console.log('CASE / FORMAT TOLERANCE')
+check('lowercase no dollar',  gradePick({betType:'moneyline',sentiment:'backing',ticker:'sf',line:null}, g), 'win')
+check('draw -> push',         gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, game('SF','20','LAR','20')), 'push')
+
+console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
+
+console.log(`\n${pass} passed, ${fail} failed`)
+process.exit(fail ? 1 : 0)

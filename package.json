@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:grade": "tsx lib/grade.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",
@@ -19,6 +20,7 @@
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }
 }

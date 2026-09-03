@@ -344,11 +344,19 @@ export function postHrefForGame(game: Game): string {
       params.set('bet', 'moneyline')
       params.set('odds', figure.replace(/[^0-9+\-]/g, ''))
     } else {
-      // Spread: the number is part of how the pick is written.
+      // Spread: the number is part of how the pick is written, and also
+      // has to travel as a number so the pick can be settled later.
       params.set('bet', 'spread')
       primary = `${primary} ${figure}`
+      const signed = parseFloat(figure.replace(/[^0-9.\-]/g, ''))
+      if (Number.isFinite(signed)) params.set('line', String(signed))
     }
   }
+
+  // Which fixture this is. Without it a pick is a cashtag and an opinion,
+  // and there's no key to look a final score up by.
+  params.set('game', game.id)
+  if (game.overUnder != null) params.set('total', String(game.overUnder))
 
   params.set('tag', primary)
   params.set('tag2', secondary)

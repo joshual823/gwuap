@@ -247,6 +247,16 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   instead.
 - **Block and ban filtering covers the feed only.** Profile pages and
   direct post links still render for blocked or banned users.
+- **Auto-grading needs `CRON_SECRET` set in Vercel** (Settings →
+  Environment Variables, any long random string). Without it `/api/grade`
+  answers 503 and nothing is ever graded — deliberately shut rather than
+  falling open, since that endpoint writes to every record on the site.
+- **Props, parlays and futures are never auto-graded** and don't count
+  toward the leaderboard. No scoreline says whether a parlay's third leg
+  hit. They stay postable and stay on profiles.
+- **Picks made before migration 022 have no `game_id`**, so they can't be
+  auto-graded and don't rank. They age out of the 30-day window on their
+  own; the ones already graded are marked `graded_by = 'user'`.
 - **Fonts.** Now Inter, one family everywhere, matching Polymarket —
   their markup references Inter and no other face. Headings are 700, not
   800. The `--font-display` and `--font-mono` tokens still exist and
