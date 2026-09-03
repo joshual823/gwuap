@@ -28,6 +28,16 @@ export const maxDuration = 60
  *     pick wrongly is far worse than grading it late.
  */
 export async function GET(request: Request) {
+  try {
+    return await run(request)
+  } catch (e: any) {
+    // Same reasoning: the job runs unattended, so the log line has to be
+    // enough to act on without reproducing it.
+    return Response.json({ error: `Grading threw: ${e?.message ?? String(e)}` }, { status: 500 })
+  }
+}
+
+async function run(request: Request) {
   // Vercel Cron sends this header. Without the secret configured the
   // endpoint stays shut rather than falling open — it can write to every
   // record on the site.
@@ -37,6 +47,22 @@ export async function GET(request: Request) {
   }
   if (request.headers.get('authorization') !== `Bearer ${secret}`) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Checked rather than assumed. createAdminClient throws on a missing
+  // key, which reaches the caller as a bare 500 with nothing in it —
+  // and a scheduled job that fails without saying why is the exact
+  // failure this endpoint exists to prevent.
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return Response.json({
+      error: 'SUPABASE_SERVICE_ROLE_KEY is not set in this environment. ' +
+             'Add it to Vercel for Production and redeploy.',
+    }, { status: 503 })
+  }
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return Response.json({
+      error: 'NEXT_PUBLIC_SUPABASE_URL is not set in this environment.',
+    }, { status: 503 })
   }
 
   const supabase = createAdminClient()
