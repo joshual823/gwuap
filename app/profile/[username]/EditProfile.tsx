@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import { squareResize, MAX_SOURCE_BYTES } from '@/lib/image'
+import ThemeToggle from '@/components/ThemeToggle'
 import LeaguePicker from '@/components/LeaguePicker'
 import { cleanPreferences, MAX_PREFERRED } from '@/lib/preferences'
 
@@ -174,6 +175,14 @@ export default function EditProfile({ profile }: {
             Choose none and you get a bit of everything.
           </p>
           <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
+        </div>
+
+        {/* It lives behind the gear on the profile too, but this is
+            where people go looking for it — "edit profile" reads as
+            settings, and a toggle nobody can find is a missing one. */}
+        <div className="edit-row">
+          <label className="form-label">Appearance</label>
+          <ThemeToggle />
         </div>
 
         {error && <p className="edit-error">{error}</p>}

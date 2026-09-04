@@ -18,7 +18,22 @@ export async function GET(request: Request) {
   const games = await fetchGamesWindow(league, 1, 10)
 
   // Finished games are no use here: you can't post a pick on a result.
-  const open = games.filter(g => g.state !== 'post').slice(0, 40)
+  //
+  // What's on now comes first. Sorted only by time, a live game sat
+  // below every fixture for the next ten days and fell off the end of
+  // the list — so the games someone is most likely to be posting about
+  // were the ones they couldn't see. One sort here covers every league,
+  // since every picker reads this endpoint.
+  const rank: Record<string, number> = { in: 0, pre: 1 }
+  const startOf = (g: { startsAt: string | null }) => {
+    const t = g.startsAt ? Date.parse(g.startsAt) : NaN
+    return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER
+  }
+  const open = games
+    .filter(g => g.state !== 'post')
+    .sort((a, b) =>
+      (rank[a.state] ?? 9) - (rank[b.state] ?? 9) || startOf(a) - startOf(b))
+    .slice(0, 40)
 
   return Response.json({
     games: open.map(g => ({

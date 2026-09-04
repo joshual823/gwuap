@@ -356,8 +356,11 @@ a { color: inherit; text-decoration: none; }
   flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 2px;
   padding: 9px 10px; border-radius: 10px;
   border: 1px solid var(--line); background: var(--card-2);
+  /* A button doesn't inherit colour, so without this the label fell back
+     to the browser's default grey — 2.4:1 on a dark card, and unreadable. */
+  color: var(--ink);
 }
-.market-pick { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.market-pick { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .market-odds { font-size: 13px; font-weight: 700; color: var(--brand); font-variant-numeric: tabular-nums; }
 .market-custom { display: block; text-align: center; font-size: 12.5px; color: var(--ink-dim); padding: 8px 0 2px; }
 
