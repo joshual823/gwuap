@@ -391,15 +391,6 @@ export default function NewPickForm() {
           placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
           value={caption} onChange={setCaption} />
 
-        {kind === 'pick' && !fromBook && (
-          <p className="form-hint">
-            This price didn&apos;t come from a book, so it&apos;s yours to keep —
-            kept off other people&apos;s screens unless you say otherwise, and
-            never counted toward the leaderboard. The pick still settles as
-            a win or a loss like any other.
-          </p>
-        )}
-
         {kind === 'pick' && (
           <>
             <label className="form-label">Odds</label>
@@ -447,10 +438,9 @@ export default function NewPickForm() {
                 <input type="checkbox" checked={showMoney}
                   onChange={e => setShowMoney(e.target.checked)} />
                 <span>
-                  Show these numbers on the post. They&apos;ll be marked
-                  <strong> self-reported</strong>, because nobody can check them.
-                  Left off, they stay off your posts and out of the
-                  leaderboard — they&apos;re a note to yourself, not a secret.
+                  <strong>Show these numbers publicly.</strong> They&apos;ll read as
+                  self-reported — this price didn&apos;t come from a book, so it
+                  never counts toward the leaderboard either way.
                 </span>
               </label>
             )}
