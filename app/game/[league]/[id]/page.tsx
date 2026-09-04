@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGameDetail, fetchGames, postHrefForGame, postHrefForMarket, kickoff, LEAGUES_WITH_SCORES } from '@/lib/scores'
+import { fetchGameDetail, fetchGamesWindow, postHrefForGame, postHrefForMarket, kickoff, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
 import WatchButton from '@/components/WatchButton'
@@ -25,7 +25,11 @@ export default async function GamePage(props: {
 
   // The pick link needs the scoreboard's view of the game (it carries the
   // line), so find it there rather than rebuilding it from the summary.
-  const game = (await fetchGames(league)).find(g => g.id === params.id)
+  // The same window the league pages use. Looking only at today's
+  // scoreboard meant any game further out was found by the list that
+  // linked here and not by this page — so it rendered with no way to
+  // post on it, which is the one thing the page is for.
+  const game = (await fetchGamesWindow(league, 3, 10)).find(g => g.id === params.id)
 
   const live = detail.state === 'in'
   const start = kickoff(game?.startsAt ?? null)
