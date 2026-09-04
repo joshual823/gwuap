@@ -404,6 +404,14 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   literal filter would give someone who picks NFL, College Football and
   NBA an empty rail every June, which is the dead feed the scoreboard
   exists to prevent. `npm test` covers that case.
+- **Cashtag suggestions come from the fixtures, not a list.**
+  `/api/cashtags` reads whoever is playing in the next ten days and
+  returns the same codes grading matches against. A hand-kept list can't
+  hold a tennis draw or a fight card, and typing a name that isn't in
+  one produced "$TAYLOR TOWNSEND vs $TOWNSEND" — the ticker is the first
+  word of the tag, so a two-word name becomes a code matching nobody.
+  The form now refuses a tag with a space unless what follows is a
+  spread number.
 - **Athlete codes are disambiguated per match (migration 032).**
   Surnames collide, and a Fernandez v Fernandez match produced two
   identical codes — not just ugly: grading finds the side by matching a

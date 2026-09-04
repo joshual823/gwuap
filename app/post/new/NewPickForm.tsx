@@ -346,6 +346,24 @@ export default function NewPickForm() {
         return
       }
     }
+    // A cashtag is one word. The database derives the ticker from the
+    // first word of the tag, so "$TAYLOR TOWNSEND" becomes "$TAYLOR" —
+    // a code that matches nobody, on a pick that can never grade. The
+    // only thing allowed after the space is a spread's number.
+    const badTag = [tag, tag2].find(t => {
+      const body = t.replace(/^\$/, '').trim()
+      if (!body.includes(' ')) return false
+      const rest = body.slice(body.indexOf(' ') + 1).trim()
+      return !/^[+-]?\d+(\.\d+)?$/.test(rest)
+    })
+    if (badTag) {
+      setError(
+        'A cashtag is one word — pick a name from the list, or shorten it. ' +
+        'Only a spread number can follow it, like "$SF -3.5".',
+      )
+      return
+    }
+
     // A bet on a game needs two different sides. Colliding cashtags used
     // to make this postable — and a pick naming one team twice can't be
     // graded, since neither side of the fixture is identifiable.

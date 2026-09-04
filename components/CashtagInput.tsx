@@ -29,6 +29,10 @@ export default function CashtagInput({
   // can never cover Challenger tennis, college teams or lower-tier
   // soccer — but anything posted once becomes suggestable forever.
   const [learned, setLearned] = useState<Ticker[]>([])
+  // Whoever is actually playing this week. A hand-kept list can't hold a
+  // tennis draw or a fight card, and typing a name that isn't in one is
+  // how "$TAYLOR TOWNSEND vs $TOWNSEND" got posted.
+  const [playing, setPlaying] = useState<Ticker[]>([])
   const [highlight, setHighlight] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -44,12 +48,37 @@ export default function CashtagInput({
     [league, ticker, stillTypingTicker],
   )
 
-  // Curated entries win; learned ones fill the tail.
+  // Whoever is playing comes first — that code is the one the grader
+  // will match against. Then the curated list, then anything learned.
   const suggestions = useMemo<Ticker[]>(() => {
     if (!stillTypingTicker) return []
-    const seen = new Set(curated.map(t => t.code))
-    return [...curated, ...learned.filter(t => !seen.has(t.code))].slice(0, 8)
-  }, [curated, learned, stillTypingTicker])
+    const seen = new Set<string>()
+    const out: Ticker[] = []
+    for (const t of [...playing, ...curated, ...learned]) {
+      if (seen.has(t.code)) continue
+      seen.add(t.code)
+      out.push(t)
+    }
+    return out.slice(0, 8)
+  }, [playing, curated, learned, stillTypingTicker])
+
+  useEffect(() => {
+    const query = ticker.trim()
+    if (!stillTypingTicker || !league) { setPlaying([]); return }
+    let cancelled = false
+    const timer = setTimeout(() => {
+      fetch(`/api/cashtags?league=${encodeURIComponent(league)}&q=${encodeURIComponent(query)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (cancelled) return
+          setPlaying((d.tickers ?? []).map((t: any) => ({
+            code: t.code, name: t.name, league: league as any,
+          })))
+        })
+        .catch(() => { if (!cancelled) setPlaying([]) })
+    }, 150)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [league, ticker, stillTypingTicker])
 
   useEffect(() => {
     const query = ticker.trim()
