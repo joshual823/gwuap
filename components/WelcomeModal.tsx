@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CONTEST, deadlineLabel } from '@/lib/contest'
+import { CONTEST } from '@/lib/contest'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 
 const SEEN_KEY = 'gwuap:welcome-seen'
@@ -48,30 +48,33 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
   return (
     <div className="welcome-backdrop" role="dialog" aria-modal="true" aria-label="Welcome to Gwuap">
       <div className="welcome-card">
-        <div className="welcome-art" aria-hidden="true">
-          <span className="welcome-chip win">WIN</span>
-          <span className="welcome-chip amt">+$45.45</span>
-          <span className="welcome-tag">$SF −1.5</span>
-          <span className="welcome-glow" />
+        {/* The prize is the reason to read on, so it leads. The drawn
+            pick that was here decorated the card without saying
+            anything a stranger cares about in the first two seconds. */}
+        <div className="welcome-prize">
+          <span className="welcome-amount">${CONTEST.prize}</span>
+          <span className="welcome-sub">
+            Top three records by {CONTEST.endsLabel}
+          </span>
         </div>
 
-        <h2>Everyone says they went 4-1.</h2>
+        <h2>Free to enter. Nothing to deposit.</h2>
         <p>
-          Post your picks and the final score grades them — automatically,
-          from the scoreboard. No screenshots, no self-reporting, and you
-          can&apos;t edit a record after the fact.
+          Post NFL picks, the final score grades them, best record wins.
+          No money at risk and nothing to pay — ever.
         </p>
 
         <ul className="welcome-points">
-          <li>Free. No deposit, nothing at risk.</li>
-          <li>Top three records win ${CONTEST.prize} · {deadlineLabel()}.</li>
+          <li><strong>$0 to play.</strong> No deposit, no card, no stake.</li>
+          <li><strong>Open to everyone.</strong> Sign up and you&apos;re in.</li>
+          <li><strong>No self-reporting.</strong> The scoreboard decides, not you.</li>
           {remaining !== null && remaining > 0 && (
-            <li><strong>{remaining} of {FOUNDING_LIMIT} founding places left.</strong></li>
+            <li><strong>{remaining} founding places left</strong> of {FOUNDING_LIMIT}.</li>
           )}
         </ul>
 
         <Link href="/signup" className="btn welcome-cta" onClick={close}>
-          Claim your spot
+          Sign up free
         </Link>
 
         <button type="button" className="welcome-close" onClick={close} disabled={!ready}>

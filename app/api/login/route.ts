@@ -30,6 +30,31 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient()
+  const key = username.trim().toLowerCase()
+
+  // Guessing is cheap and this route can't lean on Supabase's per-client
+  // limit — every attempt arrives from the same server address, so that
+  // limit would throttle all users together and barely slow one attacker.
+  const CEILING = 10
+  const since = new Date(Date.now() - 15 * 60_000).toISOString()
+
+  const { count: recent } = await admin
+    .from('login_attempts')
+    .select('*', { count: 'exact', head: true })
+    .eq('username_key', key)
+    .gte('created_at', since)
+
+  if ((recent ?? 0) >= CEILING) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Wait a few minutes and try again.' },
+      { status: 429 },
+    )
+  }
+
+  // Recorded before the attempt, not after, so a crash or a timeout
+  // can't be used to get a free guess.
+  await admin.from('login_attempts').insert({ username_key: key })
+
   const { data: profile } = await admin
     .from('profiles')
     .select('id')
@@ -47,6 +72,14 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return deny()
+
+  // A correct password clears the count, so someone who mistyped a few
+  // times isn't locked out of their own account afterwards. Old rows go
+  // too, since nothing reads them once the window has passed.
+  await admin.from('login_attempts').delete().eq('username_key', key)
+  await admin.from('login_attempts')
+    .delete()
+    .lt('created_at', new Date(Date.now() - 60 * 60_000).toISOString())
 
   return NextResponse.json({ ok: true })
 }

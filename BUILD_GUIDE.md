@@ -415,6 +415,23 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   Trade-off: a player's code differs between a match where their surname
   collides and one where it doesn't, so their cashtag page splits. Worth
   it — a wrong grade is worse than a split tag.
+- **RLS scopes rows, never columns — on INSERT too (migration 033).**
+  022 revoked UPDATE so nobody could grade their own picks; 031 kept
+  badges out of the profile grant. Both only restricted UPDATE, and
+  INSERT was never touched — so a signed-in account could insert a post
+  that was *already* a win, with a profit and graded_by 'auto', and the
+  leaderboard counts exactly that shape. Both tables now have
+  column-scoped INSERT grants. Any new column defaults to unwritable,
+  which is the right way round: add it to the grant deliberately.
+- **Google sign-in leaves a window with no profile row.** Between the
+  OAuth callback and claiming a username there's a session and no
+  profile, and a profile could be inserted with is_admin true. Closed by
+  the same grant.
+- **Login by username is throttled per username** (10 per 15 minutes,
+  `login_attempts`). Email login goes browser-to-Supabase and is
+  rate-limited there; username login is resolved server-side, so every
+  attempt reaches Supabase from one address and its per-client limit
+  would throttle all users together instead of the attacker.
 - **Badges (migration 031).** `profiles.badges` is a text[] of earned
   marks: `founding` for the first 200 accounts, awarded by a trigger so
   the cap holds however an account is made, and `week1_champion` awarded

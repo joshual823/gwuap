@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import GoogleButton from '@/components/GoogleButton'
 
 export default function LoginPage() {
   const supabase = createClient()
@@ -21,7 +22,10 @@ export default function LoginPage() {
     // Read from the URL directly rather than useSearchParams, which would
     // need a Suspense boundary around this whole page.
     const nextParam = new URLSearchParams(window.location.search).get('next')
-    const next = nextParam && nextParam.startsWith('/') ? nextParam : '/feed'
+    // "//evil.com" starts with a slash and is a protocol-relative URL, so
+    // it passes a naive check and sends people off the site entirely.
+    const next = nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
+      ? nextParam : '/feed'
     const id = identifier.trim()
 
     // An address can sign in from here directly. A username can't — the
@@ -58,6 +62,9 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth: 360, margin: '48px auto' }}>
       <h1 className="display" style={{ fontSize: 28, marginBottom: 24 }}>Welcome back</h1>
+      <GoogleButton />
+      <div className="or-line"><span>or</span></div>
+
       <form onSubmit={handleLogin}>
         <input className="field" placeholder="Username or email" type="text"
           autoCapitalize="none" autoCorrect="off" autoComplete="username"

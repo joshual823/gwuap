@@ -183,37 +183,29 @@ a { color: inherit; text-decoration: none; }
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
-/* A pick, drawn rather than photographed — a stock photo of a stadium
-   would say nothing about what this site does, and the graded result is
-   the thing worth showing. */
-.welcome-art {
-  position: relative; height: 132px; margin: 0 -18px 16px;
-  background: linear-gradient(160deg, #0F1720, #0B0E11 65%);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  border-bottom: 1px solid var(--line); overflow: hidden;
+/* The prize, at the size the number deserves. This was a drawn mock-up
+   of a graded pick — decoration that said nothing a stranger cares
+   about in the two seconds they give a modal. */
+.welcome-prize {
+  margin: 0 -18px 16px; padding: 22px 18px 18px;
+  background: linear-gradient(160deg, #0F1720, #0B0E11 70%);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
 }
-.welcome-glow {
-  position: absolute; width: 220px; height: 220px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,200,5,0.28), transparent 68%);
-  top: -80px; right: -50px;
+.welcome-amount {
+  display: block; font-size: 52px; font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1; color: #00C805; font-variant-numeric: tabular-nums;
 }
-.welcome-chip {
-  position: relative; z-index: 1;
-  font-size: 13px; font-weight: 800; letter-spacing: 0.05em;
-  padding: 7px 13px; border-radius: 999px;
-}
-.welcome-chip.win { background: #00C805; color: #06210A; }
-.welcome-chip.amt { background: rgba(0,200,5,0.14); color: #00C805; }
-.welcome-tag {
-  position: relative; z-index: 1;
-  font-size: 13px; font-weight: 700; color: #ECEDEE;
-  padding: 7px 12px; border-radius: 8px;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+.welcome-sub {
+  display: block; margin-top: 7px; font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase; color: #8B98A5;
 }
 .welcome-card h2 { font-size: 20px; margin: 0 0 8px; letter-spacing: -0.02em; }
 .welcome-card > p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); }
-.welcome-points { margin: 0 0 16px; padding-left: 18px; font-size: 13px; line-height: 1.7; color: var(--ink-dim); }
-.welcome-points strong { color: var(--brand); }
+.welcome-points { margin: 0 0 16px; padding: 0; list-style: none; font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); }
+.welcome-points li { padding: 7px 0; border-top: 1px solid var(--line); }
+.welcome-points li:first-child { border-top: none; }
+.welcome-points strong { color: var(--ink); font-weight: 700; }
 .welcome-cta { display: block; width: 100%; text-align: center; }
 .welcome-close {
   position: relative; display: block; width: 100%; margin-top: 10px; padding: 10px 0 14px;
@@ -226,6 +218,12 @@ a { color: inherit; text-decoration: none; }
   width: 92px; height: 3px; border-radius: 999px; background: var(--line); overflow: hidden;
 }
 .welcome-bar-fill { display: block; height: 100%; background: var(--ink-faint); }
+
+.oauth-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
+/* A rule with a word in it, so the two ways in read as alternatives
+   rather than as a list. */
+.or-line { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--ink-faint); font-size: 12px; }
+.or-line::before, .or-line::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .profile-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .profile-tools .btn { padding: 9px 16px; font-size: 13.5px; }
 
