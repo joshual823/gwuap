@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
+import GamePicker from '@/components/GamePicker'
 import MentionInput from '@/components/MentionInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
@@ -53,6 +54,7 @@ export default function NewPickForm() {
   // it came from the book would be false.
   const [book, setBook] = useState<string | null>(null)
   const [fromBook, setFromBook] = useState(false)
+  const [showMoney, setShowMoney] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -218,14 +220,11 @@ export default function NewPickForm() {
       return
     }
 
-    if (!fromBook) {
-      // Nothing to validate: a pick without a posted price carries no
-      // money at all, so the odds and stake fields aren't shown.
-    } else if (oddsValue === null) {
+    if (oddsValue === null) {
       setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
       return
     }
-    if (fromBook && !stakeValid) {
+    if (!stakeValid) {
       setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
       return
     }
@@ -248,11 +247,12 @@ export default function NewPickForm() {
       sentiment,
       caption: caption.trim(),
       bet_type: betType,
-      // A price that came from nowhere buys nothing. The pick keeps its
-      // result; it just doesn't get to claim a payout.
-      odds: fromBook ? oddsText : null,
-      stake: fromBook ? stake : null,
-      potential_payout: fromBook && oddsValue !== null ? payoutOnWin(oddsValue, stake) : null,
+      odds: oddsText,
+      stake,
+      potential_payout: payoutOnWin(oddsValue, stake),
+      // A book price is a public fact. Anything else is the author's own
+      // note until they decide otherwise.
+      money_public: fromBook ? true : showMoney,
       game_id: gameId,
       game_league: gameId ? gameLeague : null,
       game_starts_at: gameId ? gameStartsAt : null,
@@ -307,6 +307,12 @@ export default function NewPickForm() {
 
         <label className="form-label">{showMatchup ? 'Teams' : 'Cashtag'}</label>
         <CashtagInput value={tag} onChange={setTag} league={leagueName} categoryId={categoryId} />
+
+        {/* Once there's a league, the fixtures are knowable — so offer
+            them rather than making someone leave, find the game, and come
+            back. Hidden once a pick already came from a market: it's
+            already filled in, and re-offering it would just be noise. */}
+        {kind === 'pick' && !fromBook && <GamePicker league={leagueName} query={tag} />}
         {showMatchup && (
           <>
             <label className="form-label">Opponent — a total is on the game, not one team</label>
@@ -359,14 +365,14 @@ export default function NewPickForm() {
 
         {kind === 'pick' && !fromBook && (
           <p className="form-hint">
-            No money on this one — the price wasn&apos;t taken from a book, so
-            there&apos;s nothing to check it against. It still counts as a
-            win or a loss. Tap a market on a game page to post at a real
-            price and have the payout count.
+            This price didn&apos;t come from a book, so it&apos;s yours to keep —
+            hidden from everyone else unless you say otherwise, and never
+            counted toward the leaderboard. The pick still settles as a win
+            or a loss like any other.
           </p>
         )}
 
-        {kind === 'pick' && fromBook && (
+        {kind === 'pick' && (
           <>
             <label className="form-label">Odds</label>
             {fromBook ? (
@@ -406,6 +412,17 @@ export default function NewPickForm() {
                   value={oddsInput} placeholder="110"
                   onChange={e => { touchOdds(); setOddsInput(e.target.value.replace(/[^0-9]/g, '')) }} />
               </div>
+            )}
+
+            {!fromBook && (
+              <label className="money-toggle">
+                <input type="checkbox" checked={showMoney}
+                  onChange={e => setShowMoney(e.target.checked)} />
+                <span>
+                  Show these numbers on the post. They&apos;ll be marked
+                  <strong> self-reported</strong>, because nobody can check them.
+                </span>
+              </label>
             )}
 
             <label className="form-label">Stake</label>

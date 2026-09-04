@@ -32,6 +32,7 @@ type Post = {
   /** 'book' if the price came from a real posted market, 'custom' if typed. */
   odds_source?: string | null
   odds_book?: string | null
+  money_public?: boolean | null
   /** The post being passed along, when this is a repost. */
   reposted?: any | null
   repost_count?: number
@@ -49,6 +50,13 @@ type Post = {
 
 export default function PostCard({ post }: { post: Post }) {
   const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
+
+  // Money on a hand-priced pick is the author's own note. Everyone else
+  // sees the pick and its result; only the author sees the numbers,
+  // unless they chose to publish them.
+  const selfReported = post.post_kind === 'pick' && post.odds_source === 'custom'
+  const isAuthor = post.viewer_id !== null && post.viewer_id === post.author.id
+  const showMoney = !selfReported || post.money_public === true || isAuthor
 
   // A pick stops being withdrawable at kick-off. The database enforces
   // this; the menu needs to know so it can say why rather than offering
@@ -106,8 +114,13 @@ export default function PostCard({ post }: { post: Post }) {
           {/* Where the price came from. Only the typed ones are marked:
               a real market is the default claim, and badging that too
               would imply the custom ones are equally normal. */}
-          {post.post_kind === 'pick' && post.odds_source === 'custom' && post.odds &&
-            <span className="stamp custom" title="This price was entered by the author, not taken from a book">custom odds</span>}
+          {/* Only worth saying when the numbers are actually on show —
+              a hidden figure needs no disclaimer. */}
+          {selfReported && showMoney && post.odds &&
+            <span className="stamp custom"
+              title="These numbers were entered by the author, not taken from a book">
+              {post.money_public ? 'self-reported' : 'private'}
+            </span>}
           {post.post_kind === 'pick' && post.odds_source === 'book' && post.odds_book &&
             <span className="stamp booked" title={`Price taken from ${post.odds_book}`}>{post.odds_book}</span>}
           {/* Everyone sees that a pick is held rather than quietly not
@@ -168,7 +181,7 @@ export default function PostCard({ post }: { post: Post }) {
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
 
-        {post.post_kind === 'pick' && (
+        {post.post_kind === 'pick' && showMoney && (
         <div className="stat-row">
           {betLabel && <span className="stat-key">{betLabel}</span>}
           {post.odds && <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}

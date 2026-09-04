@@ -310,7 +310,23 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Home runs and player props can't be graded.** They need a box score,
   not a scoreline. Deliberately not offered as auto-graded types: a bet
   type that can never settle is worse than one that doesn't exist.
-- **Money requires a posted price (migration 028).** Odds were free text,
+- **Self-reported money is private by default (migration 029).** A
+  hand-priced pick keeps its odds and stake, but only the author sees
+  them unless they publish, and published ones are labelled
+  self-reported. Either way they never reach the leaderboard, which sums
+  only prices a book posted. Profiles show two figures for this reason:
+  a public Profit, and a private one visible only to the owner.
+  Note the hiding is done in the app, not in RLS — the row is still
+  publicly readable, so this keeps numbers off other people's screens
+  rather than making them secret. Worth moving to an author-only table
+  if that ever needs to be a real guarantee.
+- **The post form suggests games** (`/api/games`) once a league is
+  chosen, filtered by the cashtag being typed. It's the same market
+  buttons as a game page, so a pick started from the Post button can
+  still carry a book price.
+- **Money requires a posted price (migration 028)** — superseded by 029
+  above, which brought the numbers back as a private record.
+- **Migration 028 cleared money from existing custom picks.** Odds were free text,
   so "$5 to win $1,000,000" was a legal pick. Picks taken from a real
   market keep their money; hand-entered ones keep their result and carry
   no payout. That means tennis, UFC and props are result-only, since

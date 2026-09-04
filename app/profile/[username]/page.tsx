@@ -74,6 +74,9 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   const ungraded = picks.filter(
     (p: any) => p.status === 'pending' && new Date(p.created_at).getTime() < weekAgo,
   )
+  // The public figure counts only prices a book posted, matching the
+  // leaderboard. A self-reported total is the author's own record and is
+  // shown only to them.
   const totalProfit = graded.reduce(
     (sum: number, p: any) => sum + (p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0),
     0,
@@ -90,6 +93,22 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   const selfGraded = withNotes.filter(
     (p: any) => p.post_kind === 'pick' && p.status !== 'pending' && p.graded_by === 'user',
   ).length
+
+  // Two different numbers. The public one counts only prices a book
+  // posted, which is what the leaderboard ranks and what a stranger is
+  // entitled to believe. The other is the author's own bookkeeping, and
+  // only they see it.
+  const settledPicks = withNotes.filter(
+    (p: any) => p.post_kind === 'pick' && p.status !== 'pending',
+  )
+  const moneyOf = (p: any) => p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0
+  const bookProfit = settledPicks
+    .filter((p: any) => p.odds_source === 'book')
+    .reduce((sum: number, p: any) => sum + moneyOf(p), 0)
+  const selfProfit = settledPicks
+    .filter((p: any) => p.odds_source === 'custom' && (p.odds != null || p.stake != null))
+    .reduce((sum: number, p: any) => sum + moneyOf(p), 0)
+  const isOwnProfile = user?.id === profile.id
 
   return (
     <div style={{ marginTop: 24 }}>
@@ -134,12 +153,21 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
             <span className="stat-label">Win rate</span>
           </div>
         )}
-        {graded.length > 0 && (
+        {settledPicks.some((p: any) => p.odds_source === 'book') && (
           <div className="stat-block">
-            <span className={`stat-figure ${totalProfit >= 0 ? 'pos' : 'neg'}`}>
-              {formatSignedUsd(totalProfit)}
+            <span className={`stat-figure ${bookProfit >= 0 ? 'pos' : 'neg'}`}>
+              {formatSignedUsd(bookProfit)}
             </span>
             <span className="stat-label">Profit</span>
+          </div>
+        )}
+        {isOwnProfile && selfProfit !== 0 && (
+          <div className="stat-block">
+            <span className={`stat-figure ${selfProfit >= 0 ? 'pos' : 'neg'}`}
+              style={{ opacity: 0.75 }}>
+              {formatSignedUsd(selfProfit)}
+            </span>
+            <span className="stat-label">Your own · private</span>
           </div>
         )}
       </div>
