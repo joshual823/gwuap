@@ -425,6 +425,14 @@ export default function NewPickForm() {
         return
       }
     }
+    // The database refuses these too, and the grading job refuses them
+    // again from the scoreboard's own kick-off. This one exists so the
+    // refusal arrives as a sentence rather than a failed insert.
+    if (gameId && gameStartsAt && new Date(gameStartsAt).getTime() <= Date.now()) {
+      setError(`That ${words.event} has already started. Picks have to be in before it does.`)
+      return
+    }
+
     if (wantsLine && !lineValid) {
       setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
       return

@@ -48,11 +48,15 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
 
   if (!games || games.length === 0) return null
 
+  // Only fixtures that haven't started. A pick on a game already under
+  // way can't count — the result is partly known — so offering one here
+  // would be offering something that gets refused on the way in.
+  const upcoming = games.filter(g => g.state === 'pre')
   // Match on the code people type, with or without the dollar sign.
   const needle = query.replace(/^\$/, '').trim().toUpperCase()
   const matches = needle.length >= 1
-    ? games.filter(g => g.away.code.toUpperCase().startsWith(needle) || g.home.code.toUpperCase().startsWith(needle))
-    : games
+    ? upcoming.filter(g => g.away.code.toUpperCase().startsWith(needle) || g.home.code.toUpperCase().startsWith(needle))
+    : upcoming
   // A few by default so the form doesn't turn into a scoreboard, all of
   // them on request — with no needle typed there can be forty fixtures,
   // and scrolling past them to reach the rest of the form is worse than

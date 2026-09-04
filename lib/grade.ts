@@ -24,6 +24,8 @@ export type GradeInput = {
   ticker: string | null
   /** Spread or total as a number: -3.5, or 47.5. */
   line: number | null
+  /** When the pick was written. Checked against the game's kick-off. */
+  createdAt?: string | null
 }
 
 export type Outcome = 'win' | 'loss' | 'push' | 'void'
@@ -44,6 +46,8 @@ export type Blocked =
   | 'team-not-in-game'   // the tag names neither side
   | 'missing-line'       // a spread or total with no number
   | 'no-side'            // a direction that doesn't pick a side
+  | 'late-entry'         // posted after the game was already under way
+  | 'line-not-from-book' // a number the book never published
 
 export type GradeResult =
   | { outcome: Outcome }
@@ -52,6 +56,7 @@ export type GradeResult =
 /** Blocked states a person has to resolve; the rest resolve themselves. */
 export const NEEDS_REVIEW: Blocked[] = [
   'no-score', 'team-not-in-game', 'missing-line', 'no-side',
+  'late-entry', 'line-not-from-book',
 ]
 
 export function needsReview(reason: Blocked): boolean {
@@ -65,6 +70,8 @@ export const BLOCKED_LABELS: Record<Blocked, string> = {
   'team-not-in-game': 'The cashtag does not name either side of this game',
   'missing-line': 'No spread or total was recorded on the pick',
   'no-side': 'The direction does not name a side of this pick',
+  'late-entry': 'Posted after this game had already started',
+  'line-not-from-book': 'The number on this pick is not one the book published for this game',
 }
 
 /**
@@ -108,11 +115,80 @@ function scoreOf(side: { score: string | null }): number | null {
  * grading it late.
  */
 export function gradePick(pick: GradeInput, game: Game): GradeResult {
+  // Both of these compare against the scoreboard's own numbers rather
+  // than anything stored on the pick. The row was written by whoever
+  // posted it, so every field on it is a claim; the game is the fact.
+
+  // Posted after the first pitch. At worst that's a pick made with the
+  // result already known, which grades as a guaranteed win — so it never
+  // grades at all.
+  if (isLateEntry(pick, game)) return { blocked: 'late-entry' }
+
+  // A number nobody was offering. Left free, "under 1,000,000" wins every
+  // time and "over 1" wins the rest.
+  if (!lineIsFromBook(pick, game)) return { blocked: 'line-not-from-book' }
+
   // Only a finished game settles anything. A game that was postponed or
   // abandoned never reaches 'post' on the scoreboard, so it simply stays
   // pending rather than being guessed at.
   if (isGradeable(pick.betType) && game.state !== 'post') return { blocked: 'not-final' }
   return settle(pick, game)
+}
+
+/**
+ * Was this posted after the game began?
+ *
+ * Against the scoreboard's kick-off, never the one stored on the pick.
+ * game_starts_at is sent by the client, so a forged one would wave
+ * through exactly the pick this is meant to stop.
+ */
+export function isLateEntry(pick: GradeInput, game: Game): boolean {
+  if (!pick.createdAt || !game.startsAt) return false
+  const posted = Date.parse(pick.createdAt)
+  const start = Date.parse(game.startsAt)
+  if (!Number.isFinite(posted) || !Number.isFinite(start)) return false
+  return posted >= start
+}
+
+/**
+ * Every number the book actually published for this game, either side.
+ *
+ * A spread is quoted from both ends — one side's -3.5 is the other's
+ * +3.5 — so both belong in the set or half of all honest picks fail.
+ */
+export function bookLinesFor(game: Game, betType: BetType): number[] {
+  const out: number[] = []
+  const add = (n: number | null | undefined) => {
+    if (typeof n === 'number' && Number.isFinite(n)) { out.push(n, -n) }
+  }
+  for (const m of game.markets ?? []) {
+    if (betType === 'total' && m.kind === 'total') add(m.line)
+    if (betType === 'spread' && m.kind === 'spread') add(m.line)
+  }
+  // The scoreboard carries its own headline numbers even when pickcenter
+  // returned nothing, which is common once a game has finished.
+  if (betType === 'total') add(game.overUnder)
+  if (betType === 'spread' && game.spread) {
+    const m = /(-?\d+(?:\.\d+)?)/.exec(game.spread)
+    if (m) add(Number(m[1]))
+  }
+  return [...new Set(out)]
+}
+
+/**
+ * Only the two whole-game markets are checked, because they're the only
+ * two the book prices. Period totals have no published line to compare
+ * against — see the note on first_five in odds.ts.
+ */
+export function lineIsFromBook(pick: GradeInput, game: Game): boolean {
+  if (pick.betType !== 'total' && pick.betType !== 'spread') return true
+  if (pick.line == null) return true          // 'missing-line' handles this
+  const allowed = bookLinesFor(game, pick.betType)
+  // Nothing published at all. Refusing here would flag every honest pick
+  // on a game ESPN never priced, so it falls through to be graded and
+  // the number stands.
+  if (allowed.length === 0) return true
+  return allowed.some(n => Math.abs(n - (pick.line as number)) < 1e-9)
 }
 
 /**

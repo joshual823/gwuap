@@ -72,7 +72,7 @@ async function run(request: Request) {
   // ESPN's feed anyway.
   const { data: pending, error } = await supabase
     .from('posts')
-    .select('id, bet_type, sentiment, ticker, line, odds, stake, game_id, game_league')
+    .select('id, bet_type, sentiment, ticker, line, odds, stake, game_id, game_league, created_at')
     .eq('status', 'pending')
     .eq('post_kind', 'pick')
     .not('game_id', 'is', null)
@@ -123,6 +123,9 @@ async function run(request: Request) {
       sentiment: pick.sentiment,
       ticker: pick.ticker,
       line: pick.line == null ? null : Number(pick.line),
+      // The scoreboard's kick-off decides whether this was late, but the
+      // row is the only place the posting time exists.
+      createdAt: pick.created_at,
     }, game)
 
     if ('blocked' in result) {

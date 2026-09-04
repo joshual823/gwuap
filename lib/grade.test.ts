@@ -1,4 +1,4 @@
-import { gradePick, isGradeable, needsReview, BLOCKED_LABELS } from './grade'
+import { gradePick, isGradeable, needsReview, BLOCKED_LABELS, bookLinesFor, isLateEntry } from './grade'
 import type { Game } from './scores'
 
 function game(awayCode: string, awayScore: string | null, homeCode: string, homeScore: string | null,
@@ -167,6 +167,51 @@ check('college hoops = 1',   gradePick({betType:'first_half',sentiment:'over',ti
 check('NBA half = 2',        gradePick({betType:'first_half',sentiment:'over',ticker:null,line:99.5}, withPeriods(['27','28','21','19'],['25','26','24','20'],'95','95','NBA')), 'win')
 
 console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
+
+function reason(label: string, got: unknown, want: unknown) {
+  const why = blockedReason(got)
+  const ok = why === want
+  ok ? pass++ : fail++
+  console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${label} -> ${why}${ok ? '' : ` (want ${want})`}`)
+}
+
+console.log('\nA PICK MADE AFTER THE FIRST PITCH NEVER GRADES')
+// The cheat: watch until the result is obvious, then post the winner.
+// Checked against the scoreboard's kick-off, never the one on the pick —
+// that field is sent by the client, so a forged one would wave through
+// the exact pick this exists to stop.
+const started: Game = { ...game('SF', '27', 'LAR', '20'), startsAt: '2026-09-04T17:00:00Z' }
+reason('posted an hour in',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, started),
+  'late-entry')
+reason('posted one second in',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:01Z'}, started),
+  'late-entry')
+check('posted an hour before is fine',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T16:00:00Z'}, started), 'win')
+check('no kick-off recorded, nothing to compare',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, game('SF','27','LAR','20')), 'win')
+check('no posting time, nothing to compare',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, started), 'win')
+check('isLateEntry is exact at the whistle',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:00Z'}, started), true)
+
+console.log('\nTHE LINE HAS TO BE ONE THE BOOK PUBLISHED')
+// "Under 1,000,000" wins every time and "over 1" wins the rest.
+const priced: Game = { ...game('SF', '27', 'LAR', '20'), overUnder: 44.5, spread: 'SF -3.5' }
+reason('total of 1',       gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:1}, priced), 'line-not-from-book')
+reason('total of 1000000', gradePick({betType:'total',sentiment:'under',ticker:'$SF',line:1000000}, priced), 'line-not-from-book')
+reason('a half-point off', gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:44}, priced), 'line-not-from-book')
+check('the published total grades', gradePick({betType:'total',sentiment:'over',ticker:'$SF',line:44.5}, priced), 'win')
+// A spread is quoted from both ends, so both have to pass or half of all
+// honest picks fail.
+check('the published spread',       gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-3.5}, priced), 'win')
+check('the same spread, other end', gradePick({betType:'spread',sentiment:'backing',ticker:'$LAR',line:3.5}, priced), 'loss')
+reason('a spread nobody offered',   gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-0.5}, priced), 'line-not-from-book')
+check('both ends are allowed', bookLinesFor(priced, 'spread').includes(3.5) && bookLinesFor(priced, 'spread').includes(-3.5), true)
+// A game ESPN never priced would otherwise flag every honest pick on it.
+check('unpriced game still grades', gradePick({betType:'total',sentiment:'over',ticker:'$SF',line:44.5}, game('SF','27','LAR','20')), 'win')
+check('moneyline is unaffected',    gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, priced), 'win')
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)
