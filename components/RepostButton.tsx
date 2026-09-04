@@ -6,6 +6,10 @@ import { createClient } from '@/lib/supabaseClient'
 /**
  * Pass someone's post along, optionally with something to say about it.
  *
+ * The box says "Write something", not "Add a take" — a take is a
+ * specific kind of post on this site, and offering one here reads as a
+ * rule about what you're allowed to write rather than an invitation.
+ *
  * `targetId` is resolved by the caller to the original rather than to
  * whatever was on screen — reposting a repost points at the pick itself,
  * so a chain never nests and the card always shows the real thing.
@@ -62,11 +66,11 @@ export default function RepostButton({ targetId, viewerId, count }: {
         <div className="post-menu repost-menu">
           <textarea
             className="field" rows={2} value={comment} maxLength={280}
-            placeholder="Add a take, or send it as is"
+            placeholder="Write something…"
             onChange={e => setComment(e.target.value)}
           />
           <button type="button" className="post-menu-item" onClick={repost} disabled={busy}>
-            {busy ? 'Reposting…' : comment.trim() ? 'Repost with your take' : 'Repost'}
+            {busy ? 'Reposting…' : comment.trim() ? 'Repost with comment' : 'Repost'}
           </button>
           {error && <p className="post-menu-note danger">{error}</p>}
         </div>
