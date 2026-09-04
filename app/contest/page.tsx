@@ -27,7 +27,7 @@ export default async function ContestPage() {
         ${CONTEST.prize.toLocaleString()} launch contest
       </h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 14, marginBottom: 18 }}>
-        Best record by {CONTEST.endsLabel} takes it.
+        Top three records by {CONTEST.endsLabel} share it.
         {isClosingSoon() && <strong style={{ color: 'var(--pending)' }}> {deadlineLabel()}.</strong>}
       </p>
 
@@ -40,8 +40,9 @@ export default async function ContestPage() {
             marks their own homework, including us.
           </li>
           <li>
-            {CONTEST.minPicks} graded picks gets you on the leaderboard. Highest
-            win rate on {CONTEST.endsLabel} wins ${CONTEST.prize.toLocaleString()}.
+            {CONTEST.minPicks} graded picks gets you on the leaderboard. The top
+            three win rates on {CONTEST.endsLabel} share ${CONTEST.prize.toLocaleString()}:{' '}
+            {CONTEST.payouts.map((p, i) => `${['1st', '2nd', '3rd'][i]} $${p}`).join(' · ')}.
           </li>
         </ol>
       </div>
@@ -51,7 +52,7 @@ export default async function ContestPage() {
         <ul className="contest-rules">
           <li><strong>Free to enter.</strong> No deposit, no purchase, no stake at risk. The dollar figures on picks are for scoring only — no real money changes hands on this site.</li>
           <li><strong>It&apos;s a skill contest.</strong> You&apos;re ranked on how well you predict results, not on chance.</li>
-          <li><strong>Ties</strong> go to whoever has more graded picks. Still tied, the prize is split.</li>
+          <li><strong>Ties</strong> go to whoever has more graded picks. Still tied, that place&apos;s prize is split between them.</li>
           <li><strong>{CONTEST.minPicks} graded picks minimum.</strong> Props, parlays and futures can&apos;t be settled from a scoreline, so they don&apos;t count toward your record.</li>
           <li><strong>One account per person.</strong> Duplicate accounts are disqualified, and the leaderboard is machine-graded so records can&apos;t be edited after the fact.</li>
           <li><strong>18+.</strong> Paid by whatever method suits the winner.</li>

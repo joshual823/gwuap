@@ -176,7 +176,14 @@ a { color: inherit; text-decoration: none; }
 .help-card p:last-of-type { margin-bottom: 0; }
 .help-card strong, .help-card em { color: var(--ink); font-weight: 600; font-style: normal; }
 .help-link { color: var(--brand); font-weight: 600; }
-.join-how { display: block; margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--ink-dim); }
+/* Not a footnote. For someone deciding whether to sign up, "how does
+   this actually work" is the question, so it reads as the third action
+   in the card rather than as small print under the other two. */
+.join-how {
+  display: inline-block; margin-top: 12px; padding: 8px 14px;
+  font-size: 13.5px; font-weight: 700; color: var(--brand);
+  border: 1px solid var(--brand); border-radius: 999px;
+}
 
 /* A held pick. Amber rather than red: nothing is wrong with the pick,
    it just can't be settled from a scoreline yet. */

@@ -4,10 +4,24 @@
  * three copies would drift the moment one changed.
  */
 export const CONTEST = {
-  prize: 1000,
-  /** Noon UTC on the closing day, so no timezone argues about the cutoff. */
-  endsAt: new Date('2026-10-01T12:00:00Z'),
-  endsLabel: 'October 1',
+  /** The whole pool. `payouts` is how it's split. */
+  prize: 300,
+  /**
+   * First, second, third. Split rather than winner-takes-all because one
+   * prize means everybody not leading by the weekend stops caring, and
+   * the point of the contest is people still posting on the last day.
+   */
+  payouts: [150, 100, 50],
+  /**
+   * Noon UTC on the closing day, so no timezone argues about the cutoff.
+   *
+   * The Tuesday after NFL Week 1: Monday night finishes late on the 14th,
+   * the overnight grading run settles it, and the board is final before
+   * this passes. Closing any earlier would strand the last game's picks
+   * ungraded at the moment the prize is decided.
+   */
+  endsAt: new Date('2026-09-15T12:00:00Z'),
+  endsLabel: 'September 15',
   /** Graded picks needed to appear on the leaderboard at all. */
   minPicks: 5,
 } as const

@@ -36,7 +36,7 @@ export default function OpengraphImage() {
             padding: '14px 26px', borderRadius: 999,
           }}
         >
-          ${CONTEST.prize.toLocaleString()} for the best record by {CONTEST.endsLabel}
+          ${CONTEST.prize.toLocaleString()} for the best records by {CONTEST.endsLabel}
         </div>
       </div>
     ),
