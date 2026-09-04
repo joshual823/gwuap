@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Server not configured' }, { status: 503 })
   }
 
-  const { reportId, userId, postId, messageId, action } = await req.json()
+  const { reportId, userId, postId, messageId, ventId, action } = await req.json()
   const admin = createAdminClient()
 
   if (action === 'ban' && userId) {
@@ -32,6 +32,12 @@ export async function POST(req: NextRequest) {
   // disappear over the same realtime subscription it always did.
   if (action === 'remove_message' && messageId) {
     await admin.from('game_messages').delete().eq('id', messageId)
+  }
+  // A separate action rather than a table name on the request. The client
+  // must never get to say which table a delete lands in, however much
+  // shorter that would be.
+  if (action === 'remove_vent' && ventId) {
+    await admin.from('vent_messages').delete().eq('id', ventId)
   }
   await admin.from('reports').update({ status: action === 'dismiss' ? 'dismissed' : 'actioned' }).eq('id', reportId)
 

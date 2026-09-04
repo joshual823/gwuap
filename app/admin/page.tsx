@@ -112,7 +112,7 @@ export default async function AdminPage() {
             <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink-dim)' }}>"{r.reported_game_message.body}"</p>
           )}
           <AdminActions reportId={r.id} userId={r.reported_user?.id} postId={r.reported_post?.id}
-            messageId={r.reported_game_message?.id} />
+            messageId={r.reported_game_message?.id} ventId={r.reported_vent?.id} />
         </div>
       ))}
     </div>

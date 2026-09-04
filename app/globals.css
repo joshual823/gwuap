@@ -600,6 +600,11 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
    chat below it doesn't get shoved down a second later. */
 .wr-sub { color: var(--ink-dim); font-size: 13px; margin: -4px 0 14px; }
 .wr-feeds { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 12px; }
+.wr-group { margin-bottom: 2px; }
+.wr-group-label {
+  display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 6px;
+}
 .wr-stage {
   position: relative; aspect-ratio: 16 / 9; width: 100%;
   background: #000; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;

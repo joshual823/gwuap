@@ -2,12 +2,12 @@ import Link from 'next/link'
 import FeedTabs from '@/components/FeedTabs'
 import GameChat from '@/components/GameChat'
 import { createClient } from '@/lib/supabaseServer'
-import { WATCH_FEEDS, feedFor, roomKeyFor, embedSrcFor } from '@/lib/watch'
+import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor, embedSrcFor } from '@/lib/watch'
 
 export const metadata = {
-  title: 'Free live tennis',
+  title: 'Free live sport',
   description:
-    'Watch the ATP Challenger and ITF World Tennis Tours free, and talk about the match while it happens.',
+    'Watch live tennis and table tennis free, and talk about the match while it happens.',
 }
 
 export const dynamic = 'force-dynamic'
@@ -39,24 +39,29 @@ export default async function LivePage(props: {
     <div>
       <FeedTabs active="live" />
 
-      <h1 className="page-title">Live Tennis</h1>
+      <h1 className="page-title">Live</h1>
       <p className="wr-sub">
         Free, official, and running most days. No account needed to watch.
       </p>
 
-      {WATCH_FEEDS.length > 1 && (
-        <div className="wr-feeds">
-          {WATCH_FEEDS.map(f => (
-            <Link
-              key={f.key}
-              href={f.key === WATCH_FEEDS[0].key ? '/live' : `/live?feed=${f.key}`}
-              className={`league-chip-nav ${f.key === feed.key ? 'active' : ''}`}
-            >
-              {f.name}
-            </Link>
-          ))}
+      {/* Grouped by sport rather than one long row, because the row is
+          what stops scaling the moment there's a third sport in it. */}
+      {feedsBySport().map(group => (
+        <div key={group.sport} className="wr-group">
+          <span className="wr-group-label">{group.sport}</span>
+          <div className="wr-feeds">
+            {group.feeds.map(f => (
+              <Link
+                key={f.key}
+                href={f.key === WATCH_FEEDS[0].key ? '/live' : `/live?feed=${f.key}`}
+                className={`league-chip-nav ${f.key === feed.key ? 'active' : ''}`}
+              >
+                {f.name}
+              </Link>
+            ))}
+          </div>
         </div>
-      )}
+      ))}
 
       <div className="wr-stage">
         <iframe

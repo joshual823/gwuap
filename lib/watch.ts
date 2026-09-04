@@ -18,25 +18,59 @@
  */
 export type WatchFeed = {
   key: string
+  /** Groups the picker. Not tied to the league list — what's free to
+      watch and what has a scoreboard here are different sets. */
+  sport: string
   name: string
   blurb: string
   channel: string
 }
 
+/**
+ * Every feed here was checked the same way before it was added: the
+ * channel resolved to an official one, and one of its videos came back
+ * from YouTube's oEmbed endpoint, which only answers for videos their
+ * owner allows to be embedded. Adding a channel without that check is
+ * how you end up shipping a dead player, or someone else's rights.
+ *
+ * What can't be added, and won't be: the NFL, NBA, MLB, NHL and UFC.
+ * They sell their streaming rights, so there is no free feed to embed.
+ * That's a fact about the sport, not a gap in this list.
+ */
 export const WATCH_FEEDS: WatchFeed[] = [
   {
     key: 'challenger',
+    sport: 'Tennis',
     name: 'ATP Challenger',
     blurb: 'One rung below the main tour, streamed free by the ATP. A court feed runs all day, so it moves from match to match.',
     channel: 'UCT12ocLoA-sqRfs12yQM2Bg',
   },
   {
     key: 'itf',
+    sport: 'Tennis',
     name: 'ITF World Tennis',
     blurb: 'The World Tennis Tour, where nearly every professional starts. Coverage is thinner and comes and goes with the calendar.',
     channel: 'UC5WdeJGV1zSUtBFpg186zZg',
   },
+  {
+    key: 'wtt',
+    sport: 'Table Tennis',
+    name: 'World Table Tennis',
+    blurb: 'WTT streams its Contender and Star Contender events free, table by table, and runs most weeks of the year.',
+    channel: 'UC9ckyA_A3MfXUa0ttxMoIZw',
+  },
 ]
+
+/** The feeds grouped for the picker, in the order they're declared. */
+export function feedsBySport(): { sport: string; feeds: WatchFeed[] }[] {
+  const out: { sport: string; feeds: WatchFeed[] }[] = []
+  for (const feed of WATCH_FEEDS) {
+    const group = out.find(g => g.sport === feed.sport)
+    if (group) group.feeds.push(feed)
+    else out.push({ sport: feed.sport, feeds: [feed] })
+  }
+  return out
+}
 
 export function feedFor(key: string | undefined): WatchFeed {
   return WATCH_FEEDS.find(f => f.key === key) ?? WATCH_FEEDS[0]
