@@ -617,6 +617,13 @@ export default function NewPickForm() {
                     <span className="bet-preview-dim"> · returns {formatUsd(preview.payout)}</span></>
                 : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
             </p>
+
+            {/* Opening this was a choice, so closing it has to be one too.
+                Without a way out, a mistaken tap left money on a pick with
+                no way to take it off short of starting again. */}
+            <button type="button" className="drop-money" onClick={() => setAddMoney(false)}>
+              Remove odds and stake
+            </button>
           </>
         )}
 

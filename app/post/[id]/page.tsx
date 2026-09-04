@@ -31,7 +31,7 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
   const title = `${who}: ${what}`.trim()
   const description = p.caption?.trim()
     || [
-      p.post_kind === 'pick' ? labelFor(p.sentiment as Direction) : 'Take',
+      p.post_kind === 'pick' ? labelFor(p.sentiment as Direction, p.bet_type) : 'Take',
       p.odds, p.stake != null ? `$${p.stake}` : null,
       p.status !== 'pending' ? p.status.toUpperCase() : null,
     ].filter(Boolean).join(' · ')

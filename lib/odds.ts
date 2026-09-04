@@ -102,7 +102,26 @@ const DIRECTION_LABELS: Record<Direction, string> = {
   tie: 'Tie',
 }
 
-export function labelFor(d: Direction): string {
+/**
+ * What a direction is called on a bet of this kind.
+ *
+ * "Under" is right for a total and wrong for a first-inning bet, which
+ * everyone calls NRFI. A direction on its own doesn't carry enough to
+ * name itself once bets are about part of a game.
+ */
+const DIRECTION_BY_BET: Partial<Record<BetType, Partial<Record<Direction, string>>>> = {
+  first_inning: { over: 'YRFI', under: 'NRFI' },
+  first_five: { over: 'Over F5', under: 'Under F5' },
+  first_half: { over: 'Over 1H', under: 'Under 1H' },
+  first_five_ml: { backing: 'Leads at 5', fading: 'Trails at 5', tie: 'Tied at 5' },
+  first_half_ml: { backing: 'Leads at half', fading: 'Trails at half', tie: 'Tied at half' },
+}
+
+export function labelFor(d: Direction, betType?: BetType | null): string {
+  if (betType) {
+    const specific = DIRECTION_BY_BET[betType]?.[d]
+    if (specific) return specific
+  }
   return DIRECTION_LABELS[d] ?? d
 }
 
@@ -200,18 +219,18 @@ export const QUICK_ODDS = ['-110', '-120', '+100', '+120', '+150', '+200']
 // no separate O/U entry. Player props are broken out because they're the
 // most common casual bet and lumping them into "other" would tell us
 // nothing later.
-export const BET_TYPES: { value: BetType; label: string }[] = [
+export const BET_TYPES: { value: BetType; label: string; short?: string }[] = [
   { value: 'moneyline', label: 'Moneyline' },
   { value: 'spread', label: 'Spread' },
-  { value: 'total', label: 'Total (O/U)' },
+  { value: 'total', label: 'Total (O/U)', short: 'Total' },
   // Bets on part of a game. Settled from the period scores the
   // scoreboard already carries — innings for baseball, quarters for
   // football — so they grade themselves like any other.
-  { value: 'first_inning', label: 'First inning — run or no run' },
-  { value: 'first_five', label: 'First 5 innings — total' },
-  { value: 'first_five_ml', label: 'First 5 innings — who leads' },
-  { value: 'first_half', label: 'First half — total' },
-  { value: 'first_half_ml', label: 'First half — who leads' },
+  { value: 'first_inning', label: 'First inning — run or no run', short: '1st inning' },
+  { value: 'first_five', label: 'First 5 innings — total', short: 'First 5' },
+  { value: 'first_five_ml', label: 'First 5 innings — who leads', short: 'First 5' },
+  { value: 'first_half', label: 'First half — total', short: 'First half' },
+  { value: 'first_half_ml', label: 'First half — who leads', short: 'First half' },
   { value: 'player_prop', label: 'Player prop' },
   { value: 'team_prop', label: 'Team prop' },
   { value: 'parlay', label: 'Parlay' },

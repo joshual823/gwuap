@@ -6,7 +6,7 @@ import { labelFor, type Direction } from '@/lib/odds'
 import Avatar from '@/components/Avatar'
 
 type Person = { id: string; username: string; display_name: string | null; avatar_url: string | null }
-type Pick = { id: string; tag: string | null; caption: string | null; sentiment: string; author: { username: string } | null }
+type Pick = { id: string; tag: string | null; caption: string | null; sentiment: string; bet_type: string | null; author: { username: string } | null }
 
 export default function SearchPage() {
   const supabase = createClient()
@@ -30,7 +30,7 @@ export default function SearchPage() {
         .eq('is_banned', false)
         .limit(10),
       supabase.from('posts')
-        .select('id, tag, caption, sentiment, author:profiles!posts_author_id_fkey ( username )')
+        .select('id, tag, caption, sentiment, bet_type, author:profiles!posts_author_id_fkey ( username )')
         .ilike('tag', `%${bare}%`)
         .order('created_at', { ascending: false })
         .limit(15),
@@ -77,7 +77,7 @@ export default function SearchPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 3 }}>
               {p.tag && <span className="cashtag">{p.tag}</span>}
-              <span className={`sentiment ${p.sentiment}`}>{labelFor(p.sentiment as Direction)}</span>
+              <span className={`sentiment ${p.sentiment}`}>{labelFor(p.sentiment as Direction, p.bet_type as any)}</span>
             </div>
             <div style={{ fontSize: 13, color: 'var(--ink-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               @{p.author?.username}{p.caption ? ` · ${p.caption}` : ''}

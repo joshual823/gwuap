@@ -48,7 +48,7 @@ export default async function PostOgImage({ params }: { params: Promise<{ id: st
           </div>
           {post?.post_kind === 'pick' && (
             <div style={{ display: 'flex', fontSize: 34, marginTop: 14, color: '#8B98A5' }}>
-              {labelFor((post?.sentiment ?? 'backing') as Direction)}
+              {labelFor((post?.sentiment ?? 'backing') as Direction, post?.bet_type)}
               {post?.odds ? ` · ${post.odds}` : ''}
               {post?.stake != null ? ` · $${post.stake}` : ''}
             </div>

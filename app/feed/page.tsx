@@ -127,7 +127,7 @@ export default async function FeedPage(props: {
         <div className="ticker-strip">
           {tickerItems.map((p: any) => (
             <Link key={p.id} href={tickerHref(p.tag)} className="ticker-item">
-              {p.tag} <span className={p.sentiment}>{labelFor(p.sentiment)}</span>
+              {p.tag} <span className={p.sentiment}>{labelFor(p.sentiment, p.bet_type)}</span>
             </Link>
           ))}
         </div>

@@ -125,10 +125,10 @@ export default async function GamePage(props: {
               <div className="position-what">
                 <span className="cashtag">{p.tag}</span>
                 {p.bet_type === 'total' && p.line != null && (
-                  <span className="position-dir">{labelFor(p.sentiment as Direction)} {p.line}</span>
+                  <span className="position-dir">{labelFor(p.sentiment as Direction, p.bet_type)} {p.line}</span>
                 )}
                 {p.bet_type !== 'total' && (
-                  <span className="position-dir">{labelFor(p.sentiment as Direction)}</span>
+                  <span className="position-dir">{labelFor(p.sentiment as Direction, p.bet_type)}</span>
                 )}
                 <span className="position-terms">{p.odds}{p.stake != null && ` · $${p.stake}`}</span>
               </div>

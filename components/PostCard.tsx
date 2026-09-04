@@ -49,7 +49,10 @@ type Post = {
 }
 
 export default function PostCard({ post }: { post: Post }) {
-  const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
+  // The chip wants a name, not a description: "First inning — run or no
+  // run" is right in the form and far too long on a card.
+  const betEntry = BET_TYPES.find(b => b.value === post.bet_type)
+  const betLabel = betEntry?.short ?? betEntry?.label
 
   // Money on a hand-priced pick is the author's own note. Everyone else
   // sees the pick and its result; only the author sees the numbers,
@@ -72,7 +75,7 @@ export default function PostCard({ post }: { post: Post }) {
   const shareSummary = [
     `@${post.author.username}`,
     post.tag,
-    post.post_kind === 'pick' ? labelFor(post.sentiment) : 'take',
+    post.post_kind === 'pick' ? labelFor(post.sentiment, post.bet_type) : 'take',
     post.odds,
   ].filter(Boolean).join(' · ')
 
@@ -136,7 +139,7 @@ export default function PostCard({ post }: { post: Post }) {
           {post.tag && <Link href={tickerHref(post.tag)} className="cashtag">{post.tag}</Link>}
           {post.tag2 && <><span className="vs">vs</span><Link href={tickerHref(post.tag2)} className="cashtag">{post.tag2}</Link></>}
           {post.category && <span className="pill">{post.category.name}</span>}
-          <span className={`sentiment ${post.sentiment}`}>{labelFor(post.sentiment)}</span>
+          <span className={`sentiment ${post.sentiment}`}>{labelFor(post.sentiment, post.bet_type)}</span>
         </div>
 
         {post.caption && <RichText text={post.caption} className="post-text" />}
@@ -162,7 +165,7 @@ export default function PostCard({ post }: { post: Post }) {
                 {post.reposted.tag2 && <span className="cashtag">{post.reposted.tag2}</span>}
                 {post.reposted.post_kind === 'pick' && (
                   <span className={`sentiment ${post.reposted.sentiment}`}>
-                    {labelFor(post.reposted.sentiment as Direction)}
+                    {labelFor(post.reposted.sentiment as Direction, post.reposted.bet_type)}
                   </span>
                 )}
               </div>
