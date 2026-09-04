@@ -389,21 +389,27 @@ export default function NewPickForm() {
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
 
-        <label className="form-label">{showMatchup ? 'Teams' : 'Cashtag'}</label>
+        {/* The two teams sit together. The game suggestions used to be
+            wedged between them, which pushed the opponent field so far
+            down that people posted matchup bets on one team without
+            realising the second field was there at all. */}
+        <label className="form-label">{showMatchup ? 'Team' : 'Cashtag'}</label>
         <CashtagInput value={tag} onChange={setTag} league={leagueName} categoryId={categoryId} />
 
-        {/* Once there's a league, the fixtures are knowable — so offer
-            them rather than making someone leave, find the game, and come
-            back. Hidden once a pick already came from a market: it's
-            already filled in, and re-offering it would just be noise. */}
-        {kind === 'pick' && !fromBook && (
-          <GamePicker league={leagueName} query={tag} onSelect={applyMarket} />
-        )}
         {showMatchup && (
           <>
-            <label className="form-label">Opponent — a total is on the game, not one team</label>
+            <label className="form-label">Opponent</label>
             <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
+            <p className="form-hint">
+              This bet is on the game, so it names both sides.
+            </p>
           </>
+        )}
+
+        {/* Below the teams, not between them: it's a shortcut to filling
+            them in, so it belongs after the thing it fills. */}
+        {kind === 'pick' && !fromBook && (
+          <GamePicker league={leagueName} query={tag} onSelect={applyMarket} />
         )}
 
         {wantsLine && (

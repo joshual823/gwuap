@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGamesWindow, LEAGUES_WITH_SCORES } from '@/lib/scores'
+import { fetchGames, fetchGamesWindow, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import GameGrid from '@/components/GameGrid'
 import GameCard from '@/components/GameCard'
 
@@ -11,7 +11,13 @@ export default async function LeagueScoresPage(props: { params: Promise<{ league
   const league = decodeURIComponent(params.league)
   if (!LEAGUES_WITH_SCORES.includes(league)) notFound()
 
-  const games = await fetchGamesWindow(league)
+  // Out of season the window finds nothing — the NBA's next game in
+  // early September is a month away — and the overview already falls
+  // back to whatever ESPN considers current. Without the same fallback
+  // here, a league showed a card on the home page and an empty page
+  // behind it, which reads as broken rather than as out of season.
+  const windowed = await fetchGamesWindow(league)
+  const games = windowed.length > 0 ? windowed : await fetchGames(league)
   const live = games.filter(g => g.state === 'in')
   // A Grand Slam draw is a couple of hundred unplayed matches stretching a
   // fortnight out. Sorted soonest-first, so this is roughly the next two
