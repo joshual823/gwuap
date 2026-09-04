@@ -1,33 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGamesWindow, LEAGUES_WITH_SCORES, gameHref, type Game } from '@/lib/scores'
+import { fetchGamesWindow, LEAGUES_WITH_SCORES } from '@/lib/scores'
+import GameGrid from '@/components/GameGrid'
+import GameCard from '@/components/GameCard'
 
 export const dynamic = 'force-dynamic'
-
-function GameRow({ game }: { game: Game }) {
-  return (
-    <Link href={gameHref(game)} className="score-row">
-      <div className="score-teams">
-        <div className="score-side">
-          <span className="score-team">{game.away.code}</span>
-          {game.state !== 'pre' && <span className="score-num">{game.away.score}</span>}
-        </div>
-        <div className="score-side">
-          <span className="score-team">{game.home.code}</span>
-          {game.state !== 'pre' && <span className="score-num">{game.home.score}</span>}
-        </div>
-      </div>
-      <div className="score-meta">
-        <span className={`score-status ${game.state}`}>
-          {game.state === 'in' && <span className="live-dot" />}{game.status}
-        </span>
-        {game.spread && <span className="score-line">{game.spread}</span>}
-        {game.overUnder != null && <span className="score-line dim">o/u {game.overUnder}</span>}
-      </div>
-      <span className="score-cta">Open →</span>
-    </Link>
-  )
-}
 
 export default async function LeagueScoresPage(props: { params: Promise<{ league: string }> }) {
   const params = await props.params
@@ -57,14 +34,19 @@ export default async function LeagueScoresPage(props: { params: Promise<{ league
         </p>
       )}
 
+      {/* Live games are never many and are the reason to be here, so they
+          all show. The other two sections can run to dozens, so they
+          reveal in batches rather than making the page a mile long. */}
       {live.length > 0 && <h2 className="comments-heading">Live now</h2>}
-      {live.map(g => <GameRow key={g.id} game={g} />)}
+      {live.length > 0 && <div className="game-grid">
+        {live.map(g => <GameCard game={g} key={g.id} className="game-tile" />)}
+      </div>}
 
       {upcoming.length > 0 && <h2 className="comments-heading">Starting soon</h2>}
-      {upcoming.map(g => <GameRow key={g.id} game={g} />)}
+      {upcoming.length > 0 && <GameGrid games={upcoming} />}
 
       {recent.length > 0 && <h2 className="comments-heading">Last few days</h2>}
-      {recent.map(g => <GameRow key={g.id} game={g} />)}
+      {recent.length > 0 && <GameGrid games={recent} />}
     </div>
   )
 }

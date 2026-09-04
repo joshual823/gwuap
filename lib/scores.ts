@@ -356,8 +356,17 @@ function stamp(offsetDays: number): string {
  * tournament carrying the whole draw already, so a date filter would
  * narrow it to nothing.
  */
+/**
+ * A window around today.
+ *
+ * Ten days forward rather than three, because a week isn't long enough
+ * to catch a sport that plays weekly. On 4 September the NFL's whole
+ * opening weekend sat outside a three-day window, so the busiest league
+ * on the site had an empty page in the days before its season started —
+ * exactly when people would come looking.
+ */
 export async function fetchGamesWindow(
-  league: string, daysBack = 3, daysForward = 3,
+  league: string, daysBack = 3, daysForward = 10,
 ): Promise<Game[]> {
   // Tennis gets the whole draw, not the handful the cards are capped to.
   // The cap exists so a Grand Slam doesn't flood the rail; a league page

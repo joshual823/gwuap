@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { gameHref, type Game } from '@/lib/scores'
 import ScoreRail from './ScoreRail'
+import GameCard from './GameCard'
 
 /** Colour per league, so the board reads as a live board rather than a grey list. */
 function leagueSlug(league: string): string {
@@ -38,37 +39,12 @@ export default function Scoreboard({ games, title = 'Today', href, autoScroll = 
       </div>
       <ScoreRail loop={marquee}>
           {track.map((game, i) => (
-            <Link
-              href={gameHref(game)}
+            <GameCard
+              game={game}
               key={`${game.league}-${game.id}-${i}`}
-              className={`game lg-${leagueSlug(game.league)} ${game.state === 'in' ? 'is-live' : ''}`}
               aria-hidden={marquee && i >= games.length ? true : undefined}
               tabIndex={marquee && i >= games.length ? -1 : undefined}
-            >
-              <div className="game-top">
-                <span className="game-league">{game.league}</span>
-                {game.state === 'in' && <span className="game-live"><span className="live-dot" />LIVE</span>}
-              </div>
-
-              {[game.away, game.home].map((side, n) => (
-                <div className="game-row" key={n}>
-                  <span className="game-side">
-                    {side.logo && <img src={side.logo} alt="" className="game-logo" loading="lazy" />}
-                    <span className="game-team">{side.label ?? side.code}</span>
-                  </span>
-                  {game.state !== 'pre' && <span className="game-score">{side.score}</span>}
-                </div>
-              ))}
-
-              <div className={`game-status ${game.state}`}>{game.status}</div>
-
-              {(game.spread || game.overUnder != null) && (
-                <div className="game-odds">
-                  {game.spread && <span>{game.spread}</span>}
-                  {game.overUnder != null && <span className="game-ou">o/u {game.overUnder}</span>}
-                </div>
-              )}
-            </Link>
+            />
           ))}
       </ScoreRail>
     </div>
