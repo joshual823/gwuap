@@ -115,8 +115,9 @@ export default async function FeedPage(props: {
   // one person's post, which makes the panel look thinner than saying
   // nothing would. Below the threshold the whole card hides itself.
   const MIN_TRENDING_PICKS = 3
-  // Two different people, so a tag can't be talked into trending alone.
-  const MIN_TRENDING_VOICES = 2
+  // Three different people. Two is a conversation; three is the smallest
+  // number that reads as a group rather than someone and a friend.
+  const MIN_TRENDING_VOICES = 3
 
   const trending = Object.entries(tagCounts)
     .map(([tag, counts]) => {
