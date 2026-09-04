@@ -113,68 +113,71 @@ export default function EditProfile({ profile }: {
   const NAME_MAX = 40
 
   return (
-    /* A panel rather than a column of boxes wedged beside the header.
-       Full width, one row per thing, and the two fields with limits say
-       how much room is left — a count that only appears once you're
-       close reads as a warning instead of a nag. */
-    <form onSubmit={save} className="edit-profile">
-      <div className="edit-head">
-        <strong>Edit profile</strong>
-        <div className="edit-head-actions">
-          <button className="btn secondary" type="button"
-            onClick={() => { setOpen(false); setError(null) }}>Cancel</button>
-          <button className="btn" type="submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+    /* A sheet over the page, not a panel inside the header. It used to
+       render where the button is — inside a flex row sized to its
+       content — so a full-width form overflowed off the right edge and
+       got clipped. Lifting it out of the layout is the only fix that
+       doesn't depend on where the button happens to sit. */
+    <div className="edit-overlay" role="dialog" aria-modal="true" aria-label="Edit profile">
+      <form onSubmit={save} className="edit-profile">
+        <div className="edit-head">
+          <strong>Edit profile</strong>
+          <div className="edit-head-actions">
+            <button className="btn secondary" type="button"
+              onClick={() => { setOpen(false); setError(null) }}>Cancel</button>
+            <button className="btn" type="submit" disabled={saving}>
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div className="edit-row">
-        <label className="form-label">Profile picture</label>
-        <input type="file" accept="image/*" className="field"
-          onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
-        <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
-      </div>
+        <div className="edit-row">
+          <label className="form-label">Profile picture</label>
+          <input type="file" accept="image/*" className="field"
+            onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
+          <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
+        </div>
 
-      <div className="edit-row">
-        <label className="form-label">Username</label>
-        <input className="field" value={username} autoCapitalize="none"
-          onChange={e => setUsername(e.target.value)} required />
-        <p className="field-hint">
-          3–20 characters. Letters, numbers and underscores. Changing it changes
-          the link to your profile.
-        </p>
-      </div>
+        <div className="edit-row">
+          <label className="form-label">Username</label>
+          <input className="field" value={username} autoCapitalize="none"
+            onChange={e => setUsername(e.target.value)} required />
+          <p className="field-hint">
+            3–20 characters. Letters, numbers and underscores. Changing it changes
+            the link to your profile.
+          </p>
+        </div>
 
-      <div className="edit-row">
-        <label className="form-label">Display name</label>
-        <input className="field" value={displayName} placeholder="Optional"
-          onChange={e => setDisplayName(e.target.value)} maxLength={NAME_MAX} />
-        {displayName.length > NAME_MAX - 10 && (
-          <p className="edit-count">{NAME_MAX - displayName.length} left</p>
-        )}
-      </div>
+        <div className="edit-row">
+          <label className="form-label">Display name</label>
+          <input className="field" value={displayName} placeholder="Optional"
+            onChange={e => setDisplayName(e.target.value)} maxLength={NAME_MAX} />
+          {displayName.length > NAME_MAX - 10 && (
+            <p className="edit-count">{NAME_MAX - displayName.length} left</p>
+          )}
+        </div>
 
-      <div className="edit-row">
-        <label className="form-label">Bio</label>
-        <textarea className="field edit-bio" rows={3} value={bio}
-          placeholder="A line about you. What you follow, how you bet, whatever."
-          onChange={e => setBio(e.target.value)} maxLength={BIO_MAX} />
-        <p className={`edit-count ${bio.length > BIO_MAX - 20 ? 'close' : ''}`}>
-          {bio.length} / {BIO_MAX}
-        </p>
-      </div>
+        <div className="edit-row">
+          <label className="form-label">Bio</label>
+          <textarea className="field edit-bio" rows={3} value={bio}
+            placeholder="A line about you. What you follow, how you bet, whatever."
+            onChange={e => setBio(e.target.value)} maxLength={BIO_MAX} />
+          <p className={`edit-count ${bio.length > BIO_MAX - 20 ? 'close' : ''}`}>
+            {bio.length} / {BIO_MAX}
+          </p>
+        </div>
 
-      <div className="edit-row">
-        <label className="form-label">Sports you follow</label>
-        <p className="field-hint">
-          Up to {MAX_PREFERRED}. Your scores and headlines lead with these.
-          Choose none and you get a bit of everything.
-        </p>
-        <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
-      </div>
+        <div className="edit-row">
+          <label className="form-label">Sports you follow</label>
+          <p className="field-hint">
+            Up to {MAX_PREFERRED}. Your scores and headlines lead with these.
+            Choose none and you get a bit of everything.
+          </p>
+          <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
+        </div>
 
-      {error && <p className="edit-error">{error}</p>}
-    </form>
+        {error && <p className="edit-error">{error}</p>}
+      </form>
+    </div>
   )
 }
