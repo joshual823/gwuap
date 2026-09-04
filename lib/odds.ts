@@ -8,6 +8,7 @@
 
 export type BetType =
   | 'moneyline' | 'spread' | 'total'
+  | 'first_inning' | 'first_five' | 'first_half'
   | 'player_prop' | 'team_prop' | 'parlay' | 'future' | 'other'
 export type PickStatus = 'pending' | 'win' | 'loss' | 'push' | 'void'
 
@@ -24,7 +25,27 @@ export type PostKind = 'take' | 'pick'
 export type Direction = 'backing' | 'fading' | 'over' | 'under' | 'neutral'
 
 /** Bet types priced on a number rather than a side. */
-const OVER_UNDER_BETS: BetType[] = ['total', 'player_prop', 'team_prop']
+const OVER_UNDER_BETS: BetType[] = [
+  'total', 'first_inning', 'first_five', 'first_half',
+  'player_prop', 'team_prop',
+]
+
+/**
+ * Bets on part of a game, and which periods each one covers.
+ *
+ * Innings for baseball, quarters for football — the scoreboard numbers
+ * them the same way, so one map covers both. NRFI is a total of 0.5 over
+ * the first inning: no runs and the under wins.
+ */
+export const PERIOD_BETS: Record<string, { periods: number; defaultLine?: number }> = {
+  first_inning: { periods: 1, defaultLine: 0.5 },
+  first_five: { periods: 5 },
+  first_half: { periods: 2 },
+}
+
+export function isPeriodBet(betType: BetType): boolean {
+  return betType in PERIOD_BETS
+}
 
 /**
  * How a direction is written when it's shown on its own — the ticker, the
@@ -86,7 +107,9 @@ export function isPropBet(kind: PostKind, betType: BetType): boolean {
 
 /** Totals sit on a game, so they get an optional opponent cashtag. */
 export function wantsMatchup(kind: PostKind, betType: BetType): boolean {
-  return kind === 'pick' && betType === 'total'
+  // Anything on the whole game or part of it is on the fixture, not on
+  // one side, so it carries both teams.
+  return kind === 'pick' && (betType === 'total' || isPeriodBet(betType))
 }
 
 /** One tap covers most real prices; -110 is the standard spread/total juice. */
@@ -100,6 +123,12 @@ export const BET_TYPES: { value: BetType; label: string }[] = [
   { value: 'moneyline', label: 'Moneyline' },
   { value: 'spread', label: 'Spread' },
   { value: 'total', label: 'Total (O/U)' },
+  // Bets on part of a game. Settled from the period scores the
+  // scoreboard already carries — innings for baseball, quarters for
+  // football — so they grade themselves like any other.
+  { value: 'first_inning', label: 'First inning (NRFI/YRFI)' },
+  { value: 'first_five', label: 'First 5 innings' },
+  { value: 'first_half', label: 'First half' },
   { value: 'player_prop', label: 'Player prop' },
   { value: 'team_prop', label: 'Team prop' },
   { value: 'parlay', label: 'Parlay' },

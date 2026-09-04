@@ -113,6 +113,38 @@ check('fade the loser',   gradePick({betType:'moneyline',sentiment:'fading', tic
 const draw = game('A', '0', 'B', '0')
 check('draw is a push',   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$A',line:null}, draw), 'push')
 
+console.log('PART-OF-GAME BETS — settled from innings / quarters')
+// PIT [2,0,0,0,0,2,0,1] vs SF [0,0,0,0,0,0,2,0,0] — a real 5-2 final.
+function withPeriods(a: string[], h: string[], aTot: string, hTot: string): Game {
+  const g = game('SF', aTot, 'PIT', hTot)
+  return { ...g, away: { ...g.away, byPeriod: a }, home: { ...g.home, byPeriod: h } }
+}
+const mlb = withPeriods(
+  ['0','0','0','0','0','0','2','0','0'],
+  ['2','0','0','0','0','2','0','1'], '2', '5')
+
+// First inning: 0 + 2 = 2 runs, so YRFI.
+check('NRFI loses (2 ran)',  gradePick({betType:'first_inning',sentiment:'under',ticker:null,line:0.5}, mlb), 'loss')
+check('YRFI wins',           gradePick({betType:'first_inning',sentiment:'over', ticker:null,line:0.5}, mlb), 'win')
+check('NRFI needs no line',  gradePick({betType:'first_inning',sentiment:'over', ticker:null,line:null}, mlb), 'win')
+
+// First five: SF 0, PIT 2 = 2.
+check('F5 over 1.5',         gradePick({betType:'first_five',sentiment:'over', ticker:null,line:1.5}, mlb), 'win')
+check('F5 under 1.5',        gradePick({betType:'first_five',sentiment:'under',ticker:null,line:1.5}, mlb), 'loss')
+check('F5 push on 2',        gradePick({betType:'first_five',sentiment:'over', ticker:null,line:2}, mlb), 'push')
+
+// NFL: TB [10,3,0,3] vs CAR [0,7,0,7] — first half 10+3+0+7 = 20.
+const nfl = withPeriods(['0','7','0','7'], ['10','3','0','3'], '14', '16')
+check('1H over 19.5',        gradePick({betType:'first_half',sentiment:'over', ticker:null,line:19.5}, nfl), 'win')
+check('1H under 19.5',       gradePick({betType:'first_half',sentiment:'under',ticker:null,line:19.5}, nfl), 'loss')
+
+console.log('AND THEY REFUSE WHEN THE PERIODS WEREN\'T PLAYED')
+const short = withPeriods(['0','1'], ['0','0'], '1', '0')   // only 2 innings
+check('F5 on a 2-inning game', blockedReason(gradePick({betType:'first_five',sentiment:'over',ticker:null,line:1.5}, short)), 'no-score')
+check('but 1H is fine',        gradePick({betType:'first_half',sentiment:'over',ticker:null,line:0.5}, short), 'win')
+const noPeriods = game('SF','2','PIT','5')
+check('no periods at all',     blockedReason(gradePick({betType:'first_inning',sentiment:'over',ticker:null,line:0.5}, noPeriods)), 'no-score')
+
 console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
 
 console.log(`\n${pass} passed, ${fail} failed`)

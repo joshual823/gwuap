@@ -1,5 +1,5 @@
 import type { Game } from './scores'
-import type { Direction, BetType } from './odds'
+import { isPeriodBet, PERIOD_BETS, type Direction, type BetType } from './odds'
 
 /**
  * Settling a pick against a final score.
@@ -65,7 +65,12 @@ export const BLOCKED_LABELS: Record<Blocked, string> = {
 }
 
 /** Bet types a final score can settle. Everything else is left alone. */
-export const GRADEABLE_BET_TYPES: BetType[] = ['moneyline', 'spread', 'total']
+export const GRADEABLE_BET_TYPES: BetType[] = [
+  'moneyline', 'spread', 'total',
+  // Settled from the period scores the scoreboard carries. A player prop
+  // still can't be: it needs a box score, not a scoreline.
+  'first_inning', 'first_five', 'first_half',
+]
 
 export function isGradeable(betType: BetType): boolean {
   return GRADEABLE_BET_TYPES.includes(betType)
@@ -108,6 +113,15 @@ export function projectPick(pick: GradeInput, game: Game): Outcome | null {
   return 'outcome' in r ? r.outcome : null
 }
 
+function overUnder(actual: number, line: number, sentiment: Direction): GradeResult {
+  if (actual === line) return { outcome: 'push' }
+  const wentOver = actual > line
+  if (sentiment === 'over') return { outcome: wentOver ? 'win' : 'loss' }
+  if (sentiment === 'under') return { outcome: wentOver ? 'loss' : 'win' }
+  // Posted as backing/fading, which names no side of a total.
+  return { blocked: 'no-side' }
+}
+
 function settle(pick: GradeInput, game: Game): GradeResult {
   if (!isGradeable(pick.betType)) return { blocked: 'unsupported-bet' }
 
@@ -115,15 +129,39 @@ function settle(pick: GradeInput, game: Game): GradeResult {
   const home = scoreOf(game.home)
   if (away === null || home === null) return { blocked: 'no-score' }
 
+  // A bet on part of a game. Same over/under arithmetic as a full total,
+  // over a slice of the innings or quarters instead of the final score.
+  if (isPeriodBet(pick.betType)) {
+    const spec = PERIOD_BETS[pick.betType]
+    const line = pick.line ?? spec.defaultLine ?? null
+    if (line === null) return { blocked: 'missing-line' }
+
+    const partial = (byPeriod: string[] | undefined) => {
+      if (!byPeriod || byPeriod.length < spec.periods) return null
+      let sum = 0
+      for (let i = 0; i < spec.periods; i++) {
+        const n = Number(byPeriod[i])
+        if (!Number.isFinite(n)) return null
+        sum += n
+      }
+      return sum
+    }
+
+    // A game can end before the periods a bet covers — rain in the
+    // fourth, a walk-off in the ninth that never reaches the bottom.
+    // Refusing is the only honest answer; a partial sum would settle a
+    // bet on innings that were never played.
+    const a = partial(game.away.byPeriod)
+    const h = partial(game.home.byPeriod)
+    if (a === null || h === null) return { blocked: 'no-score' }
+
+    return overUnder(a + h, line, pick.sentiment)
+  }
+
   if (pick.betType === 'total') {
     if (pick.line === null) return { blocked: 'missing-line' }
     const combined = away + home
-    if (combined === pick.line) return { outcome: 'push' }
-    const wentOver = combined > pick.line
-    if (pick.sentiment === 'over') return { outcome: wentOver ? 'win' : 'loss' }
-    if (pick.sentiment === 'under') return { outcome: wentOver ? 'loss' : 'win' }
-    // A total posted as backing/fading has no side to settle.
-    return { blocked: 'no-side' }
+    return overUnder(combined, pick.line, pick.sentiment)
   }
 
   // Moneyline and spread are both about one named team, so the pick has

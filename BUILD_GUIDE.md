@@ -301,6 +301,20 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   because ESPN's odds *are* DraftKings — same numbers, through an
   endpoint meant to be read. Player props, alternate lines and live
   in-game odds are the gap, and they need a paid feed.
+- **Bets on part of a game (migration 028).** First inning (NRFI/YRFI),
+  first five innings, first half. The scoreboard already carries innings
+  and quarters per side, so these settle from the same feed as
+  everything else. They refuse when the periods weren't played — a game
+  called in the fourth can't settle a first-five bet, and a partial sum
+  would be a guess.
+- **Home runs and player props can't be graded.** They need a box score,
+  not a scoreline. Deliberately not offered as auto-graded types: a bet
+  type that can never settle is worse than one that doesn't exist.
+- **Money requires a posted price (migration 028).** Odds were free text,
+  so "$5 to win $1,000,000" was a legal pick. Picks taken from a real
+  market keep their money; hand-entered ones keep their result and carry
+  no payout. That means tennis, UFC and props are result-only, since
+  ESPN publishes no odds for them.
 - **Picks can be posted from real markets (migration 025).** ESPN's
   scoreboard carries DraftKings prices per side — moneyline, spread and
   total — for games that haven't started. Tapping one fills the form and

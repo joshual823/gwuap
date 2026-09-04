@@ -218,11 +218,14 @@ export default function NewPickForm() {
       return
     }
 
-    if (oddsValue === null) {
+    if (!fromBook) {
+      // Nothing to validate: a pick without a posted price carries no
+      // money at all, so the odds and stake fields aren't shown.
+    } else if (oddsValue === null) {
       setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
       return
     }
-    if (!stakeValid) {
+    if (fromBook && !stakeValid) {
       setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
       return
     }
@@ -245,9 +248,11 @@ export default function NewPickForm() {
       sentiment,
       caption: caption.trim(),
       bet_type: betType,
-      odds: oddsText,
-      stake,
-      potential_payout: payoutOnWin(oddsValue, stake),
+      // A price that came from nowhere buys nothing. The pick keeps its
+      // result; it just doesn't get to claim a payout.
+      odds: fromBook ? oddsText : null,
+      stake: fromBook ? stake : null,
+      potential_payout: fromBook && oddsValue !== null ? payoutOnWin(oddsValue, stake) : null,
       game_id: gameId,
       game_league: gameId ? gameLeague : null,
       game_starts_at: gameId ? gameStartsAt : null,
@@ -352,7 +357,16 @@ export default function NewPickForm() {
           placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
           value={caption} onChange={setCaption} />
 
-        {kind === 'pick' && (
+        {kind === 'pick' && !fromBook && (
+          <p className="form-hint">
+            No money on this one — the price wasn&apos;t taken from a book, so
+            there&apos;s nothing to check it against. It still counts as a
+            win or a loss. Tap a market on a game page to post at a real
+            price and have the payout count.
+          </p>
+        )}
+
+        {kind === 'pick' && fromBook && (
           <>
             <label className="form-label">Odds</label>
             {fromBook ? (

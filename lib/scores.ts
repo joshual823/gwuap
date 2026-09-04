@@ -113,6 +113,12 @@ function side(competitor: any): GameSide {
     name: team.displayName ?? team.name ?? '',
     score: competitor?.score ?? null,
     logo: team.logo ?? null,
+    // Innings for baseball, quarters for football. Carried because
+    // several of the bets people actually make are about part of a game
+    // rather than all of it, and this is the only place that says so.
+    byPeriod: (competitor?.linescores ?? [])
+      .map((l: any) => String(l?.value ?? l?.displayValue ?? ''))
+      .filter((v: string) => v !== ''),
   }
 }
 
