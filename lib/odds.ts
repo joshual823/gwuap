@@ -309,6 +309,30 @@ export function profitForStatus(
   return profitOnWin(oddsValue, stake)
 }
 
+/**
+ * Whether a settled pick failing to price is actually a problem.
+ *
+ * It is only a problem when money was claimed. Since money became
+ * opt-in, most picks carry no stake at all — that's the whole free-to-
+ * play case — and profitForStatus returns null for every one of them.
+ * Reading that null as "a win we can't price" sends a perfectly good
+ * result to the review queue instead of onto somebody's record.
+ *
+ * A pick with no stake settles on its record and carries no profit,
+ * which is exactly what the leaderboard expects: it counts wins by
+ * status and only ever sums profit for book-priced picks.
+ */
+export function pricingNeedsReview(
+  status: PickStatus,
+  odds: string | null | undefined,
+  stake: number | null | undefined,
+): boolean {
+  // Nothing was staked, so there is nothing to price and nothing wrong.
+  if (stake == null) return false
+  if (status === 'void') return false
+  return profitForStatus(status, odds, stake) === null
+}
+
 /** "$50", "$45.45", "-$1,250.50" — cents shown only when there are any. */
 export function formatUsd(n: number): string {
   const rounded = round2(n)

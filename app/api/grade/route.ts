@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabaseServer'
 import { fetchGamesWindow, type Game } from '@/lib/scores'
 import { gradePick, needsReview, GRADEABLE_BET_TYPES } from '@/lib/grade'
-import { profitForStatus } from '@/lib/odds'
+import { profitForStatus, pricingNeedsReview } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -135,11 +135,14 @@ async function run(request: Request) {
     }
 
     const outcome = result.outcome
+    // Null when no money was staked, which is now the ordinary case.
+    // The pick still settles; it just carries no dollar figure.
     const profit = profitForStatus(outcome, pick.odds, pick.stake)
-    // A win we can't price is a data problem, not a result. Leave it
-    // pending and send it for review rather than booking $0 against
-    // somebody's record.
-    if (profit === null && outcome !== 'void') {
+    // A win we staked money on and can't price is a data problem, not a
+    // result — leave it pending for review rather than booking $0
+    // against somebody's record. A win with no money on it is not that:
+    // it's most picks on the site, and it grades like any other.
+    if (pricingNeedsReview(outcome, pick.odds, pick.stake)) {
       note('could not price the payout')
       await flag(pick.id, 'unpriceable')
       continue

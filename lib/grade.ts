@@ -67,6 +67,18 @@ export const BLOCKED_LABELS: Record<Blocked, string> = {
   'no-side': 'The direction does not name a side of this pick',
 }
 
+/**
+ * Every reason that can end up in posts.grade_note, in English.
+ *
+ * Wider than BLOCKED_LABELS because the grading job writes one note the
+ * grader itself never produces: a pick it settled but couldn't price.
+ * That one used to reach the admin queue as the bare word "unpriceable".
+ */
+export const GRADE_NOTE_LABELS: Record<string, string> = {
+  ...BLOCKED_LABELS,
+  unpriceable: 'Settled, but the payout could not be priced from the odds and amount on the pick',
+}
+
 /** Bet types a final score can settle. Everything else is left alone. */
 export const GRADEABLE_BET_TYPES: BetType[] = [
   'moneyline', 'spread', 'total',

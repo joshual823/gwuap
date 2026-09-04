@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { redirect } from 'next/navigation'
 import AdminActions from './AdminActions'
 import GradeReview from './GradeReview'
-import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
+import { GRADE_NOTE_LABELS } from '@/lib/grade'
 import { roomLabel } from '@/lib/watch'
 
 export const dynamic = 'force-dynamic'
@@ -65,7 +65,7 @@ export default async function AdminPage() {
       {(stuck ?? []).map((p: any) => (
         <div key={p.id} className="ticket priority" style={{ marginBottom: 10 }}>
           <span className="ticket-flag">
-            {BLOCKED_LABELS[p.grade_note as Blocked] ?? p.grade_note}
+            {GRADE_NOTE_LABELS[p.grade_note] ?? p.grade_note}
           </span>
           <p style={{ margin: '0 0 4px', fontSize: 14 }}>
             <strong>@{p.author?.username}</strong> · {p.bet_type} · {p.sentiment}

@@ -1,5 +1,5 @@
 import { splitAmericanOdds, formatAmericanOdds, labelFor, BET_TYPES, QUICK_ODDS,
-         wantsMatchup, allowsOpponent } from './odds'
+         wantsMatchup, allowsOpponent, pricingNeedsReview } from './odds'
 
 let pass = 0, fail = 0
 function check(label: string, got: unknown, want: unknown) {
@@ -59,6 +59,26 @@ check('pick total: both sides',          allowsOpponent('pick', 'total'), true)
 check('pick total wants the matchup',    wantsMatchup('pick', 'total'), true)
 check('pick NRFI is on the fixture',     allowsOpponent('pick', 'first_inning'), true)
 check('pick prop is on one side',        allowsOpponent('pick', 'player_prop'), false)
+
+console.log('\na pick with no money still settles')
+// The regression this exists to stop: money became opt-in, so most picks
+// carry no stake, and profitForStatus returns null for every one of
+// them. Treating that null as a pricing failure sent every free pick to
+// the review queue instead of onto the leaderboard — the whole point of
+// the site, silently switched off.
+check('free win is not a problem',      pricingNeedsReview('win',  null,   null), false)
+check('free loss is not a problem',     pricingNeedsReview('loss', null,   null), false)
+check('free push is not a problem',     pricingNeedsReview('push', null,   null), false)
+check('free pick with odds, no stake',  pricingNeedsReview('win',  '-110', null), false)
+
+console.log('\nbut a pick with money on it still has to price')
+check('staked win prices fine',   pricingNeedsReview('win',  '-110', 50), false)
+check('staked loss prices fine',  pricingNeedsReview('loss', null,   50), false)
+// A staked win with unreadable odds is the real data problem: there is a
+// dollar figure owed and no way to work it out.
+check('staked win, garbled odds', pricingNeedsReview('win',  'abc',  50), true)
+check('staked win, no odds',      pricingNeedsReview('win',  null,   50), true)
+check('void never needs review',  pricingNeedsReview('void', 'abc',  50), false)
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)
