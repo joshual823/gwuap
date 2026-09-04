@@ -77,6 +77,13 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
           Sign up free
         </Link>
 
+        {/* The rules are one tap away because the card makes a claim
+            about money. A prize with nowhere to read the terms is the
+            shape of every scam anyone has ever been shown. */}
+        <Link href="/contest" className="welcome-rules" onClick={close}>
+          Read the contest rules
+        </Link>
+
         <button type="button" className="welcome-close" onClick={close} disabled={!ready}>
           {ready ? 'Maybe later' : 'Have a look first…'}
           <span className="welcome-bar" aria-hidden="true">

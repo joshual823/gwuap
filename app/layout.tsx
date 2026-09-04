@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
-import ContestBanner from '@/components/ContestBanner'
 
 // Self-hosted at build time. The old CSS @import made the browser fetch
 // our stylesheet, then Google's stylesheet, then the font files — a
@@ -104,9 +103,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <div className="app">
-        {/* Logged-out only: the pitch is for people who haven't joined,
-            and it would be noise above a feed you already use. */}
-        {!user && <ContestBanner />}
         <header className="topbar">
           <div className="topbar-inner">
             <Link href="/feed" className="wordmark">{SITE_NAME}</Link>
