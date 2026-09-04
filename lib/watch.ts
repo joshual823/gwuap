@@ -16,6 +16,22 @@
  * Deliberately not the matches on /scores. ESPN carries the main tour,
  * whose streaming rights are sold; what's free is the tier below it.
  */
+/**
+ * Whether the Live room is open to the public.
+ *
+ * Off until there's a YOUTUBE_API_KEY in Vercel. Without one the room
+ * can only show "whatever is live on this channel", which is an offline
+ * card most of the time — and an offline player is a worse first
+ * impression than no room at all, particularly for someone arriving
+ * from an ad.
+ *
+ * Flip to true and push. Nothing else needs changing: the tab reappears,
+ * the route opens, and the noindex comes off. Admins can already see
+ * /live while this is false, so it can be checked on the real site
+ * before anyone else is let in.
+ */
+export const LIVE_ROOM_PUBLIC = false
+
 export type WatchFeed = {
   key: string
   /** Groups the picker. Not tied to the league list — what's free to

@@ -3,13 +3,17 @@ import FeedTabs from '@/components/FeedTabs'
 import GameChat from '@/components/GameChat'
 import { createClient } from '@/lib/supabaseServer'
 import LivePicker from '@/components/LivePicker'
+import { notFound } from 'next/navigation'
 import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor, embedSrcFor,
-         fetchLive, embedSrcForVideo } from '@/lib/watch'
+         fetchLive, embedSrcForVideo, LIVE_ROOM_PUBLIC } from '@/lib/watch'
 
 export const metadata = {
   title: 'Free live sport',
   description:
     'Watch live tennis and table tennis free, and talk about the match while it happens.',
+  // Nothing unlaunched should be sitting in search results, where it
+  // would outlive the decision to hide it.
+  ...(LIVE_ROOM_PUBLIC ? {} : { robots: { index: false, follow: false } }),
 }
 
 export const dynamic = 'force-dynamic'
@@ -47,11 +51,29 @@ export default async function LivePage(props: {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Hidden, but reachable by whoever has to decide whether it's ready.
+  // A flag that can only be tested by launching isn't much of a flag.
+  let canPreview = LIVE_ROOM_PUBLIC
+  if (!canPreview && user) {
+    const { data: me } = await supabase
+      .from('profiles').select('is_admin').eq('id', user.id).maybeSingle()
+    canPreview = !!me?.is_admin
+  }
+  if (!canPreview) notFound()
+
   return (
     <div>
       <FeedTabs active="live" />
 
       <h1 className="page-title">Live</h1>
+
+      {!LIVE_ROOM_PUBLIC && (
+        <p className="form-warn">
+          <strong>Not launched.</strong> Only admins can reach this page, and
+          the tab is hidden. Add <code>YOUTUBE_API_KEY</code> in Vercel, then
+          set <code>LIVE_ROOM_PUBLIC</code> to true in <code>lib/watch.ts</code>.
+        </p>
+      )}
       <p className="wr-sub">
         Free, official, and running most days. No account needed to watch.
       </p>
