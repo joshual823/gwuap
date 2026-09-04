@@ -901,7 +901,12 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 
 /* Game / Chat toggle and the room itself */
 .gd-tabs { display: inline-flex; gap: 3px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; margin: 12px 0; }
-.gd-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 700; color: var(--ink-dim); }
+.gd-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 700; color: var(--ink-dim);
+  border: none; background: transparent; cursor: pointer;
+}
 .gd-tab-count {
   font-size: 11px; font-weight: 800; min-width: 18px; text-align: center;
   padding: 1px 6px; border-radius: 999px;

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { fetchGameDetail, fetchGamesWindow, postHrefForGame, postHrefForMarket, kickoff, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
+import GameTabs from './GameTabs'
 import WatchButton from '@/components/WatchButton'
 import { createClient } from '@/lib/supabaseServer'
 import { projectPick } from '@/lib/grade'
@@ -103,16 +104,14 @@ export default async function GamePage(props: {
           initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())} label />
       </div>
 
-      <div className="gd-tabs">
-        <Link href={base} className={`gd-tab ${tab === 'game' ? 'active' : ''}`}>Game</Link>
-        <Link href={`${base}?tab=chat`} className={`gd-tab ${tab === 'chat' ? 'active' : ''}`}>
-          Chat{chatCount ? <span className="gd-tab-count">{chatCount}</span> : null}
-        </Link>
-      </div>
-
+      <GameTabs
+        initial={tab}
+        base={base}
+        chatCount={chatCount ?? 0}
+        game={<>
       {/* Your own money on this game. Sits above the box score because
           it's the reason you opened the page. */}
-      {tab === 'game' && positions.length > 0 && (
+      {positions.length > 0 && (
         <div className="position-card">
           <div className="position-head">
             <span>Your {positions.length === 1 ? 'pick' : 'picks'}</span>
@@ -160,29 +159,6 @@ export default async function GamePage(props: {
         </div>
       )}
 
-      {tab === 'chat' ? (
-        <>
-          <div className="gc-score">
-            {detail.sides.map((side, n) => (
-              <div className="gc-score-side" key={n}>
-                {side.logo && <img src={side.logo} alt="" className="gc-logo" loading="lazy" />}
-                <span className="gc-code">{side.code}</span>
-                <span className="gc-num">{side.score ?? '–'}</span>
-              </div>
-            ))}
-            <span className={`gc-state ${detail.state}`}>
-              {live && <span className="live-dot" />}{detail.status}
-            </span>
-          </div>
-          {detail.lastPlay && (
-            <div className="gc-play">
-              {detail.lastPlayKind && <strong>{detail.lastPlayKind}</strong>}
-              <span>{detail.lastPlay}</span>
-            </div>
-          )}
-          <GameChat gameKey={`${league}:${params.id}`} viewerId={user?.id ?? null} />
-        </>
-      ) : (<>
 
       <table className="gd-box">
         <thead>
@@ -269,7 +245,29 @@ export default async function GamePage(props: {
       {live && (
         <p className="gd-note">Updating every 30 seconds while the game is on.</p>
       )}
-      </>)}
+        </>}
+        chat={<>
+          <div className="gc-score">
+            {detail.sides.map((side, n) => (
+              <div className="gc-score-side" key={n}>
+                {side.logo && <img src={side.logo} alt="" className="gc-logo" loading="lazy" />}
+                <span className="gc-code">{side.code}</span>
+                <span className="gc-num">{side.score ?? '–'}</span>
+              </div>
+            ))}
+            <span className={`gc-state ${detail.state}`}>
+              {live && <span className="live-dot" />}{detail.status}
+            </span>
+          </div>
+          {detail.lastPlay && (
+            <div className="gc-play">
+              {detail.lastPlayKind && <strong>{detail.lastPlayKind}</strong>}
+              <span>{detail.lastPlay}</span>
+            </div>
+          )}
+          <GameChat gameKey={`${league}:${params.id}`} viewerId={user?.id ?? null} />
+        </>}
+      />
     </div>
   )
 }
