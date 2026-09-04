@@ -10,7 +10,7 @@ import {
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
   directionsFor, wantsMatchup, isPropBet, QUICK_ODDS,
   type BetType, type PostKind, type Direction,
-  isPeriodBet, periodBetsFor,
+  isPeriodBet, periodBetsFor, splitAmericanOdds, formatAmericanOdds,
 } from '@/lib/odds'
 
 export default function NewPickForm() {
@@ -54,7 +54,11 @@ export default function NewPickForm() {
   // odds clears it: the moment the number stops being the book's, saying
   // it came from the book would be false.
   const [book, setBook] = useState<string | null>(null)
-  const [fromBook, setFromBook] = useState(false)
+  // The price the book was showing when the market was tapped. Kept
+  // rather than a "has been edited" flag, because that flag was one-way:
+  // change +100 to +200 and back to +100 and the pick stayed custom
+  // forever, which is wrong — the number is the book's again.
+  const [bookOdds, setBookOdds] = useState<string | null>(null)
   const [showMoney, setShowMoney] = useState(false)
 
   const [loading, setLoading] = useState(false)
@@ -105,7 +109,8 @@ export default function NewPickForm() {
     // Arrived by tapping a real market: the direction comes with it, and
     // the price is the book's until the author changes it.
     if (searchParams.get('src') === 'book') {
-      setFromBook(true)
+      // Normalised, so it compares equal to what the form will hold.
+      setBookOdds(formatAmericanOdds(searchParams.get('odds')))
       setBook(searchParams.get('book'))
       setKind('pick')
     }
@@ -113,13 +118,12 @@ export default function NewPickForm() {
     if (presetDir && ['backing', 'fading', 'over', 'under'].includes(presetDir)) {
       setSentiment(presetDir as Direction)
     }
-    const presetOdds = searchParams.get('odds')
-    const oddsMatch = presetOdds && /^([+-]?)(\d{3,6})$/.exec(presetOdds.trim())
-    if (oddsMatch) {
+    const preset = splitAmericanOdds(searchParams.get('odds'))
+    if (preset) {
       setKind('pick')
-      setOddsSign(oddsMatch[1] === '+' ? '+' : '-')
-      setOddsInput(oddsMatch[2])
-      if (!QUICK_ODDS.includes(`${oddsMatch[1] === '+' ? '+' : '-'}${oddsMatch[2]}`)) setOddsCustom(true)
+      setOddsSign(preset.sign)
+      setOddsInput(preset.digits)
+      if (!QUICK_ODDS.includes(`${preset.sign}${preset.digits}`)) setOddsCustom(true)
     }
     try {
       const lastStake = Number(localStorage.getItem('gwuap:lastStake'))
@@ -198,6 +202,20 @@ export default function NewPickForm() {
   }, [presetStake, oddsInput])
 
   const oddsText = `${oddsSign}${oddsInput}`
+
+  // Derived, not remembered. If the number on screen is the number the
+  // book was showing, this is a book price — however many times it was
+  // changed on the way there.
+  const fromBook = bookOdds !== null && oddsText === bookOdds
+  const changedFromBook = bookOdds !== null && !fromBook
+
+  function restoreBookOdds() {
+    const parts = splitAmericanOdds(bookOdds)
+    if (!parts) return
+    setOddsCustom(!QUICK_ODDS.includes(bookOdds!))
+    setOddsSign(parts.sign)
+    setOddsInput(parts.digits)
+  }
   const oddsValue = parseAmericanOdds(oddsText)
   const stake = stakeCustom ? Number(customStake) : presetStake
   const stakeValid = Number.isFinite(stake) && stake > 0 && stake <= MAX_STAKE
@@ -207,13 +225,7 @@ export default function NewPickForm() {
     return { win: profitOnWin(oddsValue, stake), payout: payoutOnWin(oddsValue, stake) }
   }, [oddsValue, stake, stakeValid])
 
-  // Any edit to the price means it is no longer the book's, whatever the
-  // link said. Keeping the 'book' label after that would be the exact
-  // false claim this feature exists to remove.
-  function touchOdds() { setFromBook(false) }
-
   function chooseOdds(o: string) {
-    touchOdds()
     setOddsCustom(false)
     setOddsSign(o[0] as '+' | '-')
     setOddsInput(o.slice(1))
@@ -396,8 +408,9 @@ export default function NewPickForm() {
             <label className="form-label">Odds</label>
             {fromBook ? (
               <p className="odds-locked">
-                {oddsText} — the price {book ?? 'the book'} was showing when you
-                tapped it. Change it and this becomes a custom pick.
+                <strong>{oddsText}</strong> — {book ?? 'the book'}&apos;s price.
+                Change it and this becomes a custom pick; change it back and
+                it counts again.
               </p>
             ) : gameId && (
               <p className="form-hint">
@@ -415,22 +428,28 @@ export default function NewPickForm() {
               </div>
               <button type="button" aria-pressed={oddsCustom}
                 className={`chip chip-pinned ${oddsCustom ? 'active' : ''}`}
-                onClick={() => { touchOdds(); setOddsCustom(true) }}>Custom</button>
+                onClick={() => setOddsCustom(true)}>Custom</button>
             </div>
             {oddsCustom && (
               <div className="odds-row">
                 <div className="segment compact" style={{ flex: '0 0 auto' }}>
                   <button type="button" aria-pressed={oddsSign === '-'}
                     className={oddsSign === '-' ? 'active' : ''}
-                    onClick={() => { touchOdds(); setOddsSign('-') }}>− fav</button>
+                    onClick={() => setOddsSign('-')}>− fav</button>
                   <button type="button" aria-pressed={oddsSign === '+'}
                     className={oddsSign === '+' ? 'active' : ''}
-                    onClick={() => { touchOdds(); setOddsSign('+') }}>+ dog</button>
+                    onClick={() => setOddsSign('+')}>+ dog</button>
                 </div>
                 <input className="field mono odds-input" inputMode="numeric" autoFocus
                   value={oddsInput} placeholder="110"
-                  onChange={e => { touchOdds(); setOddsInput(e.target.value.replace(/[^0-9]/g, '')) }} />
+                  onChange={e => setOddsInput(e.target.value.replace(/[^0-9]/g, ''))} />
               </div>
+            )}
+
+            {changedFromBook && (
+              <button type="button" className="restore-odds" onClick={restoreBookOdds}>
+                ↩︎ Back to the {book ?? 'book'} price ({bookOdds})
+              </button>
             )}
 
             {!fromBook && (

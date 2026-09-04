@@ -173,6 +173,26 @@ export function wantsMatchup(kind: PostKind, betType: BetType): boolean {
   return kind === 'pick' && (betType === 'total' || isPeriodBet(betType))
 }
 
+/**
+ * Split American odds into the sign and digits the form holds separately.
+ *
+ * Shared so the two places that do it — filling the form from a link, and
+ * putting a book's price back after an edit — can't disagree about the
+ * format. If they did, a pick posted at the book's number would compare
+ * unequal to it and silently count as custom.
+ */
+export function splitAmericanOdds(text: string | null | undefined): { sign: '+' | '-'; digits: string } | null {
+  const match = /^([+-]?)(\d{3,6})$/.exec(String(text ?? '').trim())
+  if (!match) return null
+  return { sign: match[1] === '+' ? '+' : '-', digits: match[2] }
+}
+
+/** The canonical way a price is written, so comparisons are safe. */
+export function formatAmericanOdds(text: string | null | undefined): string | null {
+  const parts = splitAmericanOdds(text)
+  return parts ? `${parts.sign}${parts.digits}` : null
+}
+
 /** One tap covers most real prices; -110 is the standard spread/total juice. */
 export const QUICK_ODDS = ['-110', '-120', '+100', '+120', '+150', '+200']
 
