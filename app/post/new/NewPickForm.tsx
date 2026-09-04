@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
 import GamePicker, { type Slim } from '@/components/GamePicker'
 import { MAX_TICKER_LENGTH } from '@/lib/tickers'
+import { wordsFor } from '@/lib/sportWords'
 import { GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
@@ -52,6 +53,10 @@ export default function NewPickForm() {
   const [gameId, setGameId] = useState<string | null>(null)
   const [gameLeague, setGameLeague] = useState<string | null>(null)
   const [gameStartsAt, setGameStartsAt] = useState<string | null>(null)
+  // The two codes of the attached fixture, so editing one side can
+  // correct the other. Without this, choosing the game and then changing
+  // the cashtag left the opponent pointing at whoever was picked first.
+  const [gameSides, setGameSides] = useState<[string, string] | null>(null)
   const [line, setLine] = useState('')
   // Set when the pick came from tapping a real posted market. Editing the
   // odds clears it: the moment the number stops being the book's, saying
@@ -150,6 +155,22 @@ export default function NewPickForm() {
 
   const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
+  const words = wordsFor(leagueName)
+
+  /**
+   * Switching to the other side of the attached fixture has to move the
+   * opponent with it. Otherwise picking the game, then naming the other
+   * competitor, leaves both fields on the same person — which is what
+   * made "those are the same team" fire on a perfectly ordinary pick.
+   */
+  function setPrimaryTag(next: string) {
+    setTag(next)
+    if (!gameSides) return
+    const head = next.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
+    const [away, home] = gameSides
+    if (head === away.toUpperCase()) setTag2(`$${home}`)
+    else if (head === home.toUpperCase()) setTag2(`$${away}`)
+  }
 
   // Part-of-game bets only appear where they can actually be settled:
   // innings for baseball, halves for the sports that have them. Offering
@@ -167,6 +188,7 @@ export default function NewPickForm() {
       setGameId(null)
       setGameLeague(null)
       setGameStartsAt(null)
+      setGameSides(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueName])
@@ -238,6 +260,7 @@ export default function NewPickForm() {
     setGameId(game.id)
     setGameLeague(game.league)
     setGameStartsAt(game.startsAt)
+    setGameSides([game.away.code, game.home.code])
 
     const typed = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     const away = game.away.code.toUpperCase()
@@ -381,7 +404,7 @@ export default function NewPickForm() {
     const primaryCode = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     const secondCode = tag2.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     if (primaryCode && secondCode && primaryCode === secondCode) {
-      setError('Those are the same team. A bet on a game needs two different sides.')
+      setError(`Those are the same ${words.side}. A bet on a ${words.event} needs two different sides.`)
       return
     }
 
@@ -469,15 +492,17 @@ export default function NewPickForm() {
             wedged between them, which pushed the opponent field so far
             down that people posted matchup bets on one team without
             realising the second field was there at all. */}
-        <label className="form-label">{showMatchup ? 'Team' : 'Cashtag'}</label>
-        <CashtagInput value={tag} onChange={setTag} league={leagueName} categoryId={categoryId} />
+        <label className="form-label">
+          {showMatchup ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
+        </label>
+        <CashtagInput value={tag} onChange={setPrimaryTag} league={leagueName} categoryId={categoryId} />
 
         {showMatchup && (
           <>
             <label className="form-label">Opponent</label>
             <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
             <p className="form-hint">
-              This bet is on the game, so it names both sides.
+              This bet is on the {words.event}, so it names both sides.
             </p>
           </>
         )}
@@ -522,8 +547,8 @@ export default function NewPickForm() {
             than discovered a week later. */}
         {kind === 'pick' && !gameId && GRADEABLE_BET_TYPES.includes(betType) && (
           <p className="form-warn">
-            No game attached, so this <strong>won&apos;t grade itself</strong> and
-            won&apos;t count toward the leaderboard. Tap a game above to fix that.
+            No {words.event} attached, so this <strong>won&apos;t grade itself</strong> and
+            won&apos;t count toward the leaderboard. Tap one above to fix that.
           </p>
         )}
 

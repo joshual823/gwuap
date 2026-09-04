@@ -91,6 +91,11 @@ export default async function FeedPage(props: {
   // Group on the ticker, not the whole tag: "$LAL -4.5" and "$LAL -3.5"
   // are the same team and used to count as two separate trends.
   const tagCounts: Record<string, Record<string, number>> = {}
+  // Who is saying it, not just how often it's said. Three posts from one
+  // account used to be enough to trend, so anyone could invent a cashtag
+  // and push it onto the front page alone. A real movement has more than
+  // one voice in it, and that's the only difference worth testing for.
+  const tagVoices: Record<string, Set<string>> = {}
   for (const p of shaped) {
     // A total is on the game, so it counts under both teams. A spread or
     // moneyline is on one of them — now that those keep an opponent tag
@@ -101,6 +106,8 @@ export default async function FeedPage(props: {
       if (!t) continue
       tagCounts[t] = tagCounts[t] ?? {}
       tagCounts[t][p.sentiment] = (tagCounts[t][p.sentiment] ?? 0) + 1
+      tagVoices[t] = tagVoices[t] ?? new Set()
+      if (p.author?.id) tagVoices[t].add(p.author.id)
     }
   }
   // A tag needs a few picks behind it before a percentage means anything.
@@ -108,6 +115,8 @@ export default async function FeedPage(props: {
   // one person's post, which makes the panel look thinner than saying
   // nothing would. Below the threshold the whole card hides itself.
   const MIN_TRENDING_PICKS = 3
+  // Two different people, so a tag can't be talked into trending alone.
+  const MIN_TRENDING_VOICES = 2
 
   const trending = Object.entries(tagCounts)
     .map(([tag, counts]) => {
@@ -116,7 +125,7 @@ export default async function FeedPage(props: {
       const [leader, leadCount] = entries[0]
       return { tag, total, leader, pct: Math.round((100 * leadCount) / total) }
     })
-    .filter(t => t.total >= MIN_TRENDING_PICKS)
+    .filter(t => t.total >= MIN_TRENDING_PICKS && (tagVoices[t.tag]?.size ?? 0) >= MIN_TRENDING_VOICES)
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
 

@@ -404,6 +404,15 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   literal filter would give someone who picks NFL, College Football and
   NBA an empty rail every June, which is the dead feed the scoreboard
   exists to prevent. `npm test` covers that case.
+- **`lib/sportWords.ts` names a contest per league.** Tennis has
+  matches and players, UFC and boxing have fights and fighters, golf has
+  tournaments. "Those are the same team" is wrong about most of the
+  sports on the site.
+- **Trending needs two different people.** Three posts used to be
+  enough, so anyone could invent a cashtag and push it onto the front
+  page alone. Made-up tags are allowed on purpose — a pick between
+  friends, a movement like $BIGBETTORS — and the only thing that
+  separates a movement from one person shouting is more than one voice.
 - **Cashtag suggestions come from the fixtures, not a list.**
   `/api/cashtags` reads whoever is playing in the next ten days and
   returns the same codes grading matches against. A hand-kept list can't

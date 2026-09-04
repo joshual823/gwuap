@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { Market } from '@/lib/scores'
+import { wordsFor } from '@/lib/sportWords'
 
 export type Slim = {
   id: string; league: string; state: string; status: string; startsAt: string | null
@@ -33,6 +34,7 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const words = wordsFor(league)
 
   useEffect(() => {
     if (!league) { setGames(null); return }
@@ -63,7 +65,7 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
   return (
     <div className="picker">
       <p className="picker-head">
-        {needle ? 'Matching games' : 'Coming up'} — tap to fill this in
+        {needle ? `Matching ${words.events}` : 'Coming up'} — tap to fill this in
       </p>
       {shown.map(g => (
         <div key={g.id} className="picker-game">
@@ -109,8 +111,8 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
               </div>
             ) : (
               <p className="picker-none">
-                No posted prices for this one. The game is attached, so it&apos;ll
-                still grade itself — enter your own odds below.
+                No posted prices for this one. The {words.event} is attached, so
+                it&apos;ll still grade itself — enter your own odds below.
               </p>
             )
           )}
@@ -119,13 +121,13 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
 
       {hidden > 0 && (
         <button type="button" className="picker-more" onClick={() => setShowAll(true)}>
-          Show {hidden} more {hidden === 1 ? 'game' : 'games'}
+          Show {hidden} more {hidden === 1 ? words.event : words.events}
         </button>
       )}
 
       {showAll && league && (
         <a href={`/scores/${encodeURIComponent(league)}`} className="picker-all">
-          Or browse every {league} game →
+          Or browse every {league} {words.event} →
         </a>
       )}
     </div>
