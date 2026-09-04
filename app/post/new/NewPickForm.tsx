@@ -550,8 +550,9 @@ export default function NewPickForm() {
           <GamePicker
             league={leagueName}
             query={tag}
-            /* A take stores no fixture and no price, so both taps mean
-               the same thing there: name the two sides. */
+            /* A take names the fixture and stops there — no prices to
+               open, so nothing to choose from and nothing to store. */
+            showMarkets={kind === 'pick'}
             onSelect={kind === 'take' ? game => fillSides(game) : applyMarket}
             onSelectGame={kind === 'take' ? fillSides : applyGame}
             selectedGameId={kind === 'take' ? null : gameId}

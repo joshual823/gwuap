@@ -20,7 +20,9 @@ export type Slim = {
  * are usually one or two — so the choice stays short rather than
  * becoming a second scoreboard inside a form.
  */
-export default function GamePicker({ league, query, onSelect, onSelectGame, selectedGameId }: {
+export default function GamePicker({
+  league, query, onSelect, onSelectGame, selectedGameId, showMarkets = true,
+}: {
   league: string | null
   query: string
   /** Fill the form in place. A link would reload the page and lose
@@ -31,6 +33,15 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
       game at all before this. */
   onSelectGame: (game: Slim) => void
   selectedGameId: string | null
+  /**
+   * Whether tapping a fixture opens the prices under it.
+   *
+   * Off for takes. A take is an opinion about a game, a match or a
+   * fight — the fixture is the subject, and a column of moneylines under
+   * it turns the thing into a bet slip nobody asked for. The picker is
+   * there to name the two sides and nothing else.
+   */
+  showMarkets?: boolean
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
@@ -80,7 +91,10 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
           <button
             type="button"
             className={`picker-row ${selectedGameId === g.id ? 'chosen' : ''}`}
-            onClick={() => { onSelectGame(g); setOpen(o => o === g.id ? null : g.id) }}
+            onClick={() => {
+              onSelectGame(g)
+              if (showMarkets) setOpen(o => o === g.id ? null : g.id)
+            }}
           >
             <span className="picker-teams">{g.away.label} @ {g.home.label}</span>
             <span className="picker-when">
@@ -88,7 +102,7 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
             </span>
           </button>
 
-          {open === g.id && (
+          {showMarkets && open === g.id && (
             g.markets.length > 0 ? (
               <div className="picker-kinds">
                 {/* Grouped and labelled, the way a game page lays them
