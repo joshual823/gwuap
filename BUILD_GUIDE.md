@@ -404,7 +404,16 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   literal filter would give someone who picks NFL, College Football and
   NBA an empty rail every June, which is the dead feed the scoreboard
   exists to prevent. `npm test` covers that case.
-- **Adding a profile column? Read it in its own query.** Folding one into
+- **Badges (migration 031).** `profiles.badges` is a text[] of earned
+  marks: `founding` for the first 200 accounts, awarded by a trigger so
+  the cap holds however an account is made, and `week1_champion` awarded
+  by hand after the contest — the SQL is in the migration's comments.
+  Deliberately absent from the `authenticated` update grant: a badge you
+  can give yourself is a decoration, not a record.
+- **Adding a profile column? Read it in its own query.** This has now
+  caught me twice — `preferred_leagues` and then `badges`. The main
+  profile select gates `notFound()`, so a column that doesn't exist yet
+  takes every profile on the site to 404 until the migration runs. Folding one into
   the main profile select breaks that query until the migration runs, and
   because it gates `notFound()`, every profile page on the site 404s.
   Caught exactly that during 023.

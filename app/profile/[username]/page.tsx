@@ -7,6 +7,7 @@ import ProfileActions from './ProfileActions'
 import AccountMenu from './AccountMenu'
 import EditProfile from './EditProfile'
 import Avatar from '@/components/Avatar'
+import Badges from '@/components/Badges'
 import MessageButton from './MessageButton'
 import { profitForStatus, formatSignedUsd } from '@/lib/odds'
 
@@ -32,6 +33,13 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   const { data: prefRow } = await supabase
     .from('profiles').select('preferred_leagues').eq('id', profile.id).maybeSingle()
   const preferredLeagues = (prefRow?.preferred_leagues as string[] | null) ?? null
+
+  // Same reason, again: a column folded into the select above takes the
+  // whole profile down until its migration has run, because that query
+  // decides whether the page exists at all.
+  const { data: badgeRow } = await supabase
+    .from('profiles').select('badges').eq('id', profile.id).maybeSingle()
+  const badges = (badgeRow?.badges as string[] | null) ?? null
 
   const [{ count: followerCount }, { count: followingCount }, { data: myFollow }] = await Promise.all([
     supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profile.id),
@@ -119,6 +127,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
         <Avatar url={profile.avatar_url} size={72} />
         <div className="profile-id">
           <h1 className="profile-name">@{profile.username}</h1>
+          <Badges badges={badges} full />
           {profile.display_name && profile.display_name !== profile.username && (
             <p className="profile-display">{profile.display_name}</p>
           )}

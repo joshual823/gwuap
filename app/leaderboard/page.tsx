@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabaseServer'
 import Link from 'next/link'
 import { formatSignedUsd } from '@/lib/odds'
 import Avatar from '@/components/Avatar'
+import Badges from '@/components/Badges'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,7 +26,9 @@ export default async function LeaderboardPage() {
               <span className={`lb-rank ${i < 3 ? 'top3' : ''}`}>{i + 1}</span>
               <Avatar url={r.avatar_url} size={30} />
               <div className="lb-who">
-                <span style={{ fontWeight: 600, fontSize: 14 }}>@{r.username}</span>
+                <span style={{ fontWeight: 600, fontSize: 14 }}>
+                  @{r.username}<Badges badges={r.badges} />
+                </span>
                 <span className="lb-meta mono">
                   <span>{r.wins}-{r.losses}</span>
                   <span className="dot">·</span>

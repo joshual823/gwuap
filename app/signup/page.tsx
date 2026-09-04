@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import { SITE_NAME } from '@/lib/brand'
 import ThemeToggle from '@/components/ThemeToggle'
+import FoundingCount from '@/components/FoundingCount'
 import LeaguePicker from '@/components/LeaguePicker'
 import { MAX_PREFERRED } from '@/lib/preferences'
 
@@ -131,7 +132,8 @@ export default function SignupPage() {
   return (
     <div style={{ maxWidth: 360, margin: '48px auto' }}>
       <h1 className="display" style={{ fontSize: 28, marginBottom: 4 }}>{SITE_NAME}</h1>
-      <p style={{ color: 'var(--ink-dim)', marginBottom: 24 }}>Create an account and get in the conversation.</p>
+      <p style={{ color: 'var(--ink-dim)', marginBottom: 12 }}>Create an account and get in the conversation.</p>
+      <FoundingCount />
       <form onSubmit={handleSignup}>
         <input className="field" placeholder="Username" value={username}
           onChange={e => setUsername(e.target.value)} required autoCapitalize="none" />
