@@ -274,6 +274,22 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   pressed. If either ever fails oddly, check this variable first.
   Re-adding it: delete and re-create rather than edit — the value box
   shows a masked placeholder, and saving over that stores an empty value.
+- **`YOUTUBE_API_KEY` is optional, and the Live room degrades without
+  it.** With no key, `/live` embeds "whatever is live on this channel",
+  which is all YouTube offers for free. With one, the room lists each
+  concurrent broadcast by name and lets you search them. Getting it:
+  Google Cloud console → new project → enable **YouTube Data API v3** →
+  Credentials → Create API key. No OAuth consent screen and no redirect
+  URIs — this is a plain key, unlike Google sign-in. Paste it into Vercel
+  as `YOUTUBE_API_KEY` and redeploy. Restrict it to the YouTube Data API
+  from the console once it works.
+  Quota: the free allowance is 10,000 units a day. The room deliberately
+  avoids `search.list` (100 units a call) and reads the channel's uploads
+  playlist instead (1 unit) plus one `videos.list` (1 unit) to ask which
+  are live — 2 units a poll, cached for 120s. Three feeds polled
+  constantly for a day is roughly 4,300 units, well inside the ceiling.
+  If the key is wrong, revoked, or out of quota the room silently falls
+  back to the channel embed rather than erroring.
 - **Hourly grading runs from GitHub Actions**
   (`.github/workflows/grade.yml`), because Hobby refuses sub-daily crons.
   Needs `CRON_SECRET` in the repo's Actions secrets, matching Vercel's.

@@ -102,3 +102,90 @@ export function roomLabel(gameKey: string): string {
   const feed = WATCH_FEEDS.find(f => roomKeyFor(f) === gameKey)
   return feed ? `Watch room · ${feed.name}` : 'Watch room'
 }
+
+
+// ---------------------------------------------------------------------
+// What's live right now, by name.
+//
+// The channel embed above can only say "whatever is on this channel",
+// which is fine until a federation runs four tables at once and you get
+// an arbitrary one of them. Naming them needs the Data API.
+//
+// Deliberately not search.list, which is the obvious call and costs 100
+// quota units against a 10,000/day allowance — about 33 polls a day
+// across three feeds. A channel's uploads playlist holds its live
+// broadcasts too, and reading it costs 1 unit, plus 1 more to ask which
+// of those videos are actually live. Two units a poll leaves room to
+// refresh every couple of minutes and never come close to the ceiling.
+//
+// Every failure here returns an empty list rather than throwing. No key,
+// a quota wall, a bad response — all of them mean the same thing to the
+// page, which is "fall back to the channel embed".
+// ---------------------------------------------------------------------
+
+export type LiveVideo = {
+  id: string
+  title: string
+  thumbnail: string | null
+}
+
+/**
+ * A channel's uploads playlist has the same id with a different prefix.
+ * Worth knowing, because looking it up properly is a whole extra call
+ * for a string transformation.
+ */
+export function uploadsPlaylistFor(channelId: string): string {
+  return `UU${channelId.slice(2)}`
+}
+
+/** Pull the live ones out of a videos.list response. Pure, so it's tested. */
+export function parseLiveVideos(videosJson: any): LiveVideo[] {
+  const items = Array.isArray(videosJson?.items) ? videosJson.items : []
+  return items
+    .filter((v: any) => v?.snippet?.liveBroadcastContent === 'live')
+    .map((v: any) => ({
+      id: String(v.id ?? ''),
+      title: String(v.snippet?.title ?? 'Untitled'),
+      thumbnail:
+        v.snippet?.thumbnails?.medium?.url ??
+        v.snippet?.thumbnails?.default?.url ??
+        null,
+    }))
+    .filter((v: LiveVideo) => v.id !== '')
+}
+
+export async function fetchLive(feed: WatchFeed): Promise<LiveVideo[]> {
+  const key = process.env.YOUTUBE_API_KEY
+  if (!key) return []
+
+  const get = async (url: string) => {
+    const res = await fetch(url, { next: { revalidate: 120 } })
+    if (!res.ok) return null
+    return res.json()
+  }
+
+  try {
+    const playlist = await get(
+      'https://www.googleapis.com/youtube/v3/playlistItems' +
+      `?part=contentDetails&maxResults=20&playlistId=${uploadsPlaylistFor(feed.channel)}&key=${key}`,
+    )
+    const ids: string[] = (playlist?.items ?? [])
+      .map((i: any) => i?.contentDetails?.videoId)
+      .filter((id: unknown): id is string => typeof id === 'string' && id !== '')
+    if (ids.length === 0) return []
+
+    const videos = await get(
+      'https://www.googleapis.com/youtube/v3/videos' +
+      `?part=snippet&id=${ids.join(',')}&key=${key}`,
+    )
+    return parseLiveVideos(videos)
+  } catch {
+    // The room still works without this. Never let it take the page down.
+    return []
+  }
+}
+
+/** Embed one specific broadcast rather than "whatever is on the channel". */
+export function embedSrcForVideo(videoId: string): string {
+  return `https://www.youtube.com/embed/${videoId}`
+}

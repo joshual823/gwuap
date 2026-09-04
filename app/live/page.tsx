@@ -2,7 +2,9 @@ import Link from 'next/link'
 import FeedTabs from '@/components/FeedTabs'
 import GameChat from '@/components/GameChat'
 import { createClient } from '@/lib/supabaseServer'
-import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor, embedSrcFor } from '@/lib/watch'
+import LivePicker from '@/components/LivePicker'
+import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor, embedSrcFor,
+         fetchLive, embedSrcForVideo } from '@/lib/watch'
 
 export const metadata = {
   title: 'Free live sport',
@@ -27,10 +29,20 @@ export const dynamic = 'force-dynamic'
  * than none.
  */
 export default async function LivePage(props: {
-  searchParams: Promise<{ feed?: string }>
+  searchParams: Promise<{ feed?: string; v?: string }>
 }) {
   const search = await props.searchParams
   const feed = feedFor(search.feed)
+
+  // Named broadcasts when there's an API key to ask with, an empty list
+  // otherwise — in which case the channel embed below does what it
+  // always did.
+  const live = await fetchLive(feed)
+
+  // The requested video is only honoured if it's one this feed is
+  // actually streaming. Embedding whatever id arrives in the URL would
+  // let anyone put any video on the page and pass it off as ours.
+  const selected = live.find(v => v.id === search.v) ?? live[0] ?? null
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -66,12 +78,18 @@ export default async function LivePage(props: {
       <div className="wr-stage">
         <iframe
           className="wr-frame"
-          src={embedSrcFor(feed)}
-          title={`${feed.name} live stream`}
+          src={selected ? embedSrcForVideo(selected.id) : embedSrcFor(feed)}
+          title={selected ? selected.title : `${feed.name} live stream`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
       </div>
+
+      {selected && <p className="wr-now">{selected.title}</p>}
+
+      {live.length > 1 && (
+        <LivePicker videos={live} feedKey={feed.key} selectedId={selected?.id ?? ''} />
+      )}
 
       <p className="wr-note">
         {feed.blurb}{' '}
