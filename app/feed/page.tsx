@@ -9,6 +9,8 @@ import { fetchRailGames } from '@/lib/scores'
 import { cleanPreferences, railLeaguesFor, newsLeaguesFor } from '@/lib/preferences'
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
+import WelcomeModal from '@/components/WelcomeModal'
+import { FOUNDING_LIMIT } from '@/lib/badges'
 import NewsRail from '@/components/NewsRail'
 import FeedTabs from '@/components/FeedTabs'
 import { SITE_NAME } from '@/lib/brand'
@@ -30,6 +32,16 @@ export default async function FeedPage(props: {
     ? await supabase.from('profiles').select('preferred_leagues').eq('id', user.id).maybeSingle()
     : { data: null }
   const preferred = cleanPreferences(prefRow?.preferred_leagues)
+
+  // The live founding count, for the welcome card. Read here rather than
+  // fetched by the modal so the number is in the first paint.
+  let foundingLeft: number | null = null
+  if (!user) {
+    const { count } = await supabase
+      .from('profiles').select('*', { count: 'exact', head: true })
+      .contains('badges', ['founding'])
+    if (count !== null) foundingLeft = Math.max(0, FOUNDING_LIMIT - count)
+  }
 
   const tabs = <FeedTabs active="home" />
 
@@ -121,6 +133,9 @@ export default async function FeedPage(props: {
       {tabs}
       <Scoreboard games={await fetchRailGames(16, railLeaguesFor(preferred))} />
 
+      {/* Logged-out only, once per browser. Signed-in people have
+          already decided. */}
+      {!user && <WelcomeModal remaining={foundingLeft} />}
       {!user && <JoinCard />}
 
       {tickerItems.length > 0 && (
