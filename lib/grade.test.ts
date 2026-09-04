@@ -1,4 +1,5 @@
-import { gradePick, isGradeable, needsReview, BLOCKED_LABELS, bookLinesFor, isLateEntry } from './grade'
+import { gradePick, isGradeable, needsReview, BLOCKED_LABELS, bookLinesFor, isLateEntry,
+         periodTotalLine, LATE_ENTRY_GRACE_MS } from './grade'
 import type { Game } from './scores'
 
 function game(awayCode: string, awayScore: string | null, homeCode: string, homeScore: string | null,
@@ -184,8 +185,12 @@ const started: Game = { ...game('SF', '27', 'LAR', '20'), startsAt: '2026-09-04T
 reason('posted an hour in',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, started),
   'late-entry')
-reason('posted one second in',
-  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:01Z'}, started),
+check('one second in still counts',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:01Z'}, started), 'win')
+check('four minutes in still counts',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:04:00Z'}, started), 'win')
+reason('six minutes in does not',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:06:00Z'}, started),
   'late-entry')
 check('posted an hour before is fine',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T16:00:00Z'}, started), 'win')
@@ -193,8 +198,11 @@ check('no kick-off recorded, nothing to compare',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, game('SF','27','LAR','20')), 'win')
 check('no posting time, nothing to compare',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, started), 'win')
-check('isLateEntry is exact at the whistle',
-  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:00Z'}, started), true)
+check('not late at the whistle',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:00Z'}, started), false)
+check('late exactly one tick past the grace',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,
+    createdAt:new Date(Date.parse('2026-09-04T17:00:00Z') + LATE_ENTRY_GRACE_MS).toISOString()}, started), true)
 
 console.log('\nTHE LINE HAS TO BE ONE THE BOOK PUBLISHED')
 // "Under 1,000,000" wins every time and "over 1" wins the rest.
@@ -212,6 +220,29 @@ check('both ends are allowed', bookLinesFor(priced, 'spread').includes(3.5) && b
 // A game ESPN never priced would otherwise flag every honest pick on it.
 check('unpriced game still grades', gradePick({betType:'total',sentiment:'over',ticker:'$SF',line:44.5}, game('SF','27','LAR','20')), 'win')
 check('moneyline is unaffected',    gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null}, priced), 'win')
+
+console.log('\nA PART-OF-GAME TOTAL IS THE SITE\'S NUMBER, NOT THE AUTHOR\'S')
+// The book prices whole games only, so a first-five total has no
+// published number anywhere. Deriving it from the one number that is
+// published keeps it out of the hands of the person posting the pick.
+check('MLB first five off a total of 8', periodTotalLine('first_five', 8), 4.5)
+check('first half is half',             periodTotalLine('first_half', 44.5), 22.5)
+check('rounds to the nearest half',     periodTotalLine('first_five', 9), 5)
+check('no total, no line',              periodTotalLine('first_five', null), null)
+check('whole-game totals are not derived', periodTotalLine('total', 8), null)
+
+// MLB first five, book total 8 -> derived 4.5. Two runs in five innings.
+const mlbF5: Game = {
+  ...game('DET', '3', 'CLE', '5'), league: 'MLB', overUnder: 8,
+  away: { code: 'DET', name: 'DET', score: '3', logo: null, byPeriod: ['0','1','0','0','1','0','1','0','0'] },
+  home: { code: 'CLE', name: 'CLE', score: '5', logo: null, byPeriod: ['1','0','0','0','0','2','1','1','0'] },
+} as any
+reason('a total the author invented',
+  gradePick({betType:'first_five',sentiment:'under',ticker:null,line:1000000}, mlbF5), 'line-not-from-book')
+reason('an over set at 1',
+  gradePick({betType:'first_five',sentiment:'over',ticker:null,line:1}, mlbF5), 'line-not-from-book')
+check('the derived total grades',
+  gradePick({betType:'first_five',sentiment:'under',ticker:null,line:4.5}, mlbF5), 'win')
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)

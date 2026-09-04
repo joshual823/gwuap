@@ -8,6 +8,7 @@ export type Slim = {
   away: { code: string; label: string; logo: string | null }
   home: { code: string; label: string; logo: string | null }
   markets: Market[]; book: string | null
+  overUnder?: number | null
 }
 
 /**
@@ -48,10 +49,10 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
 
   if (!games || games.length === 0) return null
 
-  // Only fixtures that haven't started. A pick on a game already under
-  // way can't count — the result is partly known — so offering one here
-  // would be offering something that gets refused on the way in.
-  const upcoming = games.filter(g => g.state === 'pre')
+  // Games already under way stay on the list. A pick on one is allowed;
+  // past the grace window it just voids, and the form says so before
+  // anything is posted.
+  const upcoming = games
   // Match on the code people type, with or without the dollar sign.
   const needle = query.replace(/^\$/, '').trim().toUpperCase()
   const matches = needle.length >= 1

@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabaseServer'
-import { fetchGamesWindow, type Game } from '@/lib/scores'
-import { gradePick, needsReview, GRADEABLE_BET_TYPES } from '@/lib/grade'
+import { fetchBookLines, fetchGamesWindow, type Game } from '@/lib/scores'
+import { gradePick, needsReview, GRADEABLE_BET_TYPES, PERIOD_TOTAL_SHARE } from '@/lib/grade'
 import { profitForStatus, pricingNeedsReview } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -105,6 +105,7 @@ async function run(request: Request) {
   // into this response, because the response is a log line nobody reads
   // and the admin queue is a page somebody does.
   let flagged = 0
+  let voided = 0
   const flag = async (id: string, reason: string) => {
     flagged++
     await supabase
@@ -114,9 +115,30 @@ async function run(request: Request) {
       .eq('status', 'pending')
   }
 
+  // The scoreboard drops a game's odds the moment it finishes, which is
+  // exactly when this job looks at it. Anything whose line has to be
+  // checked gets the published numbers from pickcenter instead, once per
+  // game however many picks are on it.
+  const linesNeeded = (betType: string) =>
+    betType === 'total' || betType === 'spread' || betType in PERIOD_TOTAL_SHARE
+  const bookCache = new Map<string, Awaited<ReturnType<typeof fetchBookLines>>>()
+
   for (const pick of pending) {
-    const game = byLeague.get(pick.game_league as string)?.get(pick.game_id as string)
+    let game = byLeague.get(pick.game_league as string)?.get(pick.game_id as string)
     if (!game) { note('game not on the scoreboard'); continue }
+
+    if (linesNeeded(pick.bet_type) && game.overUnder == null) {
+      const key = `${pick.game_league}:${pick.game_id}`
+      if (!bookCache.has(key)) {
+        bookCache.set(key, await fetchBookLines(pick.game_league as string, pick.game_id as string))
+      }
+      const lines = bookCache.get(key)!
+      game = {
+        ...game,
+        overUnder: game.overUnder ?? lines.total,
+        spread: game.spread ?? (lines.spread == null ? null : String(lines.spread)),
+      }
+    }
 
     const result = gradePick({
       betType: pick.bet_type,
@@ -130,6 +152,23 @@ async function run(request: Request) {
 
     if ('blocked' in result) {
       note(result.blocked)
+      // A pick posted after the game got going is settled, not stuck: it
+      // voids. Void counts as neither a win nor a loss anywhere, so the
+      // pick stands as an opinion and touches nobody's record — and it
+      // doesn't sit in the review queue asking a person to decide
+      // something already decided.
+      if (result.blocked === 'late-entry') {
+        await supabase
+          .from('posts')
+          .update({
+            status: 'void', profit: 0, graded_at: new Date().toISOString(),
+            graded_by: 'auto', grade_note: 'late-entry',
+          })
+          .eq('id', pick.id)
+          .eq('status', 'pending')
+        voided++
+        continue
+      }
       // A game that hasn't finished is the system working, so it isn't
       // worth a note on the row. Anything else will sit pending forever
       // unless a person looks at it, so it gets flagged for review.
@@ -168,6 +207,7 @@ async function run(request: Request) {
     checked: pending.length,
     graded: results.length,
     flaggedForReview: flagged,
+    voidedAsLate: voided,
     byOutcome: results.reduce((m: Record<string, number>, r) => {
       m[r.status] = (m[r.status] ?? 0) + 1
       return m

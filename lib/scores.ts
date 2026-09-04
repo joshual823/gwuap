@@ -563,6 +563,45 @@ export function postHrefForGame(game: Game): string {
  * period, the current situation, odds and broadcast — everything a
  * scoreboard tap should reveal.
  */
+/**
+ * The numbers the book published for a game, read after the fact.
+ *
+ * The scoreboard drops a game's odds once it finishes — every MLB final
+ * comes back with overUnder null — which is exactly when the grading job
+ * needs them. The summary endpoint's pickcenter keeps them: a game
+ * finished hours ago still reports total 8.0 and spread -1.5.
+ *
+ * So this is the honest record of what was on offer, available at grade
+ * time, and not something the person posting the pick can influence.
+ */
+export type BookLines = { total: number | null; spread: number | null }
+
+export async function fetchBookLines(league: string, id: string): Promise<BookLines> {
+  const path = espnPathFor(league)
+  if (!path) return { total: null, spread: null }
+  try {
+    const res = await fetch(
+      `https://site.api.espn.com/apis/site/v2/sports/${path}/summary?event=${encodeURIComponent(id)}`,
+      { next: { revalidate: 300 }, headers: { Accept: 'application/json' } },
+    )
+    if (!res.ok) return { total: null, spread: null }
+    const data = await res.json()
+
+    const num = (v: unknown) => {
+      const n = Number(v)
+      return Number.isFinite(n) ? n : null
+    }
+    for (const entry of data?.pickcenter ?? []) {
+      const total = num(entry?.overUnder)
+      const spread = num(entry?.spread)
+      if (total !== null || spread !== null) return { total, spread }
+    }
+    return { total: null, spread: null }
+  } catch {
+    return { total: null, spread: null }
+  }
+}
+
 async function fetchSummaryDetail(league: string, id: string): Promise<GameDetail | null> {
   const path = espnPathFor(league)
   if (!path) return null

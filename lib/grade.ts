@@ -46,7 +46,7 @@ export type Blocked =
   | 'team-not-in-game'   // the tag names neither side
   | 'missing-line'       // a spread or total with no number
   | 'no-side'            // a direction that doesn't pick a side
-  | 'late-entry'         // posted after the game was already under way
+  | 'late-entry'         // posted more than five minutes into the game
   | 'line-not-from-book' // a number the book never published
 
 export type GradeResult =
@@ -70,7 +70,7 @@ export const BLOCKED_LABELS: Record<Blocked, string> = {
   'team-not-in-game': 'The cashtag does not name either side of this game',
   'missing-line': 'No spread or total was recorded on the pick',
   'no-side': 'The direction does not name a side of this pick',
-  'late-entry': 'Posted after this game had already started',
+  'late-entry': 'Posted more than five minutes after this game started',
   'line-not-from-book': 'The number on this pick is not one the book published for this game',
 }
 
@@ -136,7 +136,17 @@ export function gradePick(pick: GradeInput, game: Game): GradeResult {
 }
 
 /**
- * Was this posted after the game began?
+ * How long after the first pitch a pick still counts.
+ *
+ * Not zero, because kick-off times drift by a minute or two and someone
+ * who tapped Post as the whistle went shouldn't lose their pick to that.
+ * Five minutes is short enough that nothing is decided inside it and
+ * long enough to cover the drift.
+ */
+export const LATE_ENTRY_GRACE_MS = 5 * 60 * 1000
+
+/**
+ * Was this posted late enough that the result was already forming?
  *
  * Against the scoreboard's kick-off, never the one stored on the pick.
  * game_starts_at is sent by the client, so a forged one would wave
@@ -147,7 +157,32 @@ export function isLateEntry(pick: GradeInput, game: Game): boolean {
   const posted = Date.parse(pick.createdAt)
   const start = Date.parse(game.startsAt)
   if (!Number.isFinite(posted) || !Number.isFinite(start)) return false
-  return posted >= start
+  return posted >= start + LATE_ENTRY_GRACE_MS
+}
+
+/**
+ * What share of a game's total belongs to the part being bet on.
+ *
+ * The book prices whole games and nothing else, so a first-five total has
+ * no published number anywhere. Deriving it from the one number that IS
+ * published keeps it anchored to the market and, more importantly, out of
+ * the hands of the person posting the pick — which was the whole problem.
+ *
+ * Five innings of nine is 0.55 rather than a half. A half really is a
+ * half. Both are one edit if the numbers turn out to read wrong.
+ */
+export const PERIOD_TOTAL_SHARE: Record<string, number> = {
+  first_five: 0.55,
+  first_half: 0.5,
+}
+
+/** The site's line for a part-of-game total, or null if the book priced no total. */
+export function periodTotalLine(betType: BetType, fullGameTotal: number | null | undefined): number | null {
+  const share = PERIOD_TOTAL_SHARE[betType]
+  if (share === undefined) return null
+  if (typeof fullGameTotal !== 'number' || !Number.isFinite(fullGameTotal)) return null
+  // To the nearest half, so it can't land on a whole number and push.
+  return Math.round(fullGameTotal * share * 2) / 2
 }
 
 /**
@@ -181,8 +216,20 @@ export function bookLinesFor(game: Game, betType: BetType): number[] {
  * against — see the note on first_five in odds.ts.
  */
 export function lineIsFromBook(pick: GradeInput, game: Game): boolean {
-  if (pick.betType !== 'total' && pick.betType !== 'spread') return true
   if (pick.line == null) return true          // 'missing-line' handles this
+
+  // A part-of-game total is checked against the line the site derived,
+  // which is the only line it ever had. The form fills it in and won't
+  // let it be edited, so anything else arrived by another route.
+  if (pick.betType in PERIOD_TOTAL_SHARE) {
+    const derived = periodTotalLine(pick.betType, game.overUnder)
+    // No total was ever published for this game, so there was nothing to
+    // derive from and nothing to check against.
+    if (derived === null) return true
+    return Math.abs(derived - pick.line) < 1e-9
+  }
+
+  if (pick.betType !== 'total' && pick.betType !== 'spread') return true
   const allowed = bookLinesFor(game, pick.betType)
   // Nothing published at all. Refusing here would flag every honest pick
   // on a game ESPN never priced, so it falls through to be graded and

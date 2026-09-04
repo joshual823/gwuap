@@ -6,7 +6,7 @@ import CashtagInput from '@/components/CashtagInput'
 import GamePicker, { type Slim } from '@/components/GamePicker'
 import { MAX_TICKER_LENGTH } from '@/lib/tickers'
 import { wordsFor } from '@/lib/sportWords'
-import { GRADEABLE_BET_TYPES } from '@/lib/grade'
+import { periodTotalLine, PERIOD_TOTAL_SHARE, LATE_ENTRY_GRACE_MS, GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
 import {
@@ -56,6 +56,7 @@ export default function NewPickForm() {
   // The two codes of the attached fixture, so editing one side can
   // correct the other. Without this, choosing the game and then changing
   // the cashtag left the opponent pointing at whoever was picked first.
+  const [gameTotal, setGameTotal] = useState<number | null>(null)
   const [gameSides, setGameSides] = useState<[string, string] | null>(null)
   const [line, setLine] = useState('')
   // Set when the pick came from tapping a real posted market. Editing the
@@ -154,6 +155,19 @@ export default function NewPickForm() {
   const showMatchup = wantsMatchup(kind, betType)
   // Required by the bet, or merely offered. Takes are the second.
   const showOpponent = allowsOpponent(kind, betType)
+
+  // A part-of-game total is the site's number, not the author's: derived
+  // from the book's whole-game total so it can't be chosen. Null when the
+  // book never priced the game, in which case the pick can't be graded
+  // and the form says so rather than accepting a number nobody offered.
+  const isPeriodTotal = betType in PERIOD_TOTAL_SHARE
+  const derivedLine = isPeriodTotal ? periodTotalLine(betType, gameTotal) : null
+
+  // Past the grace window the pick still posts — it just voids.
+  const startedAt = gameStartsAt ? new Date(gameStartsAt).getTime() : null
+  const minutesIn = startedAt === null ? null : Math.floor((Date.now() - startedAt) / 60000)
+  const tooLate = startedAt !== null && Date.now() >= startedAt + LATE_ENTRY_GRACE_MS
+  const justStarted = startedAt !== null && !tooLate && Date.now() >= startedAt
 
   const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
@@ -267,6 +281,7 @@ export default function NewPickForm() {
    * into a pick the moment someone tapped a game.
    */
   function fillSides(game: Slim) {
+    setGameTotal(game.overUnder ?? null)
     setGameSides([game.away.code, game.home.code])
 
     const typed = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
@@ -425,15 +440,7 @@ export default function NewPickForm() {
         return
       }
     }
-    // The database refuses these too, and the grading job refuses them
-    // again from the scoreboard's own kick-off. This one exists so the
-    // refusal arrives as a sentence rather than a failed insert.
-    if (gameId && gameStartsAt && new Date(gameStartsAt).getTime() <= Date.now()) {
-      setError(`That ${words.event} has already started. Picks have to be in before it does.`)
-      return
-    }
-
-    if (wantsLine && !lineValid) {
+    if (wantsLine && !isPeriodTotal && !lineValid) {
       setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
       return
     }
@@ -464,7 +471,8 @@ export default function NewPickForm() {
       game_id: gameId,
       game_league: gameId ? gameLeague : null,
       game_starts_at: gameId ? gameStartsAt : null,
-      line: wantsLine ? lineValue : null,
+      // Derived for a part-of-game total so the author never chose it.
+      line: isPeriodTotal ? derivedLine : wantsLine ? lineValue : null,
       odds_source: fromBook ? 'book' : 'custom',
       odds_book: fromBook ? book : null,
     })
@@ -550,7 +558,28 @@ export default function NewPickForm() {
           />
         )}
 
-        {wantsLine && (
+        {wantsLine && isPeriodTotal && (
+          <>
+            <label className="form-label">The total</label>
+            {derivedLine !== null ? (
+              <>
+                <input className="field" type="text" value={derivedLine} readOnly disabled />
+                <p className="form-hint">
+                  Set from the book&apos;s whole-game total of {gameTotal}. You pick
+                  over or under it — the number isn&apos;t yours to move.
+                </p>
+              </>
+            ) : (
+              <p className="form-warn">
+                No whole-game total has been posted for this {words.event} yet, so
+                there&apos;s no number to set this from. This pick{' '}
+                <strong>won&apos;t be graded</strong>. Try again once the book prices it.
+              </p>
+            )}
+          </>
+        )}
+
+        {wantsLine && !isPeriodTotal && (
           <>
             <label className="form-label">
               {betType === 'total' ? 'The total' : 'The spread'}
@@ -563,7 +592,26 @@ export default function NewPickForm() {
               onChange={e => setLine(e.target.value)}
               placeholder={betType === 'total' ? '47.5' : '-3.5'}
             />
+            <p className="form-hint">
+              It has to match a number the book published for this {words.event}.
+              Tapping the fixture above fills it in.
+            </p>
           </>
+        )}
+
+        {/* Said before posting, not discovered afterwards. */}
+        {kind === 'pick' && gameId && tooLate && (
+          <p className="form-warn">
+            This {words.event} started {minutesIn} minutes ago, so the pick{' '}
+            <strong>won&apos;t be graded</strong> and won&apos;t count toward your
+            record or the leaderboard. Picks count if they&apos;re in within five
+            minutes of the start. You can still post it as an opinion.
+          </p>
+        )}
+        {kind === 'pick' && gameId && justStarted && (
+          <p className="form-hint">
+            Under way, but you&apos;re inside the five-minute window — this still counts.
+          </p>
         )}
 
         {kind === 'pick' && gameId && (

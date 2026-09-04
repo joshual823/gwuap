@@ -26,6 +26,8 @@ export async function GET(request: Request) {
       away: { code: g.away.code, label: g.away.label ?? g.away.code, logo: g.away.logo },
       home: { code: g.home.code, label: g.home.label ?? g.home.code, logo: g.home.logo },
       markets: g.markets ?? [], book: g.book ?? null,
+      // The form derives a first-five or first-half line from this.
+      overUnder: g.overUnder ?? null,
     })),
   })
 }
