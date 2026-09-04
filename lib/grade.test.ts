@@ -115,9 +115,9 @@ check('draw is a push',   gradePick({betType:'moneyline',sentiment:'backing',tic
 
 console.log('PART-OF-GAME BETS — settled from innings / quarters')
 // PIT [2,0,0,0,0,2,0,1] vs SF [0,0,0,0,0,0,2,0,0] — a real 5-2 final.
-function withPeriods(a: string[], h: string[], aTot: string, hTot: string): Game {
+function withPeriods(a: string[], h: string[], aTot: string, hTot: string, league = 'MLB'): Game {
   const g = game('SF', aTot, 'PIT', hTot)
-  return { ...g, away: { ...g.away, byPeriod: a }, home: { ...g.home, byPeriod: h } }
+  return { ...g, league, away: { ...g.away, byPeriod: a }, home: { ...g.home, byPeriod: h } }
 }
 const mlb = withPeriods(
   ['0','0','0','0','0','0','2','0','0'],
@@ -134,16 +134,37 @@ check('F5 under 1.5',        gradePick({betType:'first_five',sentiment:'under',t
 check('F5 push on 2',        gradePick({betType:'first_five',sentiment:'over', ticker:null,line:2}, mlb), 'push')
 
 // NFL: TB [10,3,0,3] vs CAR [0,7,0,7] — first half 10+3+0+7 = 20.
-const nfl = withPeriods(['0','7','0','7'], ['10','3','0','3'], '14', '16')
+const nfl = withPeriods(['0','7','0','7'], ['10','3','0','3'], '14', '16', 'NFL')
 check('1H over 19.5',        gradePick({betType:'first_half',sentiment:'over', ticker:null,line:19.5}, nfl), 'win')
 check('1H under 19.5',       gradePick({betType:'first_half',sentiment:'under',ticker:null,line:19.5}, nfl), 'loss')
 
 console.log('AND THEY REFUSE WHEN THE PERIODS WEREN\'T PLAYED')
 const short = withPeriods(['0','1'], ['0','0'], '1', '0')   // only 2 innings
 check('F5 on a 2-inning game', blockedReason(gradePick({betType:'first_five',sentiment:'over',ticker:null,line:1.5}, short)), 'no-score')
-check('but 1H is fine',        gradePick({betType:'first_half',sentiment:'over',ticker:null,line:0.5}, short), 'win')
+check('but 1H is fine',        gradePick({betType:'first_half',sentiment:'over',ticker:null,line:0.5}, withPeriods(['0','1'],['0','0'],'1','0','NFL')), 'win')
 const noPeriods = game('SF','2','PIT','5')
 check('no periods at all',     blockedReason(gradePick({betType:'first_inning',sentiment:'over',ticker:null,line:0.5}, noPeriods)), 'no-score')
+
+console.log('WHO LEADS AT THE BREAK — three ways, tie is its own result')
+// SF 0 through 5, PIT 2 through 5 — so PIT (home) leads after five.
+check('back the leader',   gradePick({betType:'first_five_ml',sentiment:'backing',ticker:'$PIT',line:null}, mlb), 'win')
+check('back the trailer',  gradePick({betType:'first_five_ml',sentiment:'backing',ticker:'$SF',line:null}, mlb), 'loss')
+check('fade the trailer',  gradePick({betType:'first_five_ml',sentiment:'fading', ticker:'$SF',line:null}, mlb), 'win')
+check('tie loses',         gradePick({betType:'first_five_ml',sentiment:'tie',    ticker:'$PIT',line:null}, mlb), 'loss')
+
+const level = withPeriods(['1','0','0','0','0'], ['0','1','0','0','0'], '1', '1')
+check('tie wins when level',   gradePick({betType:'first_five_ml',sentiment:'tie',    ticker:'$SF',line:null}, level), 'win')
+check('backing loses on tie',  gradePick({betType:'first_five_ml',sentiment:'backing',ticker:'$SF',line:null}, level), 'loss')
+check('no line needed',        gradePick({betType:'first_five_ml',sentiment:'backing',ticker:'$PIT',line:null}, mlb), 'win')
+
+// NFL: TB (home) 10+3 = 13, CAR (away) 0+7 = 7.
+check('1H leader (NFL)',   gradePick({betType:'first_half_ml',sentiment:'backing',ticker:'$PIT',line:null}, nfl), 'win')
+
+console.log('A HALF NEEDS A LEAGUE THAT HAS ONE')
+check('NHL has no halves',   blockedReason(gradePick({betType:'first_half',sentiment:'over',ticker:null,line:20}, withPeriods(['1','0','1'],['0','1','0'],'2','1','NHL'))), 'unsupported-bet')
+check('soccer neither',      blockedReason(gradePick({betType:'first_half_ml',sentiment:'backing',ticker:'$SF',line:null}, withPeriods(['1'],['0'],'1','0','Soccer'))), 'unsupported-bet')
+check('college hoops = 1',   gradePick({betType:'first_half',sentiment:'over',ticker:null,line:30.5}, withPeriods(['20','25'],['18','30'],'45','48','College Basketball')), 'win')
+check('NBA half = 2',        gradePick({betType:'first_half',sentiment:'over',ticker:null,line:99.5}, withPeriods(['27','28','21','19'],['25','26','24','20'],'95','95','NBA')), 'win')
 
 console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
 

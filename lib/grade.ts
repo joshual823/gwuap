@@ -1,5 +1,8 @@
 import type { Game } from './scores'
-import { isPeriodBet, PERIOD_BETS, type Direction, type BetType } from './odds'
+import {
+  isPeriodBet, isPeriodSideBet, periodsFor, PERIOD_BETS,
+  type Direction, type BetType,
+} from './odds'
 
 /**
  * Settling a pick against a final score.
@@ -69,7 +72,7 @@ export const GRADEABLE_BET_TYPES: BetType[] = [
   'moneyline', 'spread', 'total',
   // Settled from the period scores the scoreboard carries. A player prop
   // still can't be: it needs a box score, not a scoreline.
-  'first_inning', 'first_five', 'first_half',
+  'first_inning', 'first_five', 'first_five_ml', 'first_half', 'first_half_ml',
 ]
 
 export function isGradeable(betType: BetType): boolean {
@@ -129,17 +132,18 @@ function settle(pick: GradeInput, game: Game): GradeResult {
   const home = scoreOf(game.home)
   if (away === null || home === null) return { blocked: 'no-score' }
 
-  // A bet on part of a game. Same over/under arithmetic as a full total,
-  // over a slice of the innings or quarters instead of the final score.
+  // A bet on part of a game — innings for baseball, quarters or halves
+  // for the rest.
   if (isPeriodBet(pick.betType)) {
-    const spec = PERIOD_BETS[pick.betType]
-    const line = pick.line ?? spec.defaultLine ?? null
-    if (line === null) return { blocked: 'missing-line' }
+    // How many periods make a half depends on the league, so a half bet
+    // on a sport with no halves has nowhere to land.
+    const periods = periodsFor(pick.betType, game.league)
+    if (periods === null) return { blocked: 'unsupported-bet' }
 
     const partial = (byPeriod: string[] | undefined) => {
-      if (!byPeriod || byPeriod.length < spec.periods) return null
+      if (!byPeriod || byPeriod.length < periods) return null
       let sum = 0
-      for (let i = 0; i < spec.periods; i++) {
+      for (let i = 0; i < periods; i++) {
         const n = Number(byPeriod[i])
         if (!Number.isFinite(n)) return null
         sum += n
@@ -155,6 +159,28 @@ function settle(pick: GradeInput, game: Game): GradeResult {
     const h = partial(game.home.byPeriod)
     if (a === null || h === null) return { blocked: 'no-score' }
 
+    // Who was ahead when the period ended. Priced three ways, so a tie
+    // is its own result rather than a push on the team bets.
+    if (isPeriodSideBet(pick.betType)) {
+      const code = normaliseCode(pick.ticker)
+      if (!code) return { blocked: 'team-not-in-game' }
+      const awayCode = normaliseCode(game.away.code)
+      const homeCode = normaliseCode(game.home.code)
+
+      let picked: number, opponent: number
+      if (code === awayCode) { picked = a; opponent = h }
+      else if (code === homeCode) { picked = h; opponent = a }
+      else return { blocked: 'team-not-in-game' }
+
+      if (pick.sentiment === 'tie') return { outcome: picked === opponent ? 'win' : 'loss' }
+      if (pick.sentiment === 'backing') return { outcome: picked > opponent ? 'win' : 'loss' }
+      if (pick.sentiment === 'fading') return { outcome: opponent > picked ? 'win' : 'loss' }
+      return { blocked: 'no-side' }
+    }
+
+    const spec = PERIOD_BETS[pick.betType]
+    const line = pick.line ?? spec.defaultLine ?? null
+    if (line === null) return { blocked: 'missing-line' }
     return overUnder(a + h, line, pick.sentiment)
   }
 

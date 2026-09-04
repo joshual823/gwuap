@@ -8,7 +8,8 @@
 
 export type BetType =
   | 'moneyline' | 'spread' | 'total'
-  | 'first_inning' | 'first_five' | 'first_half'
+  | 'first_inning' | 'first_five' | 'first_five_ml'
+  | 'first_half' | 'first_half_ml'
   | 'player_prop' | 'team_prop' | 'parlay' | 'future' | 'other'
 export type PickStatus = 'pending' | 'win' | 'loss' | 'push' | 'void'
 
@@ -22,13 +23,16 @@ export type PostKind = 'take' | 'pick'
  * Which way you're leaning. Team bets are backing/fading; totals and
  * props are over/under — "backing the Over" isn't a thing anyone says.
  */
-export type Direction = 'backing' | 'fading' | 'over' | 'under' | 'neutral'
+export type Direction = 'backing' | 'fading' | 'over' | 'under' | 'neutral' | 'tie'
 
 /** Bet types priced on a number rather than a side. */
 const OVER_UNDER_BETS: BetType[] = [
   'total', 'first_inning', 'first_five', 'first_half',
   'player_prop', 'team_prop',
 ]
+
+/** Part-of-game bets settled by who's ahead rather than by a number. */
+const PERIOD_SIDE_BETS: BetType[] = ['first_five_ml', 'first_half_ml']
 
 /**
  * Bets on part of a game, and which periods each one covers.
@@ -37,14 +41,50 @@ const OVER_UNDER_BETS: BetType[] = [
  * them the same way, so one map covers both. NRFI is a total of 0.5 over
  * the first inning: no runs and the under wins.
  */
-export const PERIOD_BETS: Record<string, { periods: number; defaultLine?: number }> = {
+export const PERIOD_BETS: Record<string, { periods: number | 'half'; defaultLine?: number }> = {
   first_inning: { periods: 1, defaultLine: 0.5 },
   first_five: { periods: 5 },
-  first_half: { periods: 2 },
+  first_five_ml: { periods: 5 },
+  first_half: { periods: 'half' },
+  first_half_ml: { periods: 'half' },
+}
+
+/**
+ * How many scoreboard periods make up a half, per league.
+ *
+ * Not a constant, because "first half" isn't one thing: football and the
+ * NBA are quartered so a half is two of them, college basketball is
+ * already halved so it's one. Hockey has three periods and no half at
+ * all, and ESPN publishes no line scores for soccer — so neither is
+ * listed, and a half bet on them can't be offered or graded.
+ */
+const HALF_PERIODS: Record<string, number> = {
+  'NFL': 2,
+  'College Football': 2,
+  'NBA': 2,
+  'College Basketball': 1,
+}
+
+export function periodsFor(betType: BetType, league: string): number | null {
+  const spec = PERIOD_BETS[betType]
+  if (!spec) return null
+  if (spec.periods === 'half') return HALF_PERIODS[league] ?? null
+  return spec.periods
+}
+
+/** Which leagues a part-of-game bet makes sense in. */
+export function periodBetsFor(league: string): BetType[] {
+  if (league === 'MLB') return ['first_inning', 'first_five', 'first_five_ml']
+  if (league in HALF_PERIODS) return ['first_half', 'first_half_ml']
+  return []
 }
 
 export function isPeriodBet(betType: BetType): boolean {
   return betType in PERIOD_BETS
+}
+
+export function isPeriodSideBet(betType: BetType): boolean {
+  return PERIOD_SIDE_BETS.includes(betType)
 }
 
 /**
@@ -59,13 +99,34 @@ const DIRECTION_LABELS: Record<Direction, string> = {
   over: 'Over',
   under: 'Under',
   neutral: 'Neutral',
+  tie: 'Tie',
 }
 
 export function labelFor(d: Direction): string {
   return DIRECTION_LABELS[d] ?? d
 }
 
-export function directionsFor(kind: PostKind, betType: BetType): { value: Direction; label: string }[] {
+export function directionsFor(
+  kind: PostKind, betType: BetType, teams?: { primary?: string; secondary?: string },
+): { value: Direction; label: string }[] {
+  // "Was there a run in the first?" is a yes/no question. Calling it
+  // over/under 0.5 is technically what it is and nobody says it that way.
+  if (kind === 'pick' && betType === 'first_inning') {
+    return [{ value: 'over', label: 'Yes — a run scores' }, { value: 'under', label: 'No run (NRFI)' }]
+  }
+
+  // Who's ahead when the period ends, three ways. Tie is a real outcome
+  // here rather than a push, which is how these are priced.
+  if (kind === 'pick' && PERIOD_SIDE_BETS.includes(betType)) {
+    const a = teams?.primary?.trim() || 'First team'
+    const b = teams?.secondary?.trim() || 'Other team'
+    return [
+      { value: 'backing', label: `${a} ahead` },
+      { value: 'fading', label: `${b} ahead` },
+      { value: 'tie', label: 'Tie' },
+    ]
+  }
+
   if (kind === 'pick' && OVER_UNDER_BETS.includes(betType)) {
     return [{ value: 'over', label: 'Over' }, { value: 'under', label: 'Under' }]
   }
@@ -126,9 +187,11 @@ export const BET_TYPES: { value: BetType; label: string }[] = [
   // Bets on part of a game. Settled from the period scores the
   // scoreboard already carries — innings for baseball, quarters for
   // football — so they grade themselves like any other.
-  { value: 'first_inning', label: 'First inning (NRFI/YRFI)' },
-  { value: 'first_five', label: 'First 5 innings' },
-  { value: 'first_half', label: 'First half' },
+  { value: 'first_inning', label: 'First inning — run or no run' },
+  { value: 'first_five', label: 'First 5 innings — total' },
+  { value: 'first_five_ml', label: 'First 5 innings — who leads' },
+  { value: 'first_half', label: 'First half — total' },
+  { value: 'first_half_ml', label: 'First half — who leads' },
   { value: 'player_prop', label: 'Player prop' },
   { value: 'team_prop', label: 'Team prop' },
   { value: 'parlay', label: 'Parlay' },

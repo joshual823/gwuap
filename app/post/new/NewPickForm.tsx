@@ -10,6 +10,7 @@ import {
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
   directionsFor, wantsMatchup, isPropBet, QUICK_ODDS,
   type BetType, type PostKind, type Direction,
+  isPeriodBet, periodBetsFor,
 } from '@/lib/odds'
 
 export default function NewPickForm() {
@@ -130,10 +131,22 @@ export default function NewPickForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const directions = directionsFor(kind, betType)
+  // The three-way options read as team names rather than "backing" and
+  // "fading", which mean nothing when the question is who's ahead at the
+  // break. Falls back to generic wording until both tags are in.
+  const directions = directionsFor(kind, betType, { primary: tag, secondary: tag2 })
   const showMatchup = wantsMatchup(kind, betType)
+
   const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
+
+  // Part-of-game bets only appear where they can actually be settled:
+  // innings for baseball, halves for the sports that have them. Offering
+  // a first-half bet on hockey would create picks that can never grade.
+  const availableBetTypes = useMemo(() => {
+    const allowed = new Set<BetType>(periodBetsFor(leagueName ?? ''))
+    return BET_TYPES.filter(b => !isPeriodBet(b.value) || allowed.has(b.value))
+  }, [leagueName])
 
   // Changing the league away from the game's means the pick is no longer
   // about that fixture. Keeping the id would settle it against a game the
@@ -148,13 +161,28 @@ export default function NewPickForm() {
   }, [leagueName])
 
   // Only two bet types turn on a number, and only those are auto-graded.
-  const wantsLine = kind === 'pick' && (betType === 'spread' || betType === 'total')
+  // A number is only needed where the bet turns on one. Who-leads bets
+  // don't have a line, and NRFI's is always 0.5.
+  const wantsLine = kind === 'pick' && (
+    betType === 'spread' || betType === 'total' ||
+    betType === 'first_five' || betType === 'first_half'
+  )
   const lineValue = line.trim() === '' ? null : Number(line)
   const lineValid = lineValue === null || Number.isFinite(lineValue)
 
   // Bet type is asked first, so this almost never fires — it's here for
   // the case where someone goes back and changes it, since "backing" is
   // meaningless once the bet is a total.
+  // A bet type that no longer applies to the chosen league has to go, or
+  // someone switches from MLB to NHL and silently posts a first-inning
+  // bet on hockey.
+  useEffect(() => {
+    if (isPeriodBet(betType) && !availableBetTypes.some(b => b.value === betType)) {
+      setBetType('moneyline')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leagueName])
+
   useEffect(() => {
     if (sentiment && !directions.some(d => d.value === sentiment)) setSentiment(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -289,7 +317,7 @@ export default function NewPickForm() {
             <label className="form-label">Bet type</label>
             <div className="chip-line">
               <div className="chip-scroll">
-              {BET_TYPES.map(b => (
+              {availableBetTypes.map(b => (
                 <button key={b.value} type="button" aria-pressed={betType === b.value}
                   className={`chip ${betType === b.value ? 'active' : ''}`}
                   onClick={() => setBetType(b.value)}>{b.label}</button>
@@ -366,9 +394,9 @@ export default function NewPickForm() {
         {kind === 'pick' && !fromBook && (
           <p className="form-hint">
             This price didn&apos;t come from a book, so it&apos;s yours to keep —
-            hidden from everyone else unless you say otherwise, and never
-            counted toward the leaderboard. The pick still settles as a win
-            or a loss like any other.
+            kept off other people&apos;s screens unless you say otherwise, and
+            never counted toward the leaderboard. The pick still settles as
+            a win or a loss like any other.
           </p>
         )}
 
@@ -421,6 +449,8 @@ export default function NewPickForm() {
                 <span>
                   Show these numbers on the post. They&apos;ll be marked
                   <strong> self-reported</strong>, because nobody can check them.
+                  Left off, they stay off your posts and out of the
+                  leaderboard — they&apos;re a note to yourself, not a secret.
                 </span>
               </label>
             )}

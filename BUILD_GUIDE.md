@@ -301,6 +301,17 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   because ESPN's odds *are* DraftKings — same numbers, through an
   endpoint meant to be read. Player props, alternate lines and live
   in-game odds are the gap, and they need a paid feed.
+- **Part-of-game bets are asked the way people say them (migration 030).**
+  NRFI is yes/no, not over/under 0.5. First five and first half each come
+  in two forms — a total, and who leads at the break — and the second is
+  priced three ways because a tie there is a real result, not a push.
+- **"First half" is league-dependent.** Football and the NBA are
+  quartered so a half is two periods; college basketball is already
+  halved so it's one. Hockey has three periods and no half, and ESPN
+  publishes no line scores for soccer at all — so neither offers these
+  bets, and `periodsFor()` returns null for them rather than guessing.
+  The form hides bet types a league can't settle, and resets the choice
+  if you switch leagues.
 - **Bets on part of a game (migration 028).** First inning (NRFI/YRFI),
   first five innings, first half. The scoreboard already carries innings
   and quarters per side, so these settle from the same feed as
