@@ -53,13 +53,17 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
     for (const o of originals ?? []) quoted.set(o.id, o)
   }
 
-  // How many times each of these has been passed along. Counted over the
-  // originals, so a repost shows the original's total rather than zero.
-  const countable = posts.map(p => meta.get(p.id)?.repost_of ?? p.id)
+  // How many times this exact post has been passed along.
+  //
+  // It used to count the original's reposts and show that on the repost
+  // too, so a fresh repost was born claiming someone had already
+  // reposted it. A repost is its own post: it starts at zero, the same
+  // way it starts with no likes.
   const counts = new Map<string, number>()
-  if (countable.length > 0) {
+  const ids = posts.map(p => p.id)
+  if (ids.length > 0) {
     const { data: rows } = await supabase
-      .from('posts').select('repost_of').in('repost_of', [...new Set(countable)])
+      .from('posts').select('repost_of').in('repost_of', ids)
     for (const r of rows ?? []) {
       counts.set(r.repost_of, (counts.get(r.repost_of) ?? 0) + 1)
     }
@@ -67,11 +71,10 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
 
   return posts.map(p => {
     const m = meta.get(p.id) ?? {}
-    const originalId = m.repost_of ?? p.id
     return {
       ...p, ...m,
       reposted: m.repost_of ? quoted.get(m.repost_of) ?? null : null,
-      repost_count: counts.get(originalId) ?? 0,
+      repost_count: counts.get(p.id) ?? 0,
     }
   })
 }

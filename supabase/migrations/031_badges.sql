@@ -71,14 +71,14 @@ grant update (username, display_name, bio, avatar_url, preferred_leagues)
   on profiles to authenticated;
 
 -- ---- The board carries them too ------------------------------
--- Same view as migration 030, plus badges. Restated in full because a
--- view can't be altered a column at a time.
+-- Same view as migration 030, plus badges appended at the end. Restated
+-- in full because a view can't be altered a column at a time, and the
+-- new column has to go last: CREATE OR REPLACE VIEW only appends.
 create or replace view leaderboard as
 select
   p.id as user_id,
   p.username,
   p.avatar_url,
-  p.badges,
   count(*) filter (where posts.status = 'win') as wins,
   count(*) filter (where posts.status = 'loss') as losses,
   count(*) filter (where posts.status = 'push') as pushes,
@@ -102,7 +102,11 @@ select
         where posts.status <> 'pending'
            or posts.created_at < now() - interval '7 days'
       ), 0), 0
-  ) as graded_pct
+  ) as graded_pct,
+  -- Last on purpose. CREATE OR REPLACE VIEW may only append columns —
+  -- inserting one anywhere else renames every column after it, and
+  -- Postgres refuses with "cannot change name of view column".
+  p.badges
 from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'
