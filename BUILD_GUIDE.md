@@ -321,6 +321,12 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Home runs and player props can't be graded.** They need a box score,
   not a scoreline. Deliberately not offered as auto-graded types: a bet
   type that can never settle is worse than one that doesn't exist.
+- **Money on a pick is opt-in.** The odds and stake chips are collapsed
+  behind "Add odds and stake". Left closed they still held their
+  defaults — -110 and $50 — and those would have been written to every
+  pick as a price and a stake the author never chose. A book price is
+  still recorded either way, because that's a fact about the market; a
+  stake never is, because it's only ever a claim.
 - **Self-reported money is private by default (migration 029).** A
   hand-priced pick keeps its odds and stake, but only the author sees
   them unless they publish, and published ones are labelled

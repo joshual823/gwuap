@@ -62,6 +62,10 @@ export default function NewPickForm() {
   // forever, which is wrong — the number is the book's again.
   const [bookOdds, setBookOdds] = useState<string | null>(null)
   const [showMoney, setShowMoney] = useState(false)
+  // Money is opt-in. Left closed, the chips still hold their defaults —
+  // -110 and $50 — and those defaults would be recorded as a stake and a
+  // price the author never chose, on every pick they posted.
+  const [addMoney, setAddMoney] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -330,13 +334,17 @@ export default function NewPickForm() {
       return
     }
 
-    if (oddsValue === null) {
-      setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
-      return
-    }
-    if (!stakeValid) {
-      setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
-      return
+    // Only validated when money is actually being claimed. A pick with
+    // no odds and no stake is a perfectly good pick.
+    if (addMoney) {
+      if (oddsValue === null) {
+        setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
+        return
+      }
+      if (!stakeValid) {
+        setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
+        return
+      }
     }
     if (wantsLine && !lineValid) {
       setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
@@ -357,9 +365,12 @@ export default function NewPickForm() {
       sentiment,
       caption: caption.trim(),
       bet_type: betType,
-      odds: oddsText,
-      stake,
-      potential_payout: payoutOnWin(oddsValue, stake),
+      // A book price is a fact about the market and worth keeping either
+      // way. A stake is only ever the author's, so it exists only if they
+      // entered one — the chips' defaults are not a claim.
+      odds: addMoney ? oddsText : bookOdds,
+      stake: addMoney ? stake : null,
+      potential_payout: addMoney && oddsValue !== null ? payoutOnWin(oddsValue, stake) : null,
       // A book price is a public fact. Anything else is the author's own
       // note until they decide otherwise.
       money_public: fromBook ? true : showMoney,
@@ -498,7 +509,26 @@ export default function NewPickForm() {
           placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
           value={caption} onChange={setCaption} />
 
-        {kind === 'pick' && (
+        {/* A book price is a fact about the market, so it's shown whether
+            or not anyone adds money to the pick. */}
+        {kind === 'pick' && fromBook && !addMoney && (
+          <p className="odds-locked">
+            <strong>{oddsText}</strong> — {book ?? 'the book'}&apos;s price, recorded
+            with the pick.
+          </p>
+        )}
+
+        {kind === 'pick' && !addMoney && (
+          <button type="button" className="add-money" onClick={() => setAddMoney(true)}>
+            + {fromBook ? 'Add a stake' : 'Add odds and stake'}
+            <span>
+              Optional. Without {fromBook ? 'one' : 'them'} the pick still settles
+              as a win or a loss — there&apos;s just no money on it.
+            </span>
+          </button>
+        )}
+
+        {kind === 'pick' && addMoney && (
           <>
             <label className="form-label">Odds</label>
             {fromBook ? (
