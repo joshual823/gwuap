@@ -76,14 +76,29 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
 
           {open === g.id && (
             g.markets.length > 0 ? (
-              <div className="picker-markets">
-                {g.markets.map(m => (
-                  <button key={`${m.kind}-${m.side}`} type="button" className="market-btn"
-                    onClick={() => { onSelect(g, m); setOpen(null) }}>
-                    <span className="market-pick">{m.label}</span>
-                    <span className="market-odds">{m.odds}</span>
-                  </button>
-                ))}
+              <div className="picker-kinds">
+                {/* Grouped and labelled, the way a game page lays them
+                    out. Ungrouped, "DET +113" and "DET +1.5" sat next to
+                    each other with nothing saying which was the
+                    moneyline and which was the spread. */}
+                {(['moneyline', 'spread', 'total'] as const).map(kind => {
+                  const row = g.markets.filter(m => m.kind === kind)
+                  if (row.length === 0) return null
+                  return (
+                    <div className="market-row" key={kind}>
+                      <span className="market-kind">
+                        {kind === 'moneyline' ? 'Moneyline' : kind === 'spread' ? 'Spread' : 'Total'}
+                      </span>
+                      {row.map(m => (
+                        <button key={`${m.kind}-${m.side}`} type="button" className="market-btn"
+                          onClick={() => { onSelect(g, m); setOpen(null) }}>
+                          <span className="market-pick">{m.label}</span>
+                          <span className="market-odds">{m.odds}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <p className="picker-none">

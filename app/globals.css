@@ -325,7 +325,10 @@ a { color: inherit; text-decoration: none; }
 .picker-when { flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 .picker-row.chosen { border-color: var(--brand); background: var(--tint-brand); }
 .picker-row.chosen .picker-when { color: var(--brand); }
-.picker-markets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
+.picker-kinds { margin-top: 8px; }
+.picker-kinds .market-row { margin-bottom: 6px; }
+/* Narrower than a game page's, since this sits inside a form. */
+.picker-kinds .market-kind { flex: 0 0 58px; }
 .picker-none { font-size: 12px; color: var(--ink-faint); margin: 6px 0 0; }
 
 .money-toggle { display: flex; gap: 9px; align-items: flex-start; margin: 2px 0 14px; padding: 10px 11px; border-radius: 10px; background: var(--card); border: 1px solid var(--line); font-size: 12.5px; color: var(--ink-faint); line-height: 1.45; cursor: pointer; }
