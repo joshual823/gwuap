@@ -193,6 +193,24 @@ export function wantsMatchup(kind: PostKind, betType: BetType): boolean {
 }
 
 /**
+ * Whether an opponent cashtag is offered at all.
+ *
+ * Wider than wantsMatchup, and the difference is required vs allowed. A
+ * total is *about* a fixture, so both sides belong to it and the label
+ * above the direction buttons becomes Over/Under. A take is about
+ * whatever the person wants to talk about — most often a matchup, since
+ * that's what there is to argue over. Restricting it to one side meant
+ * no take could be posted on a game, a match or a fight, which is most
+ * of them.
+ *
+ * Left optional for takes. "$LAL are done" is still a take, and forcing
+ * a second cashtag onto it would invent an opponent nobody named.
+ */
+export function allowsOpponent(kind: PostKind, betType: BetType): boolean {
+  return kind === 'take' || wantsMatchup(kind, betType)
+}
+
+/**
  * Split American odds into the sign and digits the form holds separately.
  *
  * Shared so the two places that do it — filling the form from a link, and

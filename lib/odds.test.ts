@@ -1,4 +1,5 @@
-import { splitAmericanOdds, formatAmericanOdds, labelFor, BET_TYPES, QUICK_ODDS } from './odds'
+import { splitAmericanOdds, formatAmericanOdds, labelFor, BET_TYPES, QUICK_ODDS,
+         wantsMatchup, allowsOpponent } from './odds'
 
 let pass = 0, fail = 0
 function check(label: string, got: unknown, want: unknown) {
@@ -43,6 +44,21 @@ check('parlay is unchanged',       labelFor('backing', 'parlay'), 'Backing')
 
 console.log('\nevery bet type has a chip-sized name')
 check('all have a label', BET_TYPES.every(b => (b.short ?? b.label).length <= 14), true)
+
+console.log('\na take can name an opponent; a pick only where the bet has two sides')
+// The distinction the two functions carry: wantsMatchup means the bet is
+// about a fixture and both sides belong to it, which also flips the
+// direction buttons to Over/Under. allowsOpponent only means the field
+// is offered. Conflating them would have made every take read Over/Under.
+check('take may name an opponent',       allowsOpponent('take', 'moneyline'), true)
+check('take does not require a matchup', wantsMatchup('take', 'moneyline'), false)
+check('take on a total still offers it', allowsOpponent('take', 'total'), true)
+check('take never flips to over/under',  wantsMatchup('take', 'total'), false)
+check('pick moneyline: one side',        allowsOpponent('pick', 'moneyline'), false)
+check('pick total: both sides',          allowsOpponent('pick', 'total'), true)
+check('pick total wants the matchup',    wantsMatchup('pick', 'total'), true)
+check('pick NRFI is on the fixture',     allowsOpponent('pick', 'first_inning'), true)
+check('pick prop is on one side',        allowsOpponent('pick', 'player_prop'), false)
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)

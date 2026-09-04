@@ -12,7 +12,7 @@ import MentionInput from '@/components/MentionInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
-  directionsFor, wantsMatchup, isPropBet, QUICK_ODDS,
+  directionsFor, wantsMatchup, allowsOpponent, isPropBet, QUICK_ODDS,
   type BetType, type PostKind, type Direction,
   isPeriodBet, periodBetsFor, splitAmericanOdds, formatAmericanOdds,
 } from '@/lib/odds'
@@ -152,6 +152,8 @@ export default function NewPickForm() {
   // break. Falls back to generic wording until both tags are in.
   const directions = directionsFor(kind, betType, { primary: tag, secondary: tag2 })
   const showMatchup = wantsMatchup(kind, betType)
+  // Required by the bet, or merely offered. Takes are the second.
+  const showOpponent = allowsOpponent(kind, betType)
 
   const showPropHint = isPropBet(kind, betType)
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
@@ -255,15 +257,19 @@ export default function NewPickForm() {
    * picked first-inning meant it, and this is the only way that bet can
    * name a game at all, since no book prices it.
    */
-  function applyGame(game: Slim) {
-    setKind('pick')
-    setGameId(game.id)
-    setGameLeague(game.league)
-    setGameStartsAt(game.startsAt)
+  /**
+   * Put both sides of a fixture into the cashtag fields, keeping
+   * whichever one was already typed as the primary.
+   *
+   * Split out from applyGame because a take wants exactly this and
+   * nothing else around it — no fixture stored, and above all no
+   * setKind('pick'), which would have turned the take being written
+   * into a pick the moment someone tapped a game.
+   */
+  function fillSides(game: Slim) {
     setGameSides([game.away.code, game.home.code])
 
     const typed = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
-    const away = game.away.code.toUpperCase()
     const home = game.home.code.toUpperCase()
 
     if (typed === home) {
@@ -273,6 +279,14 @@ export default function NewPickForm() {
       setTag(`$${game.away.code}`)
       setTag2(`$${game.home.code}`)
     }
+  }
+
+  function applyGame(game: Slim) {
+    setKind('pick')
+    setGameId(game.id)
+    setGameLeague(game.league)
+    setGameStartsAt(game.startsAt)
+    fillSides(game)
   }
 
   function applyMarket(game: Slim, market: Market) {
@@ -341,35 +355,6 @@ export default function NewPickForm() {
     if (!user) { router.push('/login'); return }
     try { localStorage.setItem('gwuap:lastLeague', String(categoryId)) } catch {}
 
-    if (kind === 'take') {
-      if (!caption.trim()) { setError('Say something — a take needs words.'); return }
-      setLoading(true)
-      const { error: takeError } = await supabase.from('posts').insert({
-        author_id: user.id,
-        category_id: categoryId,
-        post_kind: 'take',
-        tag: tag.trim(),
-        sentiment,
-        caption: caption.trim(),
-      })
-      setLoading(false)
-      if (takeError) { setError('Could not post — try again.'); return }
-      router.push('/feed')
-      return
-    }
-
-    // Only validated when money is actually being claimed. A pick with
-    // no odds and no stake is a perfectly good pick.
-    if (addMoney) {
-      if (oddsValue === null) {
-        setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
-        return
-      }
-      if (!stakeValid) {
-        setError(`Enter an amount between $1 and ${formatUsd(MAX_STAKE)}.`)
-        return
-      }
-    }
     // Invent one if you like — the list can't cover everything. It just
     // has to stay a tag. One word, because the ticker is derived from
     // the first word of the tag: "$TAYLOR TOWNSEND" becomes "$TAYLOR",
@@ -404,10 +389,42 @@ export default function NewPickForm() {
     const primaryCode = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     const secondCode = tag2.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     if (primaryCode && secondCode && primaryCode === secondCode) {
-      setError(`Those are the same ${words.side}. A pick on a ${words.event} needs two different sides.`)
+      setError(`Those are the same ${words.side}. A ${words.event} needs two different sides.`)
       return
     }
 
+    if (kind === 'take') {
+      if (!caption.trim()) { setError('Say something — a take needs words.'); return }
+      setLoading(true)
+      const { error: takeError } = await supabase.from('posts').insert({
+        author_id: user.id,
+        category_id: categoryId,
+        post_kind: 'take',
+        tag: tag.trim(),
+        // Optional, unlike a pick's: a take can be about one side or
+        // about the matchup, and only the author knows which.
+        tag2: tag2.trim() || null,
+        sentiment,
+        caption: caption.trim(),
+      })
+      setLoading(false)
+      if (takeError) { setError('Could not post — try again.'); return }
+      router.push('/feed')
+      return
+    }
+
+    // Only validated when money is actually being claimed. A pick with
+    // no odds and no stake is a perfectly good pick.
+    if (addMoney) {
+      if (oddsValue === null) {
+        setError('Odds must be 100 or higher — that’s how American odds work (-110, +150). Drop the sign; the +/− buttons set it.')
+        return
+      }
+      if (!stakeValid) {
+        setError(`Enter an amount between $1 and ${formatUsd(MAX_STAKE)}.`)
+        return
+      }
+    }
     if (wantsLine && !lineValid) {
       setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
       return
@@ -493,29 +510,35 @@ export default function NewPickForm() {
             down that people posted matchup bets on one team without
             realising the second field was there at all. */}
         <label className="form-label">
-          {showMatchup ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
+          {showOpponent ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
         </label>
         <CashtagInput value={tag} onChange={setPrimaryTag} league={leagueName} categoryId={categoryId} />
 
-        {showMatchup && (
+        {showOpponent && (
           <>
-            <label className="form-label">Opponent</label>
+            <label className="form-label">
+              Opponent{kind === 'take' ? ' (optional)' : ''}
+            </label>
             <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
             <p className="form-hint">
-              This pick is on the {words.event}, so it names both sides.
+              {kind === 'take'
+                ? `Naming the other side posts the take on the ${words.event} rather than on one ${words.side}.`
+                : `This pick is on the ${words.event}, so it names both sides.`}
             </p>
           </>
         )}
 
         {/* Below the teams, not between them: it's a shortcut to filling
             them in, so it belongs after the thing it fills. */}
-        {kind === 'pick' && !fromBook && (
+        {!fromBook && (
           <GamePicker
             league={leagueName}
             query={tag}
-            onSelect={applyMarket}
-            onSelectGame={applyGame}
-            selectedGameId={gameId}
+            /* A take stores no fixture and no price, so both taps mean
+               the same thing there: name the two sides. */
+            onSelect={kind === 'take' ? game => fillSides(game) : applyMarket}
+            onSelectGame={kind === 'take' ? fillSides : applyGame}
+            selectedGameId={kind === 'take' ? null : gameId}
           />
         )}
 
