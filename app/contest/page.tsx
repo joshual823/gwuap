@@ -85,6 +85,11 @@ export default async function ContestPage() {
         </div>
       )}
 
+      <p style={{ marginTop: 16, fontSize: 13, color: 'var(--ink-dim)' }}>
+        Not sure how the grading works?{' '}
+        <Link href="/help" className="help-link">How it works</Link>
+      </p>
+
       {!ended && (
         <Link href={user ? '/post/new' : '/signup'} className="btn" style={{ display: 'block', textAlign: 'center', marginTop: 18 }}>
           {user ? 'Post a pick' : 'Sign up and enter'}

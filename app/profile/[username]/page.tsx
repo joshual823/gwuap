@@ -133,6 +133,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
             <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues }} />
             <ThemeToggle />
+            <Link href="/help" className="btn secondary">Help</Link>
             <LogoutButton />
           </div>
         )}

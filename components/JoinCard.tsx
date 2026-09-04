@@ -22,6 +22,7 @@ export default function JoinCard() {
         <Link href="/login" className="btn secondary">Log in</Link>
         <Link href="/signup" className="btn">Sign up</Link>
       </div>
+      <Link href="/help" className="join-how">How it works →</Link>
     </div>
   )
 }
