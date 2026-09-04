@@ -13,6 +13,7 @@ export type PostMeta = {
   odds_source?: string | null
   odds_book?: string | null
   repost_of?: string | null
+  game_starts_at?: string | null
   reposted?: any | null      // the post being passed along
   repost_count?: number
 }
@@ -30,7 +31,7 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, grade_note, graded_by, odds_source, odds_book, repost_of')
+    .select('id, grade_note, graded_by, odds_source, odds_book, repost_of, game_starts_at')
     .in('id', posts.map(p => p.id))
 
   if (error || !data) return posts
@@ -39,7 +40,7 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
     data.map((r: any) => [r.id, {
       grade_note: r.grade_note, graded_by: r.graded_by,
       odds_source: r.odds_source, odds_book: r.odds_book,
-      repost_of: r.repost_of,
+      repost_of: r.repost_of, game_starts_at: r.game_starts_at,
     }]),
   )
 

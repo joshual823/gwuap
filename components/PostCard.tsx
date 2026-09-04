@@ -35,6 +35,7 @@ type Post = {
   /** The post being passed along, when this is a repost. */
   reposted?: any | null
   repost_count?: number
+  game_starts_at?: string | null
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -48,6 +49,15 @@ type Post = {
 
 export default function PostCard({ post }: { post: Post }) {
   const betLabel = BET_TYPES.find(b => b.value === post.bet_type)?.label
+
+  // A pick stops being withdrawable at kick-off. The database enforces
+  // this; the menu needs to know so it can say why rather than offering
+  // a button that silently does nothing — a blocked delete comes back
+  // from PostgREST as a success with no rows touched.
+  const lockedForDelete =
+    post.post_kind === 'pick' &&
+    (post.status !== 'pending' ||
+      (!!post.game_starts_at && new Date(post.game_starts_at) <= new Date()))
 
   // What lands in a text message alongside the link. The tag and the
   // direction are the whole point of the post, so they lead.
@@ -105,7 +115,8 @@ export default function PostCard({ post }: { post: Post }) {
               indistinguishable from a rigged one. */}
           {post.post_kind === 'pick' && post.status === 'pending' && post.grade_note &&
             <span className="stamp review">under review</span>}
-          <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id} />
+          <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id}
+            locked={lockedForDelete} />
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>

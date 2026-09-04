@@ -11,11 +11,13 @@ import { createClient } from '@/lib/supabaseClient'
  * button had nothing to act on and never rendered.
  */
 export default function PostMenu({
-  postId, authorId, viewerId,
+  postId, authorId, viewerId, locked = false,
 }: {
   postId: string
   authorId: string
   viewerId: string | null
+  /** A pick past kick-off, or already graded. The row can't be deleted. */
+  locked?: boolean
 }) {
   const supabase = createClient()
   const router = useRouter()
@@ -84,9 +86,16 @@ export default function PostMenu({
       {open && (
         <div className="post-menu">
           {mode === 'menu' && (isMine ? (
-            <button type="button" className="post-menu-item danger" onClick={() => setMode('confirmDelete')}>
-              Delete pick
-            </button>
+            locked ? (
+              <p className="post-menu-note">
+                This one's locked in — a pick can't be withdrawn once the
+                game starts. That's what makes the record worth anything.
+              </p>
+            ) : (
+              <button type="button" className="post-menu-item danger" onClick={() => setMode('confirmDelete')}>
+                Delete pick
+              </button>
+            )
           ) : (
             <button type="button" className="post-menu-item" onClick={() => setMode('report')}>
               Report pick

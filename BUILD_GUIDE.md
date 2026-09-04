@@ -320,6 +320,14 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   `lib/gradeNotes.ts` in its own query rather than folded into the post
   selects — those build the feed and every profile, and adding a column
   to them breaks the page until the migration runs.
+- **A pick can't be deleted once its game starts (migration 027).**
+  Auto-grading stopped anyone marking a loss as a win; deleting reached
+  the same outcome another way — post twenty, delete the losers, keep a
+  5-0 record. With a prize on the board that's the first thing anyone
+  clever tries. Before kick-off a pick is still withdrawable, which is
+  fair. Graded picks are never deletable. Enforced by RLS, and the menu
+  is told so it can explain rather than offering a button that silently
+  does nothing: a blocked delete returns success with no rows touched.
 - **An admin cannot grade their own pick.** Enforced in
   `/api/admin/grade`, not in the UI, and the button is replaced by an
   explanation rather than hidden. There is one admin who may enter their

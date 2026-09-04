@@ -425,6 +425,7 @@ function sortGames(games: Game[]): Game[] {
  */
 export function postHrefForMarket(game: Game, market: Market): string {
   const params = new URLSearchParams({ league: game.league, game: game.id, src: 'book' })
+  if (game.startsAt) params.set('starts', game.startsAt)
   if (game.book) params.set('book', game.book)
   params.set('bet', market.kind)
   params.set('odds', market.odds)
@@ -480,6 +481,9 @@ export function postHrefForGame(game: Game): string {
   // Which fixture this is. Without it a pick is a cashtag and an opinion,
   // and there's no key to look a final score up by.
   params.set('game', game.id)
+  // Kick-off travels too: it's what decides when the pick stops being
+  // withdrawable.
+  if (game.startsAt) params.set('starts', game.startsAt)
   if (game.overUnder != null) params.set('total', String(game.overUnder))
 
   params.set('tag', primary)

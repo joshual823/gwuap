@@ -46,6 +46,7 @@ export default function NewPickForm() {
   // simply never gets auto-graded.
   const [gameId, setGameId] = useState<string | null>(null)
   const [gameLeague, setGameLeague] = useState<string | null>(null)
+  const [gameStartsAt, setGameStartsAt] = useState<string | null>(null)
   const [line, setLine] = useState('')
   // Set when the pick came from tapping a real posted market. Editing the
   // odds clears it: the moment the number stops being the book's, saying
@@ -91,6 +92,7 @@ export default function NewPickForm() {
     if (presetGame && presetLeague) {
       setGameId(presetGame)
       setGameLeague(presetLeague)
+      setGameStartsAt(searchParams.get('starts'))
       setKind('pick')
     }
     // A spread carries its own number; a total carries the game's.
@@ -138,6 +140,7 @@ export default function NewPickForm() {
     if (gameId && leagueName && gameLeague && leagueName !== gameLeague) {
       setGameId(null)
       setGameLeague(null)
+      setGameStartsAt(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leagueName])
@@ -247,6 +250,7 @@ export default function NewPickForm() {
       potential_payout: payoutOnWin(oddsValue, stake),
       game_id: gameId,
       game_league: gameId ? gameLeague : null,
+      game_starts_at: gameId ? gameStartsAt : null,
       line: wantsLine ? lineValue : null,
       odds_source: fromBook ? 'book' : 'custom',
       odds_book: fromBook ? book : null,
