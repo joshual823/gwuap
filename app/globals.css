@@ -596,6 +596,18 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .chip-line .chip { flex: 0 0 auto; cursor: pointer; padding: 9px 14px; font-size: 13px; }
 .chip-pinned { border-style: dashed; }
 
+/* Watch room. The stage holds its ratio before the iframe loads, so the
+   chat below it doesn't get shoved down a second later. */
+.wr-sub { color: var(--ink-dim); font-size: 13px; margin: -4px 0 14px; }
+.wr-feeds { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 12px; }
+.wr-stage {
+  position: relative; aspect-ratio: 16 / 9; width: 100%;
+  background: #000; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+}
+.wr-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.wr-note { color: var(--ink-dim); font-size: 12.5px; line-height: 1.5; margin: 10px 0 20px; }
+.wr-chat-head { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+
 .bet-preview { font-size: 13px; color: var(--ink); margin: 0 0 16px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
 .bet-preview .pos { color: var(--brand); }
 .bet-preview-dim { color: var(--ink-faint); }
