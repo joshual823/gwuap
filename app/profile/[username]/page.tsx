@@ -4,8 +4,7 @@ import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
 import { attachPostMeta } from '@/lib/postMeta'
 import ProfileActions from './ProfileActions'
-import LogoutButton from '@/components/LogoutButton'
-import ThemeToggle from '@/components/ThemeToggle'
+import AccountMenu from './AccountMenu'
 import EditProfile from './EditProfile'
 import Avatar from '@/components/Avatar'
 import MessageButton from './MessageButton'
@@ -112,32 +111,41 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
 
   return (
     <div style={{ marginTop: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Avatar url={profile.avatar_url} size={48} />
-            <h1 className="display" style={{ fontSize: 24, margin: 0 }}>@{profile.username}</h1>
-          </div>
-          {profile.display_name && (
-            <p style={{ color: 'var(--ink-dim)', margin: '6px 0 0', fontSize: 14 }}>{profile.display_name}</p>
+      {/* Identity first, at a size worth looking at. Account tools sit
+          behind one button rather than four stacked down the side —
+          they were taller than the name and turned a profile into a
+          settings screen. */}
+      <div className="profile-head">
+        <Avatar url={profile.avatar_url} size={72} />
+        <div className="profile-id">
+          <h1 className="profile-name">@{profile.username}</h1>
+          {profile.display_name && profile.display_name !== profile.username && (
+            <p className="profile-display">{profile.display_name}</p>
           )}
-          {profile.bio && <p style={{ color: 'var(--ink-dim)', margin: '4px 0' }}>{profile.bio}</p>}
         </div>
-        {user && user.id !== profile.id && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-            <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
-            <MessageButton profileId={profile.id} username={profile.username} />
-          </div>
-        )}
-        {user?.id === profile.id && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-            <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues }} />
-            <ThemeToggle />
-            <Link href="/help" className="btn secondary">Help</Link>
-            <LogoutButton />
-          </div>
-        )}
+        <div className="profile-tools">
+          {user && user.id !== profile.id && (
+            <>
+              <ProfileActions profileId={profile.id} initiallyFollowing={!!myFollow} />
+              <MessageButton profileId={profile.id} username={profile.username} />
+            </>
+          )}
+          {user?.id === profile.id && (
+            <>
+              <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues }} />
+              <AccountMenu />
+            </>
+          )}
+        </div>
       </div>
+
+      {profile.bio
+        ? <p className="profile-bio">{profile.bio}</p>
+        : user?.id === profile.id && (
+            <p className="profile-bio empty">
+              No bio yet — Edit profile to say what you follow.
+            </p>
+          )}
 
       {/* The record is what someone came here to judge, so the three
           numbers that constitute it get their own block each, with the
@@ -148,20 +156,26 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           <span className="stat-figure">{wins}-{losses}</span>
           <span className="stat-label">Record</span>
         </div>
-        {winPct !== null && (
-          <div className="stat-block">
-            <span className="stat-figure">{winPct}%</span>
-            <span className="stat-label">Win rate</span>
-          </div>
-        )}
-        {settledPicks.some((p: any) => p.odds_source === 'book') && (
-          <div className="stat-block">
+        {/* All three, always. Hiding the empty ones left a single figure
+            floating on its own, which reads as a broken row rather than
+            as a new account. A dash says "nothing yet" without pretending
+            the number is zero. */}
+        <div className="stat-block">
+          <span className={`stat-figure ${winPct === null ? 'stat-empty' : ''}`}>
+            {winPct === null ? '—' : `${winPct}%`}
+          </span>
+          <span className="stat-label">Win rate</span>
+        </div>
+        <div className="stat-block">
+          {settledPicks.some((p: any) => p.odds_source === 'book') ? (
             <span className={`stat-figure ${bookProfit >= 0 ? 'pos' : 'neg'}`}>
               {formatSignedUsd(bookProfit)}
             </span>
-            <span className="stat-label">Profit</span>
-          </div>
-        )}
+          ) : (
+            <span className="stat-figure stat-empty">—</span>
+          )}
+          <span className="stat-label">Profit</span>
+        </div>
         {isOwnProfile && selfProfit !== 0 && (
           <div className="stat-block">
             <span className={`stat-figure ${selfProfit >= 0 ? 'pos' : 'neg'}`}
