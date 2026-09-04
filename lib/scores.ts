@@ -615,6 +615,41 @@ export async function fetchGameDetail(league: string, id: string): Promise<GameD
   return game ? detailFromGame(league, game) : null
 }
 
+/**
+ * When a game starts, split so the two halves can be weighted differently.
+ *
+ * ESPN writes it as "9/13 - 1:00 PM EDT", which buries the time — the
+ * part people actually plan around — inside a string where every
+ * character has the same weight. The timestamp is cleaner to read from.
+ *
+ * Anchored to Eastern because that's the timezone ESPN quotes and where
+ * the games are; a US audience reads "1:00 PM" as the kickoff they'd see
+ * quoted anywhere else.
+ */
+const GAME_TZ = 'America/New_York'
+
+export function kickoff(startsAt: string | null, now: Date = new Date()): { day: string; time: string } | null {
+  if (!startsAt) return null
+  const d = new Date(startsAt)
+  if (Number.isNaN(d.getTime())) return null
+
+  // en-CA gives YYYY-MM-DD, which compares as a string.
+  const dayKey = (x: Date) => x.toLocaleDateString('en-CA', { timeZone: GAME_TZ })
+  const tomorrow = new Date(now.getTime() + 86_400_000)
+
+  const key = dayKey(d)
+  const day =
+    key === dayKey(now) ? 'Today'
+    : key === dayKey(tomorrow) ? 'Tomorrow'
+    : d.toLocaleDateString('en-US', { timeZone: GAME_TZ, weekday: 'short', month: 'numeric', day: 'numeric' })
+
+  const time = d.toLocaleTimeString('en-US', {
+    timeZone: GAME_TZ, hour: 'numeric', minute: '2-digit',
+  })
+
+  return { day, time }
+}
+
 /** Where a game card points: the detail view, which is also where you post from. */
 export function gameHref(game: Game): string {
   return `/game/${encodeURIComponent(game.league)}/${encodeURIComponent(game.id)}`

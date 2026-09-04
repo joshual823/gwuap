@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { fetchGameDetail, fetchGames, postHrefForGame, postHrefForMarket, LEAGUES_WITH_SCORES } from '@/lib/scores'
+import { fetchGameDetail, fetchGames, postHrefForGame, postHrefForMarket, kickoff, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import LiveRefresh from './LiveRefresh'
 import GameChat from './GameChat'
 import WatchButton from '@/components/WatchButton'
@@ -28,6 +28,7 @@ export default async function GamePage(props: {
   const game = (await fetchGames(league)).find(g => g.id === params.id)
 
   const live = detail.state === 'in'
+  const start = kickoff(game?.startsAt ?? null)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: watchRows } = user
@@ -89,7 +90,11 @@ export default async function GamePage(props: {
           {live && <span className="live-dot" />}
           {detail.state === 'post' ? 'FINAL' : detail.state === 'in' ? 'LIVE' : 'UPCOMING'}
         </span>
-        {detail.state !== 'post' && <span className="gd-when">{detail.status}</span>}
+        {/* The summary endpoint says "Scheduled", which tells nobody
+            anything. The scoreboard row carries the actual timestamp. */}
+        {detail.state === 'pre' && start
+          ? <span className="gd-when"><strong>{start.time}</strong> {start.day}</span>
+          : detail.state !== 'post' && <span className="gd-when">{detail.status}</span>}
         <WatchButton ticker={gameKey} league={league} kind="game" viewerId={user?.id ?? null}
           initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())} label />
       </div>

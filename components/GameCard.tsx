@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { gameHref, type Game } from '@/lib/scores'
+import { gameHref, kickoff, type Game } from '@/lib/scores'
 
 function leagueSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -16,6 +16,8 @@ export default function GameCard({ game, className = '', ...rest }: {
   game: Game
   className?: string
 } & Omit<React.ComponentProps<typeof Link>, 'href' | 'className'>) {
+  const start = kickoff(game.startsAt)
+
   return (
     <Link
       href={gameHref(game)}
@@ -37,7 +39,18 @@ export default function GameCard({ game, className = '', ...rest }: {
         </div>
       ))}
 
-      <div className={`game-status ${game.state}`}>{game.status}</div>
+      {/* For a game that hasn't started, when it starts is the whole
+          status — and people choose what to bet on partly by what's on
+          next. So the time carries the weight and the day qualifies it,
+          rather than both being buried in one grey line. */}
+      {game.state === 'pre' && start ? (
+        <div className="game-when">
+          <span className="game-time">{start.time}</span>
+          <span className="game-day">{start.day}</span>
+        </div>
+      ) : (
+        <div className={`game-status ${game.state}`}>{game.status}</div>
+      )}
 
       {(game.spread || game.overUnder != null) && (
         <div className="game-odds">
