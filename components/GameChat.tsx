@@ -7,6 +7,7 @@ import Avatar from '@/components/Avatar'
 import MentionInput from '@/components/MentionInput'
 import { REACTION_EMOJI } from '@/lib/reactions'
 import RichText from '@/components/RichText'
+import ChatActions from '@/components/ChatActions'
 
 type Author = { id: string; username: string; avatar_url: string | null }
 type Msg = { id: string; body: string; created_at: string; author: Author | null }
@@ -112,6 +113,11 @@ export default function GameChat({ gameKey, viewerId }: {
               <div className="gc-head">
                 <Link href={`/profile/${m.author?.username}`} className="uname">@{m.author?.username}</Link>
                 <span className="time">{timeAgo(m.created_at)}</span>
+                {/* Signed-out readers get no controls: there is nothing
+                    they could do with them, and a report needs a reporter. */}
+                {m.author?.id && viewerId && (
+                  <ChatActions messageId={m.id} authorId={m.author.id} viewerId={viewerId} />
+                )}
               </div>
               <RichText text={m.body} className="gc-text" />
             </div>

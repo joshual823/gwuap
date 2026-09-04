@@ -54,3 +54,17 @@ export function roomKeyFor(feed: WatchFeed): string {
 export function embedSrcFor(feed: WatchFeed): string {
   return `https://www.youtube.com/embed/live_stream?channel=${feed.channel}`
 }
+
+/**
+ * Human label for a chat room key, for the moderation queue. Game rooms
+ * key on "LEAGUE:espn_id", which means nothing to read; watch rooms key
+ * on the feed.
+ */
+export function roomLabel(gameKey: string): string {
+  if (!gameKey.startsWith('watch:')) {
+    const [league, id] = gameKey.split(':')
+    return id ? `${league} game #${id}` : gameKey
+  }
+  const feed = WATCH_FEEDS.find(f => roomKeyFor(f) === gameKey)
+  return feed ? `Watch room · ${feed.name}` : 'Watch room'
+}

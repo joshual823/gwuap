@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import AdminActions from './AdminActions'
 import GradeReview from './GradeReview'
 import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
+import { roomLabel } from '@/lib/watch'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,11 +20,12 @@ export default async function AdminPage() {
   const { data: reports } = await supabase
     .from('reports')
     .select(`
-      id, reason, status, created_at, reported_vent_id,
+      id, reason, status, created_at, reported_vent_id, reported_game_message_id,
       reporter:profiles!reports_reporter_id_fkey ( username ),
       reported_user:profiles!reports_reported_user_id_fkey ( id, username ),
       reported_post:posts ( id, caption ),
-      reported_vent:vent_messages ( id, body )
+      reported_vent:vent_messages ( id, body ),
+      reported_game_message:game_messages ( id, body, game_key )
     `)
     .eq('status', 'open')
     // Vent reports first: it's the room where getting moderation wrong
@@ -93,6 +95,9 @@ export default async function AdminPage() {
       {(reports ?? []).map((r: any) => (
         <div key={r.id} className={`ticket ${r.reported_vent_id ? 'priority' : ''}`}>
           {r.reported_vent_id && <span className="ticket-flag">Vent room · priority</span>}
+          {r.reported_game_message?.game_key && (
+            <span className="ticket-flag">{roomLabel(r.reported_game_message.game_key)}</span>
+          )}
           <p style={{ margin: 0, fontSize: 14 }}>
             <strong>@{r.reporter?.username}</strong> reported <strong>@{r.reported_user?.username}</strong>
           </p>
@@ -102,6 +107,9 @@ export default async function AdminPage() {
           )}
           {r.reported_vent?.body && (
             <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink-dim)' }}>"{r.reported_vent.body}"</p>
+          )}
+          {r.reported_game_message?.body && (
+            <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--ink-dim)' }}>"{r.reported_game_message.body}"</p>
           )}
           <AdminActions reportId={r.id} userId={r.reported_user?.id} postId={r.reported_post?.id} />
         </div>
