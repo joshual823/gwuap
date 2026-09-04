@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { postHrefForMarket, type Game, type Market } from '@/lib/scores'
+import type { Market } from '@/lib/scores'
 
-type Slim = {
+export type Slim = {
   id: string; league: string; state: string; status: string; startsAt: string | null
   away: { code: string; label: string; logo: string | null }
   home: { code: string; label: string; logo: string | null }
@@ -18,9 +18,12 @@ type Slim = {
  * are usually one or two — so the choice stays short rather than
  * becoming a second scoreboard inside a form.
  */
-export default function GamePicker({ league, query }: {
+export default function GamePicker({ league, query, onSelect }: {
   league: string | null
   query: string
+  /** Fill the form in place. A link would reload the page and lose
+      everything already typed into it. */
+  onSelect: (game: Slim, market: Market) => void
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
@@ -63,12 +66,11 @@ export default function GamePicker({ league, query }: {
             g.markets.length > 0 ? (
               <div className="picker-markets">
                 {g.markets.map(m => (
-                  <a key={`${m.kind}-${m.side}`}
-                     href={postHrefForMarket({ ...(g as unknown as Game) }, m)}
-                     className="market-btn">
+                  <button key={`${m.kind}-${m.side}`} type="button" className="market-btn"
+                    onClick={() => { onSelect(g, m); setOpen(null) }}>
                     <span className="market-pick">{m.label}</span>
                     <span className="market-odds">{m.odds}</span>
-                  </a>
+                  </button>
                 ))}
               </div>
             ) : (

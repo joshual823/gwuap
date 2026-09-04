@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
-import GamePicker from '@/components/GamePicker'
+import GamePicker, { type Slim } from '@/components/GamePicker'
+import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
@@ -209,6 +210,49 @@ export default function NewPickForm() {
   const fromBook = bookOdds !== null && oddsText === bookOdds
   const changedFromBook = bookOdds !== null && !fromBook
 
+  /**
+   * Take a market straight into the form.
+   *
+   * Everything a market link encodes, applied in place. Following the
+   * link instead would reload the page and lose whatever had already
+   * been typed into it — which is what made choosing a total feel like
+   * starting over.
+   */
+  function applyMarket(game: Slim, market: Market) {
+    setKind('pick')
+    setBetType(market.kind)
+    setGameId(game.id)
+    setGameLeague(game.league)
+    setGameStartsAt(game.startsAt)
+    setBook(game.book)
+
+    const priced = formatAmericanOdds(market.odds)
+    setBookOdds(priced)
+    const parts = splitAmericanOdds(market.odds)
+    if (parts) {
+      setOddsSign(parts.sign)
+      setOddsInput(parts.digits)
+      setOddsCustom(!QUICK_ODDS.includes(`${parts.sign}${parts.digits}`))
+    }
+
+    if (market.kind === 'total') {
+      // A total is on the game, so it names both sides and asks a direction.
+      setTag(`$${game.away.code}`)
+      setTag2(`$${game.home.code}`)
+      setSentiment(market.side === 'over' ? 'over' : 'under')
+      setLine(market.line === null ? '' : String(market.line))
+    } else {
+      const other = market.side === 'away' ? game.home.code : game.away.code
+      const written = market.line === null
+        ? ''
+        : ` ${market.line > 0 ? '+' : ''}${market.line}`
+      setTag(`$${market.code}${written}`)
+      setTag2(`$${other}`)
+      setSentiment('backing')
+      setLine(market.line === null ? '' : String(market.line))
+    }
+  }
+
   function restoreBookOdds() {
     const parts = splitAmericanOdds(bookOdds)
     if (!parts) return
@@ -352,7 +396,9 @@ export default function NewPickForm() {
             them rather than making someone leave, find the game, and come
             back. Hidden once a pick already came from a market: it's
             already filled in, and re-offering it would just be noise. */}
-        {kind === 'pick' && !fromBook && <GamePicker league={leagueName} query={tag} />}
+        {kind === 'pick' && !fromBook && (
+          <GamePicker league={leagueName} query={tag} onSelect={applyMarket} />
+        )}
         {showMatchup && (
           <>
             <label className="form-label">Opponent — a total is on the game, not one team</label>
