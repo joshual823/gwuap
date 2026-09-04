@@ -468,6 +468,21 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .chip-line { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .chip-scroll { display: flex; gap: 6px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .chip-scroll::-webkit-scrollbar { display: none; }
+
+/* League switcher. Scrolls sideways rather than collapsing into a menu:
+   ten leagues fit in a swipe, and the one you're on stays visible
+   instead of hiding behind a tap. */
+.league-nav {
+  display: flex; gap: 6px; overflow-x: auto; margin: 0 0 14px;
+  padding-bottom: 2px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.league-nav::-webkit-scrollbar { display: none; }
+.league-chip-nav {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card);
+  font-size: 13px; font-weight: 700; color: var(--ink-dim); white-space: nowrap;
+}
+.league-chip-nav.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .chip-line .chip { flex: 0 0 auto; cursor: pointer; padding: 9px 14px; font-size: 13px; }
 .chip-pinned { border-style: dashed; }
 

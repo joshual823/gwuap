@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchGames, fetchGamesWindow, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import GameGrid from '@/components/GameGrid'
+import LeagueNav from '@/components/LeagueNav'
 import GameCard from '@/components/GameCard'
 
 export const dynamic = 'force-dynamic'
@@ -29,6 +30,7 @@ export default async function LeagueScoresPage(props: { params: Promise<{ league
   return (
     <div style={{ marginTop: 16 }}>
       <Link href="/scores" className="back-link">← All scores</Link>
+      <LeagueNav active={league} />
       <h1 className="display" style={{ fontSize: 22, margin: '4px 0 2px' }}>{league}</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 8 }}>
         Tap any game for live detail and to post a pick.

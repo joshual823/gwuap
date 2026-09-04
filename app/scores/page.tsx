@@ -1,6 +1,7 @@
 import { fetchGames, fetchGamesWindow, LEAGUES_WITH_SCORES } from '@/lib/scores'
 import Scoreboard from '@/components/Scoreboard'
 import FeedTabs from '@/components/FeedTabs'
+import LeagueNav from '@/components/LeagueNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,6 +31,8 @@ export default async function ScoresPage() {
       <FeedTabs active="scores" />
 
       <h1 className="page-title">Sports Live</h1>
+
+      <LeagueNav />
 
       {withGames.length === 0 && (
         <p style={{ color: 'var(--ink-dim)', marginTop: 20 }}>
