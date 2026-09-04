@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { SITE_URL } from '@/lib/brand'
+import { ShareIcon, CheckIcon } from './icons'
 
 /**
  * Share a post out of the site.
@@ -46,8 +47,8 @@ export default function ShareButton({ postId, summary }: {
   return (
     <button type="button" className="action-btn" onClick={share}
       aria-label="Share this post">
-      <span style={{ fontSize: 15 }}>{copied ? '✓' : '↗'}</span>
-      {copied && <span style={{ fontSize: 12 }}>Copied</span>}
+      {copied ? <CheckIcon /> : <ShareIcon />}
+      {copied && <span>Copied</span>}
     </button>
   )
 }

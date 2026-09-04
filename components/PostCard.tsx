@@ -13,6 +13,7 @@ import Avatar from './Avatar'
 import RichText from './RichText'
 import ShareButton from './ShareButton'
 import RepostButton from './RepostButton'
+import { CommentIcon } from './icons'
 import { BLOCKED_LABELS, type Blocked } from '@/lib/grade'
 
 type Post = {
@@ -218,7 +219,7 @@ export default function PostCard({ post }: { post: Post }) {
             viewerId={post.viewer_id}
           />
           <Link href={`/post/${post.id}`} className="action-btn">
-            <span style={{ fontSize: 15 }}>💬</span> {post.comment_count}
+            <CommentIcon />{post.comment_count > 0 ? <span>{post.comment_count}</span> : null}
           </Link>
           {/* A repost of a repost points at the original, so chains stay
               one level deep and the card always shows the real pick. */}

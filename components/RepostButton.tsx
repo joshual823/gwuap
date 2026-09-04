@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
+import { RepostIcon } from './icons'
 
 /**
  * Pass someone's post along, optionally with something to say about it.
@@ -26,9 +27,16 @@ export default function RepostButton({ targetId, viewerId, count }: {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  // Read inside a listener registered once, so it needs a ref rather than
+  // the state value captured at mount.
+  const commentRef = useRef('')
 
   useEffect(() => {
     function onDown(e: MouseEvent | TouchEvent) {
+      // A stray tap outside shouldn't throw away a half-written comment.
+      // Closing on outside click is right for an empty box and hostile
+      // once there's something in it, so it only closes while empty.
+      if (commentRef.current.trim()) return
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
     }
     document.addEventListener('mousedown', onDown)
@@ -51,7 +59,7 @@ export default function RepostButton({ targetId, viewerId, count }: {
     })
     setBusy(false)
     if (insertError) { setError('Could not repost — try again.'); return }
-    setOpen(false); setComment('')
+    setOpen(false); setComment(''); commentRef.current = ''
     router.refresh()
   }
 
@@ -59,7 +67,7 @@ export default function RepostButton({ targetId, viewerId, count }: {
     <div className="post-menu-wrap" ref={wrapRef}>
       <button type="button" className="action-btn" aria-label="Repost"
         aria-expanded={open} onClick={() => setOpen(o => !o)}>
-        <span style={{ fontSize: 15 }}>⟲</span>{count > 0 ? ` ${count}` : ''}
+        <RepostIcon />{count > 0 ? <span>{count}</span> : null}
       </button>
 
       {open && (
@@ -67,11 +75,17 @@ export default function RepostButton({ targetId, viewerId, count }: {
           <textarea
             className="field" rows={2} value={comment} maxLength={280}
             placeholder="Write something…"
-            onChange={e => setComment(e.target.value)}
+            onChange={e => { setComment(e.target.value); commentRef.current = e.target.value }}
           />
           <button type="button" className="post-menu-item" onClick={repost} disabled={busy}>
             {busy ? 'Reposting…' : comment.trim() ? 'Repost with comment' : 'Repost'}
           </button>
+          {comment.trim() && (
+            <button type="button" className="post-menu-item"
+              onClick={() => { setComment(''); commentRef.current = ''; setOpen(false) }}>
+              Cancel
+            </button>
+          )}
           {error && <p className="post-menu-note danger">{error}</p>}
         </div>
       )}

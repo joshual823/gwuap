@@ -109,42 +109,72 @@ export default function EditProfile({ profile }: {
     return <button className="btn secondary" onClick={() => setOpen(true)}>Edit profile</button>
   }
 
+  const BIO_MAX = 200
+  const NAME_MAX = 40
+
   return (
+    /* A panel rather than a column of boxes wedged beside the header.
+       Full width, one row per thing, and the two fields with limits say
+       how much room is left — a count that only appears once you're
+       close reads as a warning instead of a nag. */
     <form onSubmit={save} className="edit-profile">
-      <label className="form-label">Profile picture</label>
-      <input type="file" accept="image/*" className="field"
-        onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
-      <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
-
-      <label className="form-label">Username</label>
-      <input className="field" value={username} autoCapitalize="none"
-        onChange={e => setUsername(e.target.value)} required />
-      <p className="field-hint">3–20 characters. Letters, numbers and underscores.</p>
-
-      <label className="form-label">Display name</label>
-      <input className="field" value={displayName} placeholder="Optional"
-        onChange={e => setDisplayName(e.target.value)} maxLength={40} />
-
-      <label className="form-label">Bio</label>
-      <textarea className="field" rows={2} value={bio} placeholder="Optional"
-        onChange={e => setBio(e.target.value)} maxLength={200} />
-
-      <label className="form-label">Sports you follow</label>
-      <p className="field-hint">
-        Up to {MAX_PREFERRED}. Your scores and headlines lead with these.
-        Choose none and you get a bit of everything.
-      </p>
-      <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
-
-      {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button className="btn" type="submit" disabled={saving}>
-          {saving ? 'Saving…' : 'Save'}
-        </button>
-        <button className="btn secondary" type="button" onClick={() => { setOpen(false); setError(null) }}>
-          Cancel
-        </button>
+      <div className="edit-head">
+        <strong>Edit profile</strong>
+        <div className="edit-head-actions">
+          <button className="btn secondary" type="button"
+            onClick={() => { setOpen(false); setError(null) }}>Cancel</button>
+          <button className="btn" type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
       </div>
+
+      <div className="edit-row">
+        <label className="form-label">Profile picture</label>
+        <input type="file" accept="image/*" className="field"
+          onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
+        <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
+      </div>
+
+      <div className="edit-row">
+        <label className="form-label">Username</label>
+        <input className="field" value={username} autoCapitalize="none"
+          onChange={e => setUsername(e.target.value)} required />
+        <p className="field-hint">
+          3–20 characters. Letters, numbers and underscores. Changing it changes
+          the link to your profile.
+        </p>
+      </div>
+
+      <div className="edit-row">
+        <label className="form-label">Display name</label>
+        <input className="field" value={displayName} placeholder="Optional"
+          onChange={e => setDisplayName(e.target.value)} maxLength={NAME_MAX} />
+        {displayName.length > NAME_MAX - 10 && (
+          <p className="edit-count">{NAME_MAX - displayName.length} left</p>
+        )}
+      </div>
+
+      <div className="edit-row">
+        <label className="form-label">Bio</label>
+        <textarea className="field edit-bio" rows={3} value={bio}
+          placeholder="A line about you. What you follow, how you bet, whatever."
+          onChange={e => setBio(e.target.value)} maxLength={BIO_MAX} />
+        <p className={`edit-count ${bio.length > BIO_MAX - 20 ? 'close' : ''}`}>
+          {bio.length} / {BIO_MAX}
+        </p>
+      </div>
+
+      <div className="edit-row">
+        <label className="form-label">Sports you follow</label>
+        <p className="field-hint">
+          Up to {MAX_PREFERRED}. Your scores and headlines lead with these.
+          Choose none and you get a bit of everything.
+        </p>
+        <LeaguePicker value={leagues} onChange={setLeagues} disabled={saving} />
+      </div>
+
+      {error && <p className="edit-error">{error}</p>}
     </form>
   )
 }
