@@ -21,7 +21,7 @@ export default async function PostOgImage({ params }: { params: Promise<{ id: st
 
   const { data: p } = await supabase
     .from('posts')
-    .select('tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, caption, author:profiles!posts_author_id_fkey ( username )')
+    .select('tag, tag2, sentiment, post_kind, bet_type, line, odds, stake, profit, status, caption, author:profiles!posts_author_id_fkey ( username )')
     .eq('id', id)
     .maybeSingle()
 
@@ -49,6 +49,7 @@ export default async function PostOgImage({ params }: { params: Promise<{ id: st
           {post?.post_kind === 'pick' && (
             <div style={{ display: 'flex', fontSize: 34, marginTop: 14, color: '#8B98A5' }}>
               {labelFor((post?.sentiment ?? 'backing') as Direction, post?.bet_type)}
+              {post?.line != null && post?.bet_type !== 'spread' ? ` ${post.line}` : ''}
               {post?.odds ? ` · ${post.odds}` : ''}
               {post?.stake != null ? ` · $${post.stake}` : ''}
             </div>

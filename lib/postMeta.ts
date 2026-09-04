@@ -15,12 +15,13 @@ export type PostMeta = {
   money_public?: boolean | null
   repost_of?: string | null
   game_starts_at?: string | null
+  line?: number | null
   reposted?: any | null      // the post being passed along
   repost_count?: number
 }
 
 const QUOTED_FIELDS = `
-  id, caption, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
+  id, caption, tag, tag2, sentiment, post_kind, bet_type, line, odds, stake, profit, status, created_at,
   author:profiles!posts_author_id_fkey ( id, username, avatar_url )
 `
 
@@ -32,7 +33,7 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
 
   const { data, error } = await supabase
     .from('posts')
-    .select('id, grade_note, graded_by, odds_source, odds_book, money_public, repost_of, game_starts_at')
+    .select('id, grade_note, graded_by, odds_source, odds_book, money_public, repost_of, game_starts_at, line')
     .in('id', posts.map(p => p.id))
 
   if (error || !data) return posts
@@ -41,7 +42,7 @@ export async function attachPostMeta<T extends { id: string; post_kind?: string 
     data.map((r: any) => [r.id, {
       grade_note: r.grade_note, graded_by: r.graded_by,
       odds_source: r.odds_source, odds_book: r.odds_book, money_public: r.money_public,
-      repost_of: r.repost_of, game_starts_at: r.game_starts_at,
+      repost_of: r.repost_of, game_starts_at: r.game_starts_at, line: r.line,
     }]),
   )
 

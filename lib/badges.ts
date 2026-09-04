@@ -15,7 +15,11 @@ export const BADGES: Record<BadgeId, Badge> = {
   founding: {
     id: 'founding',
     label: 'Founding member',
-    title: `One of the first ${FOUNDING_LIMIT} people here. Never awarded again.`,
+    // Deliberately says what it is rather than how long it lasts.
+    // Promising "permanent" or "never again" is a commitment to a
+    // decision nobody has had to make yet, and taking it back later
+    // costs more than the word was ever worth.
+    title: `One of the first ${FOUNDING_LIMIT} accounts on Gwuap.`,
     tone: 'founder',
   },
   week1_champion: {

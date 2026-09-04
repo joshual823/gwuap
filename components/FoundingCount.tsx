@@ -27,8 +27,7 @@ export default function FoundingCount() {
   return (
     <p className="founding-note">
       <strong>{remaining} of {FOUNDING_LIMIT} founding places left.</strong>{' '}
-      The first {FOUNDING_LIMIT} accounts keep a permanent badge. After that
-      it&apos;s never awarded again.
+      Only the first {FOUNDING_LIMIT} accounts get the founding badge.
     </p>
   )
 }

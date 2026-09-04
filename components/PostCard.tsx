@@ -38,6 +38,8 @@ type Post = {
   reposted?: any | null
   repost_count?: number
   game_starts_at?: string | null
+  /** The number a bet turns on: 8.5 on a total, 4.5 on a first five. */
+  line?: number | null
   tag: string | null
   tag2: string | null
   sentiment: Direction
@@ -61,6 +63,11 @@ export default function PostCard({ post }: { post: Post }) {
   const selfReported = post.post_kind === 'pick' && post.odds_source === 'custom'
   const isAuthor = post.viewer_id !== null && post.viewer_id === post.author.id
   const showMoney = !selfReported || post.money_public === true || isAuthor
+
+  // A spread writes its number into the tag — "$SF -3.5" — so repeating
+  // it would read twice. Everything else that turns on a number has it
+  // only in this column, and had nowhere to show it.
+  const showsLine = post.line != null && post.bet_type !== 'spread'
 
   // A pick stops being withdrawable at kick-off. The database enforces
   // this; the menu needs to know so it can say why rather than offering
@@ -167,6 +174,8 @@ export default function PostCard({ post }: { post: Post }) {
                 {post.reposted.post_kind === 'pick' && (
                   <span className={`sentiment ${post.reposted.sentiment}`}>
                     {labelFor(post.reposted.sentiment as Direction, post.reposted.bet_type)}
+                    {post.reposted.line != null && post.reposted.bet_type !== 'spread'
+                      ? ` ${post.reposted.line}` : ''}
                   </span>
                 )}
               </div>
@@ -185,15 +194,23 @@ export default function PostCard({ post }: { post: Post }) {
           <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
         )}
 
-        {post.post_kind === 'pick' && showMoney && (
+        {/* Always for a pick. What kind of bet it is and the number it
+            turns on are the bet itself, not money — hiding them with the
+            money left "Under" on a card with nothing to say under what. */}
+        {post.post_kind === 'pick' && (
         <div className="stat-row">
           {betLabel && <span className="stat-key">{betLabel}</span>}
-          {post.odds && <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
-          {post.stake != null && <span className="stat-key">RISK <span className="stat-val">{formatUsd(post.stake)}</span></span>}
-          {settled != null && (
+          {showsLine && (
+            <span className="stat-key">LINE <span className="stat-val">{post.line}</span></span>
+          )}
+          {showMoney && post.odds &&
+            <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
+          {showMoney && post.stake != null &&
+            <span className="stat-key">RISK <span className="stat-val">{formatUsd(post.stake)}</span></span>}
+          {showMoney && settled != null && (
             <span className={`amt ${settled >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(settled)}</span>
           )}
-          {toWin != null && (
+          {showMoney && toWin != null && (
             <span className="stat-key">TO WIN <span className="stat-val">{formatUsd(toWin)}</span></span>
           )}
         </div>

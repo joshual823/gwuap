@@ -19,7 +19,7 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
   const supabase = await createClient()
   const { data } = await supabase
     .from('posts')
-    .select('tag, tag2, sentiment, post_kind, odds, stake, status, caption, author:profiles!posts_author_id_fkey ( username )')
+    .select('tag, tag2, sentiment, post_kind, bet_type, line, odds, stake, status, caption, author:profiles!posts_author_id_fkey ( username )')
     .eq('id', id)
     .maybeSingle()
 
@@ -31,7 +31,10 @@ export async function generateMetadata(props: { params: Promise<{ id: string }> 
   const title = `${who}: ${what}`.trim()
   const description = p.caption?.trim()
     || [
-      p.post_kind === 'pick' ? labelFor(p.sentiment as Direction, p.bet_type) : 'Take',
+      p.post_kind === 'pick'
+        ? labelFor(p.sentiment as Direction, p.bet_type) +
+          (p.line != null && p.bet_type !== 'spread' ? ` ${p.line}` : '')
+        : 'Take',
       p.odds, p.stake != null ? `$${p.stake}` : null,
       p.status !== 'pending' ? p.status.toUpperCase() : null,
     ].filter(Boolean).join(' · ')
