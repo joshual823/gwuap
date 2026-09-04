@@ -346,6 +346,16 @@ export default function NewPickForm() {
         return
       }
     }
+    // A bet on a game needs two different sides. Colliding cashtags used
+    // to make this postable — and a pick naming one team twice can't be
+    // graded, since neither side of the fixture is identifiable.
+    const primaryCode = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
+    const secondCode = tag2.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
+    if (primaryCode && secondCode && primaryCode === secondCode) {
+      setError('Those are the same team. A bet on a game needs two different sides.')
+      return
+    }
+
     if (wantsLine && !lineValid) {
       setError(betType === 'total' ? 'The total has to be a number, like 47.5.' : 'The spread has to be a number, like -3.5.')
       return

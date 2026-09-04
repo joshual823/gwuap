@@ -404,6 +404,17 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   literal filter would give someone who picks NFL, College Football and
   NBA an empty rail every June, which is the dead feed the scoreboard
   exists to prevent. `npm test` covers that case.
+- **Athlete codes are disambiguated per match (migration 032).**
+  Surnames collide, and a Fernandez v Fernandez match produced two
+  identical codes — not just ugly: grading finds the side by matching a
+  pick's code against the two team codes, so identical codes make it
+  undecidable which player was backed. `distinctCodes` widens by one
+  letter of the first name at a time, and falls back to a numeric suffix
+  for genuinely identical names. A post can no longer name the same side
+  twice, enforced in the form and by a check constraint.
+  Trade-off: a player's code differs between a match where their surname
+  collides and one where it doesn't, so their cashtag page splits. Worth
+  it — a wrong grade is worse than a split tag.
 - **Badges (migration 031).** `profiles.badges` is a text[] of earned
   marks: `founding` for the first 200 accounts, awarded by a trigger so
   the cap holds however an account is made, and `week1_champion` awarded

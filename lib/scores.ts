@@ -128,6 +128,41 @@ function athleteCode(athlete: any): string {
   return String(last).toUpperCase().replace(/[^A-Z0-9]/g, '')
 }
 
+function firstNameOf(athlete: any): string {
+  const first = athlete?.firstName || athlete?.displayName?.split(/\s+/)[0] || ''
+  return String(first).toUpperCase().replace(/[^A-Z0-9]/g, '')
+}
+
+/**
+ * Two codes that can't be the same.
+ *
+ * Surnames collide — a Fernandez plays a Fernandez often enough in
+ * tennis, and it isn't only ugly: a pick records the code it was made
+ * on, and grading finds the side by matching that code, so two identical
+ * codes make it undecidable which player was backed.
+ *
+ * Widen by one letter of the first name at a time until they differ, so
+ * two Fernandezes become L and B, and two J. Smiths become JO and JA
+ * rather than both landing on J. Genuinely identical names — same first,
+ * same last — can't be told apart from a scoreboard at all, so they get
+ * a number and stop being ambiguous even if they aren't informative.
+ */
+export function distinctCodes(a: any, b: any, codeA: string, codeB: string): [string, string] {
+  if (codeA !== codeB) return [codeA, codeB]
+
+  const firstA = firstNameOf(a)
+  const firstB = firstNameOf(b)
+  const longest = Math.max(firstA.length, firstB.length)
+
+  for (let n = 1; n <= longest; n++) {
+    const wideA = `${firstA.slice(0, n)}${codeA}`
+    const wideB = `${firstB.slice(0, n)}${codeB}`
+    if (wideA !== wideB) return [wideA, wideB]
+  }
+
+  return [`${codeA}1`, `${codeB}2`]
+}
+
 /**
  * Tennis doesn't look like team sport. The scoreboard returns one event
  * per tournament, with the whole draw nested under `groupings` — 239
@@ -163,9 +198,10 @@ function parseIndividual(data: any, league: string, full = false): Game[] {
         const competitors = competition?.competitors ?? []
         if (competitors.length !== 2) continue  // skip doubles and byes
         const [a, b] = competitors
-        const codeA = athleteCode(a?.athlete)
-        const codeB = athleteCode(b?.athlete)
-        if (!codeA || !codeB) continue
+        const rawCodeA = athleteCode(a?.athlete)
+        const rawCodeB = athleteCode(b?.athlete)
+        if (!rawCodeA || !rawCodeB) continue
+        const [codeA, codeB] = distinctCodes(a?.athlete, b?.athlete, rawCodeA, rawCodeB)
 
         // ESPN carries set-by-set linescores for tennis. The running score
         // is sets won, which is what a tennis scoreboard actually shows.
