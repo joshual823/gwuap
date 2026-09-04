@@ -2,7 +2,8 @@
   /* Dark, mobile-first hybrid: StockTwits ticker/cashtag energy,
      Twitter/X compact timeline, Instagram avatar/image treatment */
   --bg: #0B0E11; --card: #12161B; --card-2: #171C22;
-  --ink: #ECEDEE; --ink-dim: #8B98A5; --ink-faint: #5B6672; --line: #22282F;
+  /* 3.31:1 before, which is fine for a rule and not for a label. */
+  --ink: #ECEDEE; --ink-dim: #8B98A5; --ink-faint: #7A838F; --line: #22282F;
   --brand: #00C805;      /* bullish green — wordmark, backing, profit, CTAs */
   --bear: #F0424D;       /* bearish red — fading, losses */
   --twitter-blue: #1D9BF0;
@@ -21,32 +22,42 @@
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     --bg: #F4F6F8; --card: #FFFFFF; --card-2: #FFFFFF;
-    --ink: #14181D; --ink-dim: #59636E; --ink-faint: #8A94A0; --line: #E2E6EB;
-    --brand: #00992F;
+    /* Contrast on the page background, measured rather than eyeballed.
+       The old --ink-faint managed 2.84:1, which is under the bar even for
+       large text — and it's what every small label on the site uses. The
+       green was 3.46:1 and appears on links at 12-13px. Both now clear
+       4.5:1 on the background and on a card. */
+    --ink: #14181D; --ink-dim: #59636E; --ink-faint: #68727E; --line: #E2E6EB;
+    --brand: #008319;
     --bear: #D62839;
     --twitter-blue: #1568B8;
     --heart: #D62839;
-    --pending: #A96A00;
+    --pending: #A16200;
     --btn-ink: #FFFFFF;
     --chrome: rgba(244,246,248,0.92);
     --shadow: rgba(15,23,32,0.14);
-    --tint-brand: rgba(0,153,47,0.12);
+    --tint-brand: rgba(0,131,25,0.12);
     --tint-bear: rgba(214,40,57,0.12);
   }
 }
 
+/* The same palette as the media query above, for people who chose light
+   rather than inheriting it. Two copies because one answers a system
+   preference and the other an explicit toggle — they have to be edited
+   together, and a contrast fix applied to only one of them would leave
+   half the light-mode users looking at the old greys. */
 :root[data-theme="light"] {
   --bg: #F4F6F8; --card: #FFFFFF; --card-2: #FFFFFF;
-  --ink: #14181D; --ink-dim: #59636E; --ink-faint: #8A94A0; --line: #E2E6EB;
-  --brand: #00992F;
+  --ink: #14181D; --ink-dim: #59636E; --ink-faint: #68727E; --line: #E2E6EB;
+  --brand: #008319;
   --bear: #D62839;
   --twitter-blue: #1568B8;
   --heart: #D62839;
-  --pending: #A96A00;
+  --pending: #A16200;
   --btn-ink: #FFFFFF;
   --chrome: rgba(244,246,248,0.92);
   --shadow: rgba(15,23,32,0.14);
-  --tint-brand: rgba(0,153,47,0.12);
+  --tint-brand: rgba(0,131,25,0.12);
   --tint-bear: rgba(214,40,57,0.12);
 }
 

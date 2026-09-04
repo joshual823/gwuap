@@ -422,6 +422,16 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Picks made before migration 022 have no `game_id`**, so they can't be
   auto-graded and don't rank. They age out of the 30-day window on their
   own; the ones already graded are marked `graded_by = 'user'`.
+- **Text colours are measured, not chosen.** Every ink and accent token
+  clears 4.5:1 against both the page background and a card, in both
+  themes. Three were failing: light `--ink-faint` at 2.84:1 — under the
+  bar even for large text, and it's what every small label uses — light
+  `--brand` at 3.46:1 on 12px links, and light `--pending` at 4.08:1.
+  Dark `--ink-faint` was 3.31:1.
+- **The light palette is defined twice** — once for
+  `prefers-color-scheme` and once for the explicit `[data-theme="light"]`
+  toggle. They must be edited together; a fix applied to one leaves half
+  of light-mode users on the old values.
 - **Type hierarchy, applied consistently.** Three rules, taken from the
   game-page pass and used site-wide: a label is scaffolding so it goes
   small, uppercase and faint (`.stat-key`, `.stat-label`, `.gd-k`); the
