@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
 import GamePicker, { type Slim } from '@/components/GamePicker'
+import { GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
 import {
@@ -218,12 +219,37 @@ export default function NewPickForm() {
    * been typed into it — which is what made choosing a total feel like
    * starting over.
    */
-  function applyMarket(game: Slim, market: Market) {
+  /**
+   * Attach a fixture without touching the bet.
+   *
+   * Keeps whichever side is already named if it's one of the two teams,
+   * so choosing the game corrects a wrong opponent rather than
+   * overwriting a right one. The bet type is left alone: someone who
+   * picked first-inning meant it, and this is the only way that bet can
+   * name a game at all, since no book prices it.
+   */
+  function applyGame(game: Slim) {
     setKind('pick')
-    setBetType(market.kind)
     setGameId(game.id)
     setGameLeague(game.league)
     setGameStartsAt(game.startsAt)
+
+    const typed = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
+    const away = game.away.code.toUpperCase()
+    const home = game.home.code.toUpperCase()
+
+    if (typed === home) {
+      setTag(`$${game.home.code}`)
+      setTag2(`$${game.away.code}`)
+    } else {
+      setTag(`$${game.away.code}`)
+      setTag2(`$${game.home.code}`)
+    }
+  }
+
+  function applyMarket(game: Slim, market: Market) {
+    applyGame(game)
+    setBetType(market.kind)
     setBook(game.book)
 
     const priced = formatAmericanOdds(market.odds)
@@ -409,7 +435,13 @@ export default function NewPickForm() {
         {/* Below the teams, not between them: it's a shortcut to filling
             them in, so it belongs after the thing it fills. */}
         {kind === 'pick' && !fromBook && (
-          <GamePicker league={leagueName} query={tag} onSelect={applyMarket} />
+          <GamePicker
+            league={leagueName}
+            query={tag}
+            onSelect={applyMarket}
+            onSelectGame={applyGame}
+            selectedGameId={gameId}
+          />
         )}
 
         {wantsLine && (
@@ -428,9 +460,20 @@ export default function NewPickForm() {
           </>
         )}
 
-        {gameId && (
+        {kind === 'pick' && gameId && (
           <p className="form-hint">
-            Graded automatically from the final score.
+            <strong>Graded automatically</strong> from the final score.
+          </p>
+        )}
+
+        {/* The quiet failure this prevents: a moneyline with no fixture
+            behind it looks identical to one with, sits pending forever,
+            and doesn't count toward anything. Better said before posting
+            than discovered a week later. */}
+        {kind === 'pick' && !gameId && GRADEABLE_BET_TYPES.includes(betType) && (
+          <p className="form-warn">
+            No game attached, so this <strong>won&apos;t grade itself</strong> and
+            won&apos;t count toward the leaderboard. Tap a game above to fix that.
           </p>
         )}
 

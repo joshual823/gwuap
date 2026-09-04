@@ -128,6 +128,14 @@ a { color: inherit; text-decoration: none; }
 /* Quiet note under a form field — states a consequence, doesn't warn. */
 .form-hint { font-size: 12px; line-height: 1.45; color: var(--ink-faint); margin: 4px 0 10px; }
 .form-hint strong { color: var(--ink-dim); font-weight: 600; }
+/* Amber, not red: nothing is wrong, it just won't do the thing the
+   author probably expects it to. */
+.form-warn {
+  font-size: 12.5px; line-height: 1.45; color: var(--pending);
+  margin: 4px 0 12px; padding: 9px 11px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+}
+.form-warn strong { font-weight: 700; }
 
 /* League picker. Wraps rather than scrolls: eleven options is a glanceable
    grid, and a horizontal strip would hide half of them behind a swipe. */
@@ -237,6 +245,8 @@ a { color: inherit; text-decoration: none; }
 }
 .picker-teams { font-size: 13.5px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .picker-when { flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.picker-row.chosen { border-color: var(--brand); background: var(--tint-brand); }
+.picker-row.chosen .picker-when { color: var(--brand); }
 .picker-markets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
 .picker-none { font-size: 12px; color: var(--ink-faint); margin: 6px 0 0; }
 

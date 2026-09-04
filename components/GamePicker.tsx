@@ -18,12 +18,17 @@ export type Slim = {
  * are usually one or two — so the choice stays short rather than
  * becoming a second scoreboard inside a form.
  */
-export default function GamePicker({ league, query, onSelect }: {
+export default function GamePicker({ league, query, onSelect, onSelectGame, selectedGameId }: {
   league: string | null
   query: string
   /** Fill the form in place. A link would reload the page and lose
       everything already typed into it. */
   onSelect: (game: Slim, market: Market) => void
+  /** Attach the fixture without choosing a price. The only route for a
+      bet type no book prices — a first-inning pick had no way to name a
+      game at all before this. */
+  onSelectGame: (game: Slim) => void
+  selectedGameId: string | null
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
@@ -55,10 +60,17 @@ export default function GamePicker({ league, query, onSelect }: {
       </p>
       {shown.map(g => (
         <div key={g.id} className="picker-game">
-          <button type="button" className="picker-row" onClick={() => setOpen(o => o === g.id ? null : g.id)}>
+          {/* Tapping the game picks the game. It used to only expand the
+              prices underneath, so the teams stayed as whatever had been
+              typed — you could tap "ARI @ HOU" and still post ARI vs ATL. */}
+          <button
+            type="button"
+            className={`picker-row ${selectedGameId === g.id ? 'chosen' : ''}`}
+            onClick={() => { onSelectGame(g); setOpen(o => o === g.id ? null : g.id) }}
+          >
             <span className="picker-teams">{g.away.label} @ {g.home.label}</span>
             <span className="picker-when">
-              {g.state === 'in' ? 'LIVE' : g.status}
+              {selectedGameId === g.id ? '✓ Using this' : g.state === 'in' ? 'LIVE' : g.status}
             </span>
           </button>
 
@@ -75,8 +87,8 @@ export default function GamePicker({ league, query, onSelect }: {
               </div>
             ) : (
               <p className="picker-none">
-                No posted prices for this one — open the game page to post a
-                custom pick on it.
+                No posted prices for this one. The game is attached, so it&apos;ll
+                still grade itself — enter your own odds below.
               </p>
             )
           )}
