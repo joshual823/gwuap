@@ -160,7 +160,7 @@ export default function EditProfile({ profile }: {
         <div className="edit-row">
           <label className="form-label">Bio</label>
           <textarea className="field edit-bio" rows={3} value={bio}
-            placeholder="A line about you. What you follow, how you bet, whatever."
+            placeholder="A line about you. What you follow, how you call it, whatever."
             onChange={e => setBio(e.target.value)} maxLength={BIO_MAX} />
           <p className={`edit-count ${bio.length > BIO_MAX - 20 ? 'close' : ''}`}>
             {bio.length} / {BIO_MAX}

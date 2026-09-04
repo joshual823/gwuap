@@ -191,7 +191,7 @@ export default function PostCard({ post }: { post: Post }) {
         )}
 
         {post.slip_image_url && (
-          <img src={post.slip_image_url} alt="Bet slip" className="post-img" />
+          <img src={post.slip_image_url} alt="Slip" className="post-img" />
         )}
 
         {/* Always for a pick. What kind of bet it is and the number it
@@ -206,7 +206,7 @@ export default function PostCard({ post }: { post: Post }) {
           {showMoney && post.odds &&
             <span className="stat-key">ODDS <span className="stat-val">{post.odds}</span></span>}
           {showMoney && post.stake != null &&
-            <span className="stat-key">RISK <span className="stat-val">{formatUsd(post.stake)}</span></span>}
+            <span className="stat-key">AMOUNT <span className="stat-val">{formatUsd(post.stake)}</span></span>}
           {showMoney && settled != null && (
             <span className={`amt ${settled >= 0 ? 'pos' : 'neg'}`}>{formatSignedUsd(settled)}</span>
           )}

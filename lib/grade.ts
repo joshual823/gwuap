@@ -61,10 +61,10 @@ export function needsReview(reason: Blocked): boolean {
 export const BLOCKED_LABELS: Record<Blocked, string> = {
   'not-final': 'Game has not finished',
   'no-score': 'Game finished but the scoreboard has no final score',
-  'unsupported-bet': 'Bet type cannot be settled from a scoreline',
+  'unsupported-bet': 'This kind of pick cannot be settled from a scoreline',
   'team-not-in-game': 'The cashtag does not name either side of this game',
   'missing-line': 'No spread or total was recorded on the pick',
-  'no-side': 'The direction does not pick a side of this bet',
+  'no-side': 'The direction does not name a side of this pick',
 }
 
 /** Bet types a final score can settle. Everything else is left alone. */

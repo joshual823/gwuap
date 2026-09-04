@@ -64,7 +64,7 @@ export default function HelpPage() {
         <h2>What can&apos;t be graded</h2>
         <p>
           A scoreline settles moneylines, spreads, totals, first-inning,
-          first-five and first-half bets. It can&apos;t settle a player prop, a
+          first-five and first-half picks. It can&apos;t settle a player prop, a
           parlay or a future — there&apos;s nothing to check them against — so
           those stay open and don&apos;t count toward your record. Post them
           anyway; they just aren&apos;t ranked.

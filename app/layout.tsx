@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
+import AppScroll from '@/components/AppScroll'
 
 // Self-hosted at build time. The old CSS @import made the browser fetch
 // our stylesheet, then Google's stylesheet, then the font files — a
@@ -130,9 +131,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </div>
           </div>
         </header>
-        <main className="scroll">
+        <AppScroll>
           <div className="container">{children}</div>
-        </main>
+        </AppScroll>
         {/* Icon plus label: testers said they were guessing what the
             icons meant. A word under each removes the guessing. */}
         <nav className="tabbar">

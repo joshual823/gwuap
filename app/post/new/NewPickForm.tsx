@@ -366,7 +366,7 @@ export default function NewPickForm() {
         return
       }
       if (!stakeValid) {
-        setError(`Enter a stake between $1 and ${formatUsd(MAX_STAKE)}.`)
+        setError(`Enter an amount between $1 and ${formatUsd(MAX_STAKE)}.`)
         return
       }
     }
@@ -404,7 +404,7 @@ export default function NewPickForm() {
     const primaryCode = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     const secondCode = tag2.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     if (primaryCode && secondCode && primaryCode === secondCode) {
-      setError(`Those are the same ${words.side}. A bet on a ${words.event} needs two different sides.`)
+      setError(`Those are the same ${words.side}. A pick on a ${words.event} needs two different sides.`)
       return
     }
 
@@ -469,7 +469,7 @@ export default function NewPickForm() {
             has to be cleared and re-answered. */}
         {kind === 'pick' && (
           <>
-            <label className="form-label">Bet type</label>
+            <label className="form-label">Pick type</label>
             <div className="chip-line">
               <div className="chip-scroll">
               {availableBetTypes.map(b => (
@@ -502,7 +502,7 @@ export default function NewPickForm() {
             <label className="form-label">Opponent</label>
             <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
             <p className="form-hint">
-              This bet is on the {words.event}, so it names both sides.
+              This pick is on the {words.event}, so it names both sides.
             </p>
           </>
         )}
@@ -563,7 +563,7 @@ export default function NewPickForm() {
         {showPropHint && (
           <p className="field-hint">
             Most props are priced on a number, so this asks Over or Under.
-            Betting a yes/no prop — anytime scorer, double-double? Pick{' '}
+            Calling a yes/no prop — anytime scorer, double-double? Pick{' '}
             <button type="button" className="link-btn" onClick={() => setBetType('other')}>Other</button>{' '}
             instead.
           </p>
@@ -584,7 +584,7 @@ export default function NewPickForm() {
 
         {kind === 'pick' && !addMoney && (
           <button type="button" className="add-money" onClick={() => setAddMoney(true)}>
-            + {fromBook ? 'Add a stake' : 'Add odds and stake'}
+            + {fromBook ? 'Add an amount' : 'Add odds and an amount'}
             <span>
               Optional. Without {fromBook ? 'one' : 'them'} the pick still settles
               as a win or a loss — there&apos;s just no money on it.
@@ -653,7 +653,7 @@ export default function NewPickForm() {
               </label>
             )}
 
-            <label className="form-label">Stake</label>
+            <label className="form-label">Amount</label>
             <div className="chip-line">
               <div className="chip-scroll" ref={stakeScrollRef}>
                 {STAKE_PRESETS.map(amount => (
@@ -670,23 +670,24 @@ export default function NewPickForm() {
               <div className="odds-row">
                 <span className="currency-prefix mono">$</span>
                 <input className="field mono" inputMode="decimal" autoFocus
-                  value={customStake} placeholder="Amount risked"
+                  value={customStake} placeholder="Amount"
                   onChange={e => setCustomStake(e.target.value.replace(/[^0-9.]/g, ''))} />
               </div>
             )}
 
             <p className="bet-preview mono">
               {preview
-                ? <>Risking <strong>{formatUsd(stake)}</strong> to win <strong className="pos">{formatUsd(preview.win)}</strong>
-                    <span className="bet-preview-dim"> · returns {formatUsd(preview.payout)}</span></>
-                : <span className="bet-preview-dim">Set odds and a stake to see what this pick pays.</span>}
+                ? <><strong>{formatUsd(stake)}</strong> at {oddsText} scores{' '}
+                    <strong className="pos">{formatUsd(preview.win)}</strong>
+                    <span className="bet-preview-dim"> · {formatUsd(preview.payout)} back</span></>
+                : <span className="bet-preview-dim">Add odds and an amount to see what this pick scores.</span>}
             </p>
 
             {/* Opening this was a choice, so closing it has to be one too.
                 Without a way out, a mistaken tap left money on a pick with
                 no way to take it off short of starting again. */}
             <button type="button" className="drop-money" onClick={() => setAddMoney(false)}>
-              Remove odds and stake
+              Remove odds and amount
             </button>
           </>
         )}
