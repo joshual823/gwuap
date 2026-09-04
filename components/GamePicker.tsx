@@ -32,6 +32,7 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     if (!league) { setGames(null); return }
@@ -50,7 +51,13 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
   const matches = needle.length >= 1
     ? games.filter(g => g.away.code.toUpperCase().startsWith(needle) || g.home.code.toUpperCase().startsWith(needle))
     : games
-  const shown = matches.slice(0, needle ? 4 : 3)
+  // A few by default so the form doesn't turn into a scoreboard, all of
+  // them on request — with no needle typed there can be forty fixtures,
+  // and scrolling past them to reach the rest of the form is worse than
+  // one tap to see them.
+  const limit = needle ? 4 : 3
+  const shown = showAll ? matches : matches.slice(0, limit)
+  const hidden = matches.length - shown.length
   if (shown.length === 0) return null
 
   return (
@@ -109,6 +116,18 @@ export default function GamePicker({ league, query, onSelect, onSelectGame, sele
           )}
         </div>
       ))}
+
+      {hidden > 0 && (
+        <button type="button" className="picker-more" onClick={() => setShowAll(true)}>
+          Show {hidden} more {hidden === 1 ? 'game' : 'games'}
+        </button>
+      )}
+
+      {showAll && league && (
+        <a href={`/scores/${encodeURIComponent(league)}`} className="picker-all">
+          Or browse every {league} game →
+        </a>
+      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { searchTickers, isSupportedLeague, type Ticker } from '@/lib/tickers'
+import { searchTickers, isSupportedLeague, MAX_TICKER_LENGTH, type Ticker } from '@/lib/tickers'
 import { createClient } from '@/lib/supabaseClient'
 
 /**
@@ -148,6 +148,9 @@ export default function CashtagInput({
     <div className="cashtag-wrap" ref={wrapRef}>
       <input
         className="field mono"
+        /* Ticker plus a possible spread and a "$": enough room for the
+           longest legitimate tag, and short of a pasted sentence. */
+        maxLength={MAX_TICKER_LENGTH + 8}
         placeholder="Cashtag, e.g. $LAL -4.5"
         value={value}
         onChange={handleChange}

@@ -361,6 +361,16 @@ export const TICKERS: Ticker[] = [
   { code: 'CHENGICHING', name: 'Cheng I-Ching', league: 'Table Tennis', aliases: ['cheng i-ching'] },
 ]
 
+/**
+ * How long a made-up cashtag may be.
+ *
+ * Anyone can invent one — the curated list and the fixtures can't cover
+ * everything, and a tag nobody has used before is often the right
+ * answer. It just has to stay a tag: short enough to sit in a line of
+ * text and be typed again by somebody else.
+ */
+export const MAX_TICKER_LENGTH = 16
+
 /** Leagues we have a ticker list for. Anything else stays free text. */
 export const SUPPORTED_LEAGUES = ['NBA', 'NFL', 'MLB', 'NHL', 'Tennis', 'Table Tennis', 'UFC', 'Boxing'] as const
 export type League = (typeof SUPPORTED_LEAGUES)[number]

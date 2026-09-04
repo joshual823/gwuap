@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
 import GamePicker, { type Slim } from '@/components/GamePicker'
+import { MAX_TICKER_LENGTH } from '@/lib/tickers'
 import { GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
@@ -346,22 +347,32 @@ export default function NewPickForm() {
         return
       }
     }
-    // A cashtag is one word. The database derives the ticker from the
-    // first word of the tag, so "$TAYLOR TOWNSEND" becomes "$TAYLOR" —
-    // a code that matches nobody, on a pick that can never grade. The
-    // only thing allowed after the space is a spread's number.
-    const badTag = [tag, tag2].find(t => {
+    // Invent one if you like — the list can't cover everything. It just
+    // has to stay a tag. One word, because the ticker is derived from
+    // the first word of the tag: "$TAYLOR TOWNSEND" becomes "$TAYLOR",
+    // a code matching nobody on a pick that can never grade. And short
+    // enough to be typed again by someone else.
+    const tickerOfTag = (t: string) => {
       const body = t.replace(/^\$/, '').trim()
-      if (!body.includes(' ')) return false
-      const rest = body.slice(body.indexOf(' ') + 1).trim()
-      return !/^[+-]?\d+(\.\d+)?$/.test(rest)
-    })
-    if (badTag) {
-      setError(
-        'A cashtag is one word — pick a name from the list, or shorten it. ' +
-        'Only a spread number can follow it, like "$SF -3.5".',
-      )
-      return
+      const space = body.indexOf(' ')
+      return { head: space === -1 ? body : body.slice(0, space),
+               rest: space === -1 ? '' : body.slice(space + 1).trim() }
+    }
+
+    for (const t of [tag, tag2]) {
+      if (!t.trim()) continue
+      const { head, rest } = tickerOfTag(t)
+      if (rest && !/^[+-]?\d+(\.\d+)?$/.test(rest)) {
+        setError(
+          'A cashtag is one word. Pick a name from the suggestions, or run it ' +
+          'together — only a spread number can follow it, like "$SF -3.5".',
+        )
+        return
+      }
+      if (head.length > MAX_TICKER_LENGTH) {
+        setError(`Cashtags are up to ${MAX_TICKER_LENGTH} characters. Shorten "$${head}".`)
+        return
+      }
     }
 
     // A bet on a game needs two different sides. Colliding cashtags used
