@@ -105,6 +105,14 @@ check('every reason has a label',
   (['not-final','no-score','unsupported-bet','team-not-in-game','missing-line','no-side'] as const)
     .every(r => typeof BLOCKED_LABELS[r] === 'string' && BLOCKED_LABELS[r].length > 0), true)
 
+console.log('DECIDED CONTESTS — a fight has no score, so it arrives as 1-0')
+const fight = game('WELLS', '1', 'OROLBAI', '0')
+check('back the winner',  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$WELLS',line:null}, fight), 'win')
+check('back the loser',   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$OROLBAI',line:null}, fight), 'loss')
+check('fade the loser',   gradePick({betType:'moneyline',sentiment:'fading', ticker:'$OROLBAI',line:null}, fight), 'win')
+const draw = game('A', '0', 'B', '0')
+check('draw is a push',   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$A',line:null}, draw), 'push')
+
 console.log('isGradeable'); check('moneyline', isGradeable('moneyline'), true); check('parlay', isGradeable('parlay'), false)
 
 console.log(`\n${pass} passed, ${fail} failed`)

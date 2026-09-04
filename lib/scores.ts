@@ -128,10 +128,24 @@ function athleteCode(athlete: any): string {
  * matches for a Grand Slam, nearly all finished. Only matches that
  * haven't been played are worth showing.
  */
-function parseTennis(data: any, league: string, full = false): Game[] {
+/**
+ * Sports where the competitors are people rather than teams.
+ *
+ * Tennis and MMA are the same shape with one difference: a tournament
+ * nests its matches under `groupings`, while a fight card lists them
+ * straight on the event. Both give athletes with no `team`, which is why
+ * the team parser produced nameless cards for UFC — it read one
+ * competition per event and looked for an abbreviation that isn't there.
+ */
+function parseIndividual(data: any, league: string, full = false): Game[] {
   const games: Game[] = []
   for (const event of data?.events ?? []) {
-    for (const grouping of event?.groupings ?? []) {
+    // A tournament groups its draw; a fight card doesn't group at all.
+    const groups: any[] = (event?.groupings?.length ?? 0) > 0
+      ? event.groupings
+      : [{ grouping: null, competitions: event?.competitions ?? [] }]
+
+    for (const grouping of groups) {
       // Doubles competitions carry no `athlete`, so they fall out at the
       // code check below rather than needing a filter here.
       const draw = grouping?.grouping?.displayName ?? undefined
@@ -156,6 +170,14 @@ function parseTennis(data: any, league: string, full = false): Game[] {
         // would say the same thing twice and read as a 7-7 set.
         const rawA = a?.linescores ?? []
         const rawB = b?.linescores ?? []
+
+        // A fight is decided, not scored. Expressing the result as 1-0
+        // means a moneyline settles through exactly the same arithmetic
+        // as every other sport, and a draw — nobody marked winner —
+        // lands on 0-0, which grades as a push. No special case anywhere
+        // downstream.
+        const decided = state === 'post'
+        const verdict = (c: any) => (decided ? (c?.winner === true ? '1' : '0') : null)
         const gamesIn = (l: any) => Number(l?.value ?? l?.displayValue ?? NaN)
         const setScores = (mine: any[], theirs: any[]) => mine.map((l: any, i: number) => {
           const games = String(l?.value ?? l?.displayValue ?? '')
@@ -177,13 +199,13 @@ function parseTennis(data: any, league: string, full = false): Game[] {
             code: codeA, name: a?.athlete?.displayName ?? codeA,
             label: a?.athlete?.shortName ?? undefined,
             logo: a?.athlete?.flag?.href ?? null,
-            score: rawA.length ? String(setsWon(rawA, rawB)) : null, byPeriod: setsA,
+            score: rawA.length ? String(setsWon(rawA, rawB)) : verdict(a), byPeriod: setsA,
           },
           home: {
             code: codeB, name: b?.athlete?.displayName ?? codeB,
             label: b?.athlete?.shortName ?? undefined,
             logo: b?.athlete?.flag?.href ?? null,
-            score: rawB.length ? String(setsWon(rawB, rawA)) : null, byPeriod: setsB,
+            score: rawB.length ? String(setsWon(rawB, rawA)) : verdict(b), byPeriod: setsB,
           },
           draw,
           round: competition?.round?.displayName ?? undefined,
@@ -284,7 +306,9 @@ async function fetchPath(
     if (!res.ok) return []
     const data = await res.json()
 
-    if (path.startsWith('tennis/')) return parseTennis(data, league, full)
+    if (path.startsWith('tennis/') || path.startsWith('mma/')) {
+      return parseIndividual(data, league, full)
+    }
 
     const games: Game[] = []
     for (const event of data?.events ?? []) {
@@ -371,7 +395,7 @@ export async function fetchGamesWindow(
   // Tennis gets the whole draw, not the handful the cards are capped to.
   // The cap exists so a Grand Slam doesn't flood the rail; a league page
   // asking for a window wants everything that's on.
-  if (league === 'Tennis') return fetchGames(league, undefined, true)
+  if (league === 'Tennis' || league === 'UFC') return fetchGames(league, undefined, true)
   return fetchGames(league, `${stamp(-daysBack)}-${stamp(daysForward)}`)
 }
 

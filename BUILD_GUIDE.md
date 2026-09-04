@@ -388,6 +388,18 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   point at the body face, so a future change is two lines in
   `app/layout.tsx` plus the tokens, not a sweep through components. The
   earlier rejected Manrope/Inter pairing is still on `typography-preview`.
+- **Tennis and UFC share one parser** (`parseIndividual`). Both give
+  athletes rather than teams, and the only structural difference is that
+  a tournament nests its matches under `groupings` while a fight card
+  lists them straight on the event. The team parser read one competition
+  per event and looked for a `team.abbreviation` that doesn't exist,
+  which is why UFC cards rendered with no names at all.
+- **A fight arrives as 1-0.** MMA has a winner, not a score, so the
+  parser expresses the result that way and a moneyline settles through
+  exactly the same arithmetic as every other sport. A draw is 0-0, which
+  grades as a push with no special case anywhere.
+- **ESPN publishes no odds for UFC**, so those picks are always custom.
+  Same as tennis. Only the US team sports carry priced markets.
 - **Tennis has no ESPN summary endpoint.** `summary?event=` takes
   tournament event ids; tennis matches are competitions nested under
   `groupings`. Detail pages fall back to the scoreboard row. Any sport
