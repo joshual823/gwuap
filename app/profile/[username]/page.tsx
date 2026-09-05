@@ -124,7 +124,7 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           they were taller than the name and turned a profile into a
           settings screen. */}
       <div className="profile-head">
-        <Avatar url={profile.avatar_url} size={72} />
+        <Avatar url={profile.avatar_url} size={72} name={profile.username} />
         <div className="profile-id">
           <h1 className="profile-name">@{profile.username}</h1>
           <Badges badges={badges} full />

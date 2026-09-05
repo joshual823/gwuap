@@ -61,7 +61,7 @@ export default async function FollowList({ username, mode }: {
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '2px 14px' }}>
         {people.map((p: any) => (
           <Link href={`/profile/${p.username}`} key={p.id} className="lb-row">
-            <Avatar url={p.avatar_url} size={34} />
+            <Avatar url={p.avatar_url} size={34} name={p.username} />
             <div className="lb-who">
               <span style={{ fontWeight: 600, fontSize: 14 }}>@{p.username}</span>
               {p.display_name && (

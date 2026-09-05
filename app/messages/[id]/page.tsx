@@ -55,7 +55,7 @@ export default async function ThreadPage(props: { params: Promise<{ id: string }
       <Link href="/messages" className="back-link">← Messages</Link>
 
       <div className="dm-header">
-        <Avatar url={other?.avatar_url} size={38} />
+        <Avatar url={other?.avatar_url} size={38} name={other?.username} />
         <Link href={`/profile/${other?.username}`} className="uname" style={{ fontSize: 16 }}>
           @{other?.username ?? 'someone'}
         </Link>

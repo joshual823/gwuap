@@ -24,7 +24,7 @@ export default async function LeaderboardPage() {
           return (
             <Link href={`/profile/${r.username}`} key={r.user_id} className="lb-row">
               <span className={`lb-rank ${i < 3 ? 'top3' : ''}`}>{i + 1}</span>
-              <Avatar url={r.avatar_url} size={30} />
+              <Avatar url={r.avatar_url} size={30} name={r.username} />
               <div className="lb-who">
                 <span style={{ fontWeight: 600, fontSize: 14 }}>
                   @{r.username}<Badges badges={r.badges} />

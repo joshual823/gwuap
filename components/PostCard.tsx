@@ -104,7 +104,7 @@ export default function PostCard({ post }: { post: Post }) {
   return (
     <article className="post">
       <Link href={`/profile/${post.author.username}`}>
-        <Avatar url={post.author.avatar_url} />
+        <Avatar url={post.author.avatar_url} name={post.author.username} />
       </Link>
       <div className="post-body">
         <div className="post-head">
@@ -158,7 +158,7 @@ export default function PostCard({ post }: { post: Post }) {
         {post.reposted && (
           <Link href={`/post/${post.reposted.id}`} className="quoted">
             <div className="quoted-head">
-              <Avatar url={post.reposted.author?.avatar_url} size={20} />
+              <Avatar url={post.reposted.author?.avatar_url} size={20} name={post.reposted.author?.username} />
               <span className="uname">@{post.reposted.author?.username}</span>
               <span className="dot">·</span>
               <span className="time">{timeAgo(post.reposted.created_at)}</span>

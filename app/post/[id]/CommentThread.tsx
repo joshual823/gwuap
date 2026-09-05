@@ -88,7 +88,7 @@ export default function CommentThread({
     return (
       <article className={`comment ${isReply ? 'is-reply' : ''}`} key={c.id}>
         <Link href={`/profile/${c.author?.username}`}>
-          <Avatar url={c.author?.avatar_url} size={30} className="comment-avatar" />
+          <Avatar url={c.author?.avatar_url} size={30} name={c.author?.username} className="comment-avatar" />
         </Link>
         <div className="comment-body">
           <div className="comment-head">

@@ -58,7 +58,7 @@ export default async function MessagesPage() {
     const unread = unreadBy.get(c.id) ?? 0
     return (
       <Link href={`/messages/${c.id}`} key={c.id} className={`dm-row ${unread ? 'unread' : ''}`}>
-        <Avatar url={other?.avatar_url} size={38} />
+        <Avatar url={other?.avatar_url} size={38} name={other?.username} />
         <div className="dm-main">
           <div className="dm-head">
             <span className="uname">@{other?.username ?? 'someone'}</span>

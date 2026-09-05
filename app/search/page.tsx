@@ -63,7 +63,7 @@ export default function SearchPage() {
       {people.length > 0 && <h2 className="comments-heading">People</h2>}
       {people.map(u => (
         <Link href={`/profile/${u.username}`} key={u.id} className="search-row">
-          <Avatar url={u.avatar_url} size={32} />
+          <Avatar url={u.avatar_url} size={32} name={u.username} />
           <div>
             <div style={{ fontWeight: 600 }}>@{u.username}</div>
             {u.display_name && <div style={{ fontSize: 13, color: 'var(--ink-dim)' }}>{u.display_name}</div>}

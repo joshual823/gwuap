@@ -107,7 +107,7 @@ export default function GameChat({ gameKey, viewerId }: {
         {messages.map(m => (
           <div className="gc-msg" key={m.id}>
             <Link href={`/profile/${m.author?.username}`}>
-              <Avatar url={m.author?.avatar_url} size={26} />
+              <Avatar url={m.author?.avatar_url} size={26} name={m.author?.username} />
             </Link>
             <div className="gc-body">
               <div className="gc-head">

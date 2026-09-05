@@ -25,6 +25,28 @@ export type GameSide = {
  * rather than a typed claim: the price came from a book at a moment,
  * instead of from whatever the author felt like entering.
  */
+/**
+ * ESPN's state, distrusted when the clock says otherwise.
+ *
+ * A game that claims to be in progress eight hours after its first pitch
+ * is not in progress — it's a stale feed. Josh caught eleven MLB games
+ * all reading LIVE at 3:41am, hours after every one of them was final.
+ * Whether the staleness was ESPN's or a cached response of ours, the
+ * clock disagrees either way, and the clock is right.
+ *
+ * Eight hours clears anything real: a long extra-innings game runs about
+ * six, a five-set match under five.
+ */
+const STALE_LIVE_MS = 8 * 60 * 60 * 1000
+
+function normaliseState(raw: unknown, startsAt: string | null | undefined): 'pre' | 'in' | 'post' {
+  const state = raw === 'in' ? 'in' : raw === 'post' ? 'post' : 'pre'
+  if (state !== 'in' || !startsAt) return state
+  const began = Date.parse(startsAt)
+  if (!Number.isFinite(began)) return state
+  return Date.now() - began > STALE_LIVE_MS ? 'post' : 'in'
+}
+
 export type Market = {
   kind: 'moneyline' | 'spread' | 'total'
   /** Which side of it. Team code for moneyline and spread. */
@@ -254,7 +276,7 @@ function parseIndividual(data: any, league: string, full = false): Game[] {
           court: competition?.venue?.court ?? undefined,
           note: (competition?.notes ?? []).find((n: any) => n?.text)?.text ?? undefined,
           status: competition?.status?.type?.shortDetail ?? event?.name ?? '',
-          state: state === 'in' ? 'in' : state === 'post' ? 'post' : 'pre',
+          state: normaliseState(state, competition?.date ?? event?.date ?? null),
           startsAt: competition?.date ?? event?.date ?? null,
           spread: null,
           overUnder: null,
@@ -370,7 +392,7 @@ async function fetchPath(
         home: side(home),
         away: side(away),
         status: event?.status?.type?.shortDetail ?? '',
-        state: stateRaw === 'in' ? 'in' : stateRaw === 'post' ? 'post' : 'pre',
+        state: normaliseState(stateRaw, event?.date ?? null),
         startsAt: event?.date ?? null,
         spread: odds?.details ?? null,
         overUnder: typeof odds?.overUnder === 'number' ? odds.overUnder : null,
@@ -643,7 +665,7 @@ async function fetchSummaryDetail(league: string, id: string): Promise<GameDetai
       league,
       id,
       status: competition?.status?.type?.detail ?? '',
-      state: stateRaw === 'in' ? 'in' : stateRaw === 'post' ? 'post' : 'pre',
+      state: normaliseState(stateRaw, competition?.date ?? null),
       periods,
       sides: ordered,
       odds,

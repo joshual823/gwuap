@@ -95,7 +95,7 @@ export default function VentStream({ initial, viewerId }: {
       {messages.map(m => (
         <article className="vent-msg" key={m.id}>
           <Link href={`/profile/${m.author?.username}`}>
-            <Avatar url={m.author?.avatar_url} size={30} />
+            <Avatar url={m.author?.avatar_url} size={30} name={m.author?.username} />
           </Link>
           <div className="vent-body">
             <div className="comment-head">

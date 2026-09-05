@@ -73,7 +73,7 @@ export default async function ContestPage() {
           {(board ?? []).map((r: any, i: number) => (
             <Link href={`/profile/${r.username}`} key={r.user_id} className="lb-row">
               <span className={`lb-rank ${i < 3 ? 'top3' : ''}`}>{i + 1}</span>
-              <Avatar url={r.avatar_url} size={30} />
+              <Avatar url={r.avatar_url} size={30} name={r.username} />
               <div className="lb-who">
                 <span style={{ fontWeight: 600, fontSize: 14 }}>@{r.username}</span>
                 <span className="lb-meta mono">{r.wins}-{r.losses}</span>
