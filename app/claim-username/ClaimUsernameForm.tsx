@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabaseClient'
+import { trackSignUp } from '@/lib/rdt'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
@@ -35,6 +36,9 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
     // The unique index is the real guard; two people can claim the same
     // name between the check above and this insert.
     if (insertError) { setError('That username was just taken — pick another.'); return }
+
+    // Counted here, where the account becomes real.
+    trackSignUp()
 
     // A full load so the header and tab bar pick up the new profile.
     window.location.href = next

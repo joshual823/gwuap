@@ -8,6 +8,7 @@ import GoogleButton from '@/components/GoogleButton'
 import FoundingCount from '@/components/FoundingCount'
 import LeaguePicker from '@/components/LeaguePicker'
 import { MAX_PREFERRED } from '@/lib/preferences'
+import { trackSignUp } from '@/lib/rdt'
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
@@ -112,6 +113,7 @@ export default function SignupPage() {
       return
     }
 
+    trackSignUp()
     setLoading(false)
     setStep('leagues')
   }
