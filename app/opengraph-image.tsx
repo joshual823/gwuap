@@ -19,8 +19,22 @@ export default function OpengraphImage() {
           fontFamily: 'sans-serif',
         }}
       >
-        <div style={{ display: 'flex', fontSize: 92, fontWeight: 800, color: '#00C805', letterSpacing: -3 }}>
-          {SITE_NAME}
+        {/* The same coin as the tab icon and the account picture, so a
+            shared link is recognisable as the place people arrive at. */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+          <div
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 104, height: 104, borderRadius: 999,
+              background: 'radial-gradient(120% 100% at 50% -10%, #9BFFA6 0%, #35E24A 26%, #00C805 52%, #009B0A 76%, #04630C 100%)',
+              color: '#053B08', fontSize: 68, fontWeight: 800,
+            }}
+          >
+            G
+          </div>
+          <div style={{ display: 'flex', fontSize: 92, fontWeight: 800, color: '#00C805', letterSpacing: -3 }}>
+            {SITE_NAME}
+          </div>
         </div>
         <div style={{ display: 'flex', fontSize: 44, marginTop: 18, lineHeight: 1.25, letterSpacing: -1 }}>
           Post your picks. The final score grades them.

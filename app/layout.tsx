@@ -107,7 +107,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="app">
         <header className="topbar">
           <div className="topbar-inner">
-            <Link href="/feed" className="wordmark">{SITE_NAME}</Link>
+            <Link href="/feed" className="wordmark">
+              <img src="/logo.svg" alt="" className="wordmark-mark" />
+              {SITE_NAME}
+            </Link>
             {/* Chat and DMs aren't built yet (Sessions 9-10). The links
                 used to point at /chat and /dm, which 404, and carried
                 hardcoded "2" and "1" notification badges. Both are gone
