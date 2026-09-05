@@ -24,7 +24,7 @@ export default function SignupPage() {
   // save-or-skip rather than part of creating it. Someone who closes the
   // tab here has a working account with no preferences, which is the same
   // outcome as skipping.
-  const [step, setStep] = useState<'account' | 'leagues'>('account')
+  const [step, setStep] = useState<'account' | 'leagues' | 'confirm'>('account')
   const [leagues, setLeagues] = useState<string[]>([])
 
   async function handleSignup(e: React.FormEvent) {
@@ -60,7 +60,17 @@ export default function SignupPage() {
       return
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        // Carried so the username survives the round trip through the
+        // inbox — /claim-username offers it back rather than making
+        // someone think of a second one.
+        data: { username },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
     if (signUpError || !data.user) {
       const msg = signUpError?.message ?? ''
       setError(
@@ -71,6 +81,21 @@ export default function SignupPage() {
             : 'Something went wrong creating your account. Try again in a moment.',
       )
       setLoading(false)
+      return
+    }
+
+    // With "Confirm email" on, signUp returns a user but no session:
+    // nobody is signed in until the link is clicked. The profile insert
+    // below needs a session, so attempting it here would fail on a
+    // permission error and report it as a taken username — an account
+    // created, no profile, and a message about the wrong thing.
+    //
+    // So the profile waits. /auth/callback sends a confirmed session
+    // with no profile to /claim-username, which is the same path an
+    // account created through Google already takes.
+    if (!data.session) {
+      setLoading(false)
+      setStep('confirm')
       return
     }
 
@@ -105,6 +130,24 @@ export default function SignupPage() {
     }
     router.push('/feed')
     router.refresh()
+  }
+
+  if (step === 'confirm') {
+    return (
+      <div style={{ maxWidth: 380, margin: '48px auto' }}>
+        <h1 className="page-title" style={{ marginBottom: 8 }}>Check your email</h1>
+        <p style={{ color: 'var(--ink-dim)', fontSize: 14, lineHeight: 1.6 }}>
+          We sent a confirmation link to <strong>{email}</strong>. Open it and
+          you&apos;ll be signed in and asked to confirm{' '}
+          <strong>@{username}</strong> as your username.
+        </p>
+        <p style={{ color: 'var(--ink-faint)', fontSize: 13, marginTop: 14 }}>
+          Nothing in your inbox after a minute or two? Check spam — and make
+          sure the address above is right, because that&apos;s the one the
+          link went to.
+        </p>
+      </div>
+    )
   }
 
   if (step === 'leagues') {

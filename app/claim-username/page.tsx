@@ -21,8 +21,13 @@ export default async function ClaimUsernamePage(props: {
 
   // Google gives a display name; it's a decent first guess and saves
   // most people from thinking of one.
+  // The username chosen at signup comes back through here after the
+  // confirmation link, so it's offered first. Google supplies a display
+  // name instead, which is a decent second guess.
   const suggested = String(
-    user.user_metadata?.name ?? user.user_metadata?.full_name ?? '',
+    user.user_metadata?.username ??
+    user.user_metadata?.name ??
+    user.user_metadata?.full_name ?? '',
   ).toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 20)
 
   return (
