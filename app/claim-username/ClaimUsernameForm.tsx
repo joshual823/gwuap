@@ -74,16 +74,34 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
       } catch { /* same */ }
     }
 
+    // Exactly the three columns 033 allows a new account to write. It
+    // grants insert on (id, username, display_name) and nothing else, on
+    // purpose — is_admin, is_banned and badges are decided elsewhere —
+    // so naming any other column here fails the whole insert on a
+    // permission error.
     const { error: insertError } = await supabase
-      .from('profiles').insert({
-        id: userId, username: name, display_name: name,
+      .from('profiles').insert({ id: userId, username: name, display_name: name })
+    if (insertError) {
+      setSaving(false)
+      // The unique index is the real guard; two people can claim the same
+      // name between the check above and this insert. Anything else says
+      // what it was, rather than blaming a name that's perfectly free.
+      setError(/duplicate|unique/i.test(insertError.message)
+        ? 'That username was just taken — pick another.'
+        : `Could not finish setting up — ${insertError.message}`)
+      return
+    }
+
+    // The rest is an update, which 031 does grant for these columns. A
+    // failure here isn't worth losing the account over — both are
+    // optional and both are editable from the profile afterwards.
+    if (avatarUrl || leagues.length > 0) {
+      await supabase.from('profiles').update({
         avatar_url: avatarUrl,
         preferred_leagues: leagues.length > 0 ? leagues : null,
-      })
+      }).eq('id', userId)
+    }
     setSaving(false)
-    // The unique index is the real guard; two people can claim the same
-    // name between the check above and this insert.
-    if (insertError) { setError('That username was just taken — pick another.'); return }
 
     // Counted here, where the account becomes real.
     trackSignUp()
