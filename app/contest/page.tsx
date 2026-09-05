@@ -17,6 +17,10 @@ export default async function ContestPage() {
   const { data: board } = await supabase
     .from('leaderboard')
     .select('user_id, username, avatar_url, wins, losses, win_pct')
+    // The house account is on the leaderboard but not in the running. An
+    // automated account competing for a cash prize against people would
+    // cost more than a full board is worth.
+    .eq('is_bot', false)
     .limit(5)
 
   const ended = hasEnded()

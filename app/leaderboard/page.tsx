@@ -16,7 +16,8 @@ export default async function LeaderboardPage() {
       <h1 className="display" style={{ fontSize: 22 }}>Leaderboard</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 16 }}>
         Win rate and profit over the last 30 days · minimum 5 settled picks ·
-        graded automatically from the final score, never self-reported
+        graded automatically from the final score, never self-reported ·
+        the house model is listed and labelled, and is not in the contest
       </p>
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '2px 14px' }}>
         {(rows ?? []).map((r: any, i: number) => {
@@ -27,7 +28,13 @@ export default async function LeaderboardPage() {
               <Avatar url={r.avatar_url} size={30} name={r.username} />
               <div className="lb-who">
                 <span style={{ fontWeight: 600, fontSize: 14 }}>
-                  @{r.username}<Badges badges={r.badges} />
+                  @{r.username}
+                  {r.is_bot && (
+                    <span className="bot-tag" title="Automated account. Graded like everyone else, but not in the contest.">
+                      MODEL
+                    </span>
+                  )}
+                  <Badges badges={r.badges} />
                 </span>
                 <span className="lb-meta mono">
                   <span>{r.wins}-{r.losses}</span>
