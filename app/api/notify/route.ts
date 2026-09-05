@@ -21,6 +21,14 @@ export const dynamic = 'force-dynamic'
 /** Older than this and it isn't news any more. */
 const MAX_AGE_HOURS = 72
 
+/**
+ * Resend rate-limits by the second, and the first run fired six sends
+ * inside 300ms and lost all of them. Spacing costs nothing here: this
+ * job has a whole hour and a handful of recipients.
+ */
+const GAP_MS = 700
+const pause = () => new Promise(r => setTimeout(r, GAP_MS))
+
 type Notif = {
   id: string
   user_id: string
@@ -103,6 +111,7 @@ export async function GET(req: Request) {
   }
 
   let sent = 0, skipped = 0, failed = 0
+  const errors: string[] = []
 
   for (const [userId, items] of byUser) {
     const ids = items.map(i => i.id)
@@ -134,7 +143,17 @@ export async function GET(req: Request) {
       }),
       text: items.map(i => line(i).replace(/<\/?b>/g, '')).join('\n') + `\n\n${href}`,
     })
-    result.ok ? sent++ : failed++
+    if (result.ok) {
+      sent++
+    } else {
+      failed++
+      if (!errors.includes(result.error)) errors.push(result.error)
+      // Hand the claim back. A duplicate on a later run is a smaller
+      // harm than a notification nobody ever receives.
+      await supabase.from('notifications')
+        .update({ emailed_at: null }).in('id', ids)
+    }
+    await pause()
   }
 
   // ---- welcome, once ------------------------------------------
@@ -146,11 +165,10 @@ export async function GET(req: Request) {
 
   let welcomed = 0
   for (const p of fresh ?? []) {
-    await supabase.from('profiles')
-      .update({ welcomed_at: new Date().toISOString() }).eq('id', p.id)
-
     const { data: found } = await supabase.auth.admin.getUserById(p.id)
     const to = found?.user?.email
+    // No address, no welcome, and no stamp — if one appears later this
+    // will find them again.
     if (!to) continue
 
     const result = await sendEmail({
@@ -172,8 +190,25 @@ export async function GET(req: Request) {
       }),
       text: `You're in, @${p.username}.\n\nPost a pick and the final score settles it. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new`,
     })
-    if (result.ok) welcomed++
+    if (result.ok) {
+      welcomed++
+      // Stamped only once it has actually gone. The first version marked
+      // it first and every account on the site was recorded as welcomed
+      // while the sends were failing — a greeting you only get once is
+      // exactly the wrong thing to claim before delivering.
+      await supabase.from('profiles')
+        .update({ welcomed_at: new Date().toISOString() }).eq('id', p.id)
+    } else {
+      failed++
+      if (!errors.includes(result.error)) errors.push(result.error)
+    }
+    await pause()
   }
 
-  return Response.json({ digests: sent, welcomed, skipped, failed, considered: pending.length })
+  return Response.json({
+    digests: sent, welcomed, skipped, failed,
+    considered: pending.length,
+    // Named, so a failing run says why instead of just counting.
+    errors: errors.slice(0, 3),
+  })
 }
