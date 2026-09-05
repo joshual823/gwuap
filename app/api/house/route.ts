@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabaseServer'
 import { fetchGamesWindow, type Game, type Market } from '@/lib/scores'
 import { LEAGUES_WITH_SCORES } from '@/lib/scores'
+import { splitAmericanOdds } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
 
@@ -101,7 +102,16 @@ export async function GET(req: Request) {
 
     for (const game of candidates) {
       if (posted.length >= PICKS_PER_RUN) break
-      const market = game.markets![Math.floor(hour + posted.length) % game.markets!.length]
+      // ESPN publishes "OFF" as a price when a book has pulled the
+      // market, and a spread with no number can't be graded at all. The
+      // first run posted "IU +OFF" as a moneyline, which is neither a
+      // price nor a pick.
+      const usable = game.markets!.filter(m =>
+        splitAmericanOdds(m.odds) !== null &&
+        (m.kind === 'moneyline' || typeof m.line === 'number'),
+      )
+      if (usable.length === 0) continue
+      const market = usable[Math.floor(hour + posted.length) % usable.length]
       if (!market) continue
       const pick = marketToPick(game, market)
       if (!pick.tag || pick.tag === '$') continue

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabaseClient'
 import { trackSignUp } from '@/lib/rdt'
-import { squareResize, MAX_SOURCE_BYTES } from '@/lib/image'
+import { uploadAvatar } from '@/lib/uploadAvatar'
 import Avatar from '@/components/Avatar'
 import LeaguePicker from '@/components/LeaguePicker'
 import { MAX_PREFERRED } from '@/lib/preferences'
@@ -58,27 +58,12 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
     // storage policy keys on the user id, and that already exists.
     let avatarUrl: string | null = null
     if (avatarFile) {
-      if (avatarFile.size > MAX_SOURCE_BYTES) {
-        setError('That image is enormous — try one under 25MB.'); setSaving(false); return
-      }
-      try {
-        const resized = await squareResize(avatarFile)
-        const path = `${userId}/${Date.now()}.jpg`
-        const { error: uploadError } = await supabase.storage
-          .from('avatars').upload(path, resized, { upsert: true, contentType: 'image/jpeg' })
-        // A picture that won't upload is not a reason to lose the
-        // account. The initials stand in, and it can be set later.
-        if (!uploadError) {
-          avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
-        }
-      } catch { /* same */ }
+      // A picture that won't upload is not a reason to lose the account.
+      // The initials stand in and it can be set later from the profile.
+      const result = await uploadAvatar(avatarFile)
+      if (!('error' in result)) avatarUrl = result.url
     }
 
-    // Exactly the three columns 033 allows a new account to write. It
-    // grants insert on (id, username, display_name) and nothing else, on
-    // purpose — is_admin, is_banned and badges are decided elsewhere —
-    // so naming any other column here fails the whole insert on a
-    // permission error.
     const { error: insertError } = await supabase
       .from('profiles').insert({ id: userId, username: name, display_name: name })
     if (insertError) {

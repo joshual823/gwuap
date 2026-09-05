@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
-import { squareResize, MAX_SOURCE_BYTES } from '@/lib/image'
+import { uploadAvatar } from '@/lib/uploadAvatar'
 import ThemeToggle from '@/components/ThemeToggle'
 import LeaguePicker from '@/components/LeaguePicker'
 import { cleanPreferences, MAX_PREFERRED } from '@/lib/preferences'
@@ -26,6 +27,8 @@ export default function EditProfile({ profile }: {
   const [leagues, setLeagues] = useState<string[]>(cleanPreferences(profile.preferred_leagues))
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
@@ -52,32 +55,9 @@ export default function EditProfile({ profile }: {
     // only permits writes there, so nobody can overwrite someone else's.
     let avatarUrl = profile.avatar_url
     if (avatarFile) {
-      if (!avatarFile.type.startsWith('image/')) {
-        setError('That file isn\u2019t an image.'); setSaving(false); return
-      }
-      if (avatarFile.size > MAX_SOURCE_BYTES) {
-        setError('That image is enormous — try one under 25MB.'); setSaving(false); return
-      }
-
-      // Shrink in the browser rather than asking people to do it. A phone
-      // photo is several megabytes; this sends about fifty kilobytes.
-      let resized: Blob
-      try {
-        resized = await squareResize(avatarFile)
-      } catch {
-        setError('Couldn\u2019t read that image. Try a JPEG or PNG.')
-        setSaving(false); return
-      }
-
-      const path = `${profile.id}/${Date.now()}.jpg`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, resized, { upsert: true, contentType: 'image/jpeg' })
-      if (uploadError) {
-        setError(`Could not upload that picture — ${uploadError.message}`)
-        setSaving(false); return
-      }
-      avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
+      const result = await uploadAvatar(avatarFile)
+      if ('error' in result) { setError(result.error); setSaving(false); return }
+      avatarUrl = result.url
     }
 
     const { error: updateError } = await supabase
@@ -112,11 +92,17 @@ export default function EditProfile({ profile }: {
   if (!open) {
     return <button className="btn secondary" onClick={() => setOpen(true)}>Edit profile</button>
   }
+  // Rendered into <body>, not where the button sits. iOS treats a fixed
+  // element inside a -webkit-overflow-scrolling container as absolute to
+  // that container, so the sheet was being laid out inside the scrolling
+  // <main> and clipped by the bars above and below it. Raising z-index
+  // couldn't fix that; leaving the container is the only thing that does.
+  if (!mounted) return null
 
   const BIO_MAX = 200
   const NAME_MAX = 40
 
-  return (
+  return createPortal(
     /* A sheet over the page, not a panel inside the header. It used to
        render where the button is — inside a flex row sized to its
        content — so a full-width form overflowed off the right edge and
@@ -199,5 +185,7 @@ export default function EditProfile({ profile }: {
         </div>
       </form>
     </div>
+    ,
+    document.body,
   )
 }
