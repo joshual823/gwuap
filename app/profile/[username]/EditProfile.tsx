@@ -73,7 +73,10 @@ export default function EditProfile({ profile }: {
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(path, resized, { upsert: true, contentType: 'image/jpeg' })
-      if (uploadError) { setError('Could not upload that picture — try again.'); setSaving(false); return }
+      if (uploadError) {
+        setError(`Could not upload that picture — ${uploadError.message}`)
+        setSaving(false); return
+      }
       avatarUrl = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl
     }
 
@@ -96,7 +99,7 @@ export default function EditProfile({ profile }: {
       // the gap between the check above and this write.
       setError(/duplicate|unique/i.test(updateError.message)
         ? 'That username was just taken — pick another.'
-        : 'Could not save those changes — try again.')
+        : `Could not save those changes — ${updateError.message}`)
       return
     }
 
@@ -132,11 +135,19 @@ export default function EditProfile({ profile }: {
           </div>
         </div>
 
+        <div className="edit-body">
         <div className="edit-row">
           <label className="form-label">Profile picture</label>
           <input type="file" accept="image/*" className="field"
             onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
           <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
+          {avatarFile && (
+            <button type="button" className="comment-del"
+              style={{ marginLeft: 0 }}
+              onClick={() => setAvatarFile(null)}>
+              Remove selected picture
+            </button>
+          )}
         </div>
 
         <div className="edit-row">
@@ -186,6 +197,7 @@ export default function EditProfile({ profile }: {
         </div>
 
         {error && <p className="edit-error">{error}</p>}
+        </div>
       </form>
     </div>
   )

@@ -69,7 +69,7 @@ export default async function MessagesPage() {
             {last ? last.body : 'No messages yet'}
           </div>
         </div>
-        {unread > 0 && <span className="badge dm-badge">{unread > 9 ? '9+' : unread}</span>}
+        {unread > 0 && <span className="count-badge dm-badge">{unread > 9 ? '9+' : unread}</span>}
       </Link>
     )
   }

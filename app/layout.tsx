@@ -117,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {isAdmin && <Link href="/admin" className="icon-wrap" title="Moderation queue">🛡️</Link>}
               {user && (
                 <Link href="/notifications" className="icon-wrap" title="Notifications">
-                  🔔{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}
+                  🔔{unread > 0 && <span className="count-badge">{unread > 9 ? '9+' : unread}</span>}
                 </Link>
               )}
               {user && (
@@ -125,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               )}
               {user && (
                 <Link href="/messages" className="icon-wrap" title="Messages">
-                  ✉️{inbox > 0 && <span className="badge">{inbox > 9 ? '9+' : inbox}</span>}
+                  ✉️{inbox > 0 && <span className="count-badge">{inbox > 9 ? '9+' : inbox}</span>}
                 </Link>
               )}
               <Link href="/search" className="icon-wrap">🔍</Link>
