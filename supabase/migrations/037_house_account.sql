@@ -21,8 +21,12 @@ comment on column profiles.is_bot is
 -- The leaderboard is the contest standings too — app/contest reads this
 -- same view — so one exclusion covers both.
 --
--- Identical column list to 030, in the same order: create or replace can
--- only append columns, and reordering them fails outright.
+-- This restates 031's definition exactly, column for column, with one
+-- line added to the where clause. The first draft copied 030's instead
+-- and lost p.badges, which 031 had appended — Postgres refused with
+-- "cannot drop columns from view". The rule 031's own comment states:
+-- CREATE OR REPLACE VIEW may only append. Every existing column has to
+-- come back, in the same order, every time.
 create or replace view leaderboard as
 select
   p.id as user_id,
@@ -51,7 +55,8 @@ select
         where posts.status <> 'pending'
            or posts.created_at < now() - interval '7 days'
       ), 0), 0
-  ) as graded_pct
+  ) as graded_pct,
+  p.badges
 from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'
@@ -64,7 +69,7 @@ where posts.created_at > now() - interval '30 days'
     'first_half', 'first_half_ml'
   )
   and posts.game_id is not null
-group by p.id, p.username, p.avatar_url
+group by p.id, p.username, p.avatar_url, p.badges
 having count(*) filter (where posts.status in ('win','loss')) >= 5
 order by win_pct desc, graded_picks desc;
 
