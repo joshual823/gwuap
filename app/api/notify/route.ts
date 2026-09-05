@@ -79,8 +79,22 @@ export async function GET(req: Request) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return Response.json({ error: 'Server not configured' }, { status: 503 })
   }
-  if (!process.env.RESEND_API_KEY) {
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) {
     return Response.json({ error: 'RESEND_API_KEY is not set in this environment' }, { status: 503 })
+  }
+
+  /**
+   * Enough about the key to tell a wrong value from a rejected one,
+   * and nothing that could reconstruct it. Two 401s in a row look
+   * identical from the outside: a key that isn't a key, and a key the
+   * service has revoked. This separates them.
+   */
+  const keyShape = {
+    prefix: resendKey.slice(0, 3),
+    length: resendKey.length,
+    // Pasting from a dashboard picks these up more often than anyone expects.
+    hasWhitespace: /\s/.test(resendKey),
   }
 
   const supabase = createAdminClient()
@@ -210,5 +224,7 @@ export async function GET(req: Request) {
     considered: pending.length,
     // Named, so a failing run says why instead of just counting.
     errors: errors.slice(0, 3),
+    // Only shown when something failed, and never the key itself.
+    ...(failed > 0 ? { keyShape } : {}),
   })
 }
