@@ -14,6 +14,7 @@ function describe(n: any): string {
     case 'follow': return 'followed you'
     case 'dm_request': return 'wants to message you'
     case 'dm_message': return 'sent you a message'
+    case 'repost': return 'reposted your pick'
     default: return 'did something'
   }
 }
@@ -26,7 +27,7 @@ export default async function NotificationsPage() {
   const { data, error } = await supabase
     .from('notifications')
     .select(`
-      id, type, post_id, comment_id, conversation_id, emoji, read_at, created_at,
+      id, type, outcome, post_id, comment_id, conversation_id, emoji, read_at, created_at,
       actor:profiles!notifications_actor_id_fkey ( username )
     `)
     .eq('user_id', user.id)
@@ -71,12 +72,20 @@ export default async function NotificationsPage() {
         return (
           <Link href={href} key={n.id} className={`notif ${n.read_at ? '' : 'unread'}`}>
             <span className="notif-icon">
-              {n.type === 'reaction' ? (n.emoji || '♥')
+              {n.type === 'graded' ? (n.outcome === 'win' ? '✅' : n.outcome === 'loss' ? '❌' : '➖')
+                : n.type === 'reaction' ? (n.emoji || '♥')
                 : n.type === 'follow' ? '👤'
+                : n.type === 'repost' ? '🔁'
                 : n.type.startsWith('dm_') ? '✉️' : '💬'}
             </span>
             <span className="notif-text">
-              <strong>@{n.actor?.username ?? 'someone'}</strong> {describe(n)}
+              {n.type === 'graded' ? (
+                <>Your pick <strong>{n.outcome === 'win' ? 'won'
+                  : n.outcome === 'loss' ? 'lost'
+                  : n.outcome === 'push' ? 'pushed' : 'was settled'}</strong></>
+              ) : (
+                <><strong>@{n.actor?.username ?? 'someone'}</strong> {describe(n)}</>
+              )}
             </span>
             <span className="notif-time">{timeAgo(n.created_at)}</span>
           </Link>

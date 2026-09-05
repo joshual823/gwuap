@@ -72,7 +72,7 @@ async function run(request: Request) {
   // ESPN's feed anyway.
   const { data: pending, error } = await supabase
     .from('posts')
-    .select('id, bet_type, sentiment, ticker, line, odds, stake, game_id, game_league, created_at')
+    .select('id, author_id, bet_type, sentiment, ticker, line, odds, stake, game_id, game_league, created_at')
     .eq('status', 'pending')
     .eq('post_kind', 'pick')
     .not('game_id', 'is', null)
@@ -200,6 +200,17 @@ async function run(request: Request) {
       .eq('status', 'pending')     // never regrade something already settled
 
     if (updateError) { note('write failed'); continue }
+
+    // The moment the whole product turns on, and until now it happened
+    // silently — settled hours later with nobody watching. The email job
+    // picks this up on its next run.
+    await supabase.from('notifications').insert({
+      user_id: pick.author_id,
+      type: 'graded',
+      outcome,
+      post_id: pick.id,
+    })
+
     results.push({ id: pick.id, status: outcome })
   }
 

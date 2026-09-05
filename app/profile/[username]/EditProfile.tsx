@@ -15,6 +15,7 @@ export default function EditProfile({ profile }: {
     id: string; username: string; display_name: string | null
     bio: string | null; avatar_url: string | null
     preferred_leagues?: string[] | null
+    email_notifications?: boolean | null
   }
 }) {
   const supabase = createClient()
@@ -25,6 +26,7 @@ export default function EditProfile({ profile }: {
   const [bio, setBio] = useState(profile.bio ?? '')
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [leagues, setLeagues] = useState<string[]>(cleanPreferences(profile.preferred_leagues))
+  const [emailNotifications, setEmailNotifications] = useState(profile.email_notifications !== false)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -70,6 +72,7 @@ export default function EditProfile({ profile }: {
         // Empty means no preference, which is the default mix rather than
         // an empty feed — so clearing every league is a valid choice.
         preferred_leagues: leagues.length > 0 ? leagues : null,
+        email_notifications: emailNotifications,
       })
       .eq('id', profile.id)
 
@@ -177,6 +180,19 @@ export default function EditProfile({ profile }: {
         {/* It lives behind the gear on the profile too, but this is
             where people go looking for it — "edit profile" reads as
             settings, and a toggle nobody can find is a missing one. */}
+        <div className="edit-row">
+          <label className="form-label">Emails</label>
+          <label className="money-toggle">
+            <input type="checkbox" checked={emailNotifications}
+              onChange={e => setEmailNotifications(e.target.checked)} />
+            <span>Email me when a pick is graded or someone replies</span>
+          </label>
+          <p className="field-hint">
+            One summary at a time, not one per notification. Account and password
+            emails are sent either way.
+          </p>
+        </div>
+
         <div className="edit-row">
           <ThemeToggle />
         </div>

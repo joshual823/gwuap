@@ -31,8 +31,12 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   // runs, and since it gates notFound(), every profile on the site would
   // 404. An error here just leaves the picker empty.
   const { data: prefRow } = await supabase
-    .from('profiles').select('preferred_leagues').eq('id', profile.id).maybeSingle()
+    .from('profiles').select('preferred_leagues, email_notifications')
+    .eq('id', profile.id).maybeSingle()
   const preferredLeagues = (prefRow?.preferred_leagues as string[] | null) ?? null
+  // Undefined before 039 has run, which reads as "on" — the same as the
+  // column's default, so the toggle is never wrong for long.
+  const emailNotifications = (prefRow?.email_notifications as boolean | undefined) ?? true
 
   // Same reason, again: a column folded into the select above takes the
   // whole profile down until its migration has run, because that query
@@ -141,7 +145,8 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           )}
           {user?.id === profile.id && (
             <>
-              <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues }} />
+              <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues,
+                email_notifications: emailNotifications }} />
               <AccountMenu />
             </>
           )}
