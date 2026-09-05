@@ -108,7 +108,7 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
           <input type="file" accept="image/*" className="field" style={{ marginBottom: 4 }}
             onChange={e => chooseFile(e.target.files?.[0] ?? null)} />
           <p className="field-hint" style={{ margin: 0 }}>
-            {avatarFile ? 'Looks good.' : 'Optional — skip it and you keep the initial.'}
+            {avatarFile ? 'Looks good.' : 'Optional. Nothing inappropriate.'}
           </p>
         </div>
       </div>

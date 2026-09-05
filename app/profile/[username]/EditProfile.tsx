@@ -140,7 +140,7 @@ export default function EditProfile({ profile }: {
           <label className="form-label">Profile picture</label>
           <input type="file" accept="image/*" className="field"
             onChange={e => setAvatarFile(e.target.files?.[0] ?? null)} />
-          <p className="field-hint">Any size — it gets cropped square and shrunk for you.</p>
+          <p className="field-hint">Nothing inappropriate.</p>
           {avatarFile && (
             <button type="button" className="comment-del"
               style={{ marginLeft: 0 }}
@@ -192,7 +192,6 @@ export default function EditProfile({ profile }: {
             where people go looking for it — "edit profile" reads as
             settings, and a toggle nobody can find is a missing one. */}
         <div className="edit-row">
-          <label className="form-label">Appearance</label>
           <ThemeToggle />
         </div>
 
