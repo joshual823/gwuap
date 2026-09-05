@@ -1,6 +1,6 @@
 'use client'
 import Script from 'next/script'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { trackPageVisit } from '@/lib/rdt'
 
@@ -22,9 +22,17 @@ export default function RedditPixel() {
   const pathname = usePathname()
   const excluded = EXCLUDED.some(p => pathname?.startsWith(p))
 
-  // The site never reloads between pages, so the pixel's own page-load
-  // event fires once and would report a single visit for a whole session.
+  // The site never reloads between pages, so the snippet's own PageVisit
+  // fires once and would report a single visit for a whole session. Every
+  // page after the first is reported from here instead.
+  //
+  // The first one is deliberately skipped rather than sent twice: the
+  // snippet below already counted it, and this effect runs at hydration,
+  // before afterInteractive has even injected the script — so a call here
+  // would find no window.rdt and be dropped anyway.
+  const mounted = useRef(false)
   useEffect(() => {
+    if (!mounted.current) { mounted.current = true; return }
     if (!id || excluded) return
     trackPageVisit()
   }, [id, pathname, excluded])
@@ -36,9 +44,9 @@ export default function RedditPixel() {
       {`!function(w,d){if(!w.rdt){var p=w.rdt=function(){
         p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};
         p.callQueue=[];var t=d.createElement("script");
-        t.src="https://www.redditstatic.com/ads/pixel.js";t.async=!0;
+        t.src="https://www.redditstatic.com/ads/pixel.js?pixel_id=${id}";t.async=!0;
         var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);
-        rdt('init','${id}');`}
+        rdt('init','${id}');rdt('track','PageVisit');`}
     </Script>
   )
 }
