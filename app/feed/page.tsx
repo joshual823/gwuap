@@ -62,7 +62,7 @@ export default async function FeedPage(props: {
     .from('posts')
     .select(`
       id, caption, slip_image_url, tag, tag2, ticker, ticker2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
-      author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned ),
+      author:profiles!posts_author_id_fkey!inner ( id, username, avatar_url, is_banned, is_bot ),
       category:categories ( name ),
       likes ( user_id, emoji ),
       comments ( id )

@@ -1,0 +1,47 @@
+# The house account posts a couple of picks an hour.
+#
+# Same shape as grade.yml, and the same reason: Vercel's Hobby plan
+# refuses any cron more often than daily, and a feed that gains two posts
+# a day isn't a feed. Safe to run as often as it likes — the route skips
+# any fixture the account has already posted on.
+name: House picks
+
+on:
+  schedule:
+    # :37, away from the top of the hour where every scheduled workflow
+    # on GitHub fires at once, and away from grade.yml at :17.
+    - cron: '37 * * * *'
+  workflow_dispatch:
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post house picks
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set in this repository's secrets."
+            exit 1
+          fi
+
+          code=$(curl -sS -o response.json -w '%{http_code}' --max-time 120 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://gwuap.co/api/house)
+
+          echo "HTTP $code"
+          cat response.json
+          echo
+
+          # 412 means no account is flagged yet, which is a setup step
+          # rather than a failure — say so instead of going red every hour.
+          if [ "$code" = "412" ]; then
+            echo "::warning::No is_bot account yet. See migration 037."
+            exit 0
+          fi
+          if [ "$code" != "200" ]; then
+            echo "::error::House picks failed with HTTP $code — $(tr -d '\n' < response.json)"
+            exit 1
+          fi
+          echo "::notice::$(tr -d '\n' < response.json)"

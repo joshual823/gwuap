@@ -44,7 +44,9 @@ type Post = {
   tag2: string | null
   sentiment: Direction
   created_at: string
-  author: { id: string; username: string; avatar_url: string | null }
+  author: { id: string; username: string; avatar_url: string | null
+    is_bot?: boolean | null
+  }
   category: { name: string } | null
   likes: { user_id: string; emoji: string | null }[]
   comment_count: number
@@ -109,6 +111,7 @@ export default function PostCard({ post }: { post: Post }) {
       <div className="post-body">
         <div className="post-head">
           <Link href={`/profile/${post.author.username}`} className="uname">@{post.author.username}</Link>
+        {post.author.is_bot && <span className="bot-tag" title="Automated account. Not on the leaderboard or in the contest.">MODEL</span>}
           <span className="dot">·</span>
           <span className="time">{timeAgo(post.created_at)}</span>
           {post.post_kind === 'take' && <span className="stamp take">take</span>}

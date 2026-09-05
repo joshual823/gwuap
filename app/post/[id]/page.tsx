@@ -58,7 +58,7 @@ export default async function PostPage(props: { params: Promise<{ id: string }> 
     .from('posts')
     .select(`
       id, caption, slip_image_url, tag, tag2, sentiment, post_kind, bet_type, odds, stake, profit, status, created_at,
-      author:profiles!posts_author_id_fkey ( id, username, avatar_url ),
+      author:profiles!posts_author_id_fkey ( id, username, avatar_url, is_bot ),
       category:categories ( name ),
       likes ( user_id, emoji ),
       comments ( id )
