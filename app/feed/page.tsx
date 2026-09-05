@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabaseServer'
 import PostCard from '@/components/PostCard'
+import FeedNews from '@/components/FeedNews'
 import { attachPostMeta } from '@/lib/postMeta'
 import NewsList from '@/components/NewsList'
 import { fetchNewsMixed } from '@/lib/news'
@@ -17,6 +18,8 @@ import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+
+const NEWS_EVERY = 5
 
 export default async function FeedPage(props: {
   searchParams: Promise<Record<string, string | undefined>>
@@ -130,9 +133,32 @@ export default async function FeedPage(props: {
     .sort((a, b) => b.total - a.total)
     .slice(0, 3)
 
-  // Home keeps three headlines as a prompt, not as feed content — the
-  // timeline itself stays real picks by real people.
-  const newsTeaser = (await fetchNewsMixed(newsLeaguesFor(preferred), 10))
+  // One pool, used twice: the carousel at the top and, further down, a
+  // headline every few picks so a thin timeline still has something in
+  // it between posts.
+  // 60 rather than 26: merging five outlets by date buries CBS, which is
+  // the one that ships images, and the carousel went half placeholders.
+  // A wider pool leaves roughly twenty image-bearing items to choose from.
+  const newsPool = await fetchNewsMixed(newsLeaguesFor(preferred), 60)
+
+  // The carousel is image cards, so images lead. Stable, so within the
+  // ones that have a picture the newest still comes first — merging
+  // several outlets by date had buried the only source that ships
+  // images, and the rail went mostly blank placeholders.
+  const newsTeaser = [...newsPool]
+    .sort((a, b) => Number(!!b.image) - Number(!!a.image))
+    .slice(0, 10)
+
+  // Whatever the carousel didn't take, so nothing appears twice.
+  const usedInRail = new Set(newsTeaser.map(n => n.link))
+  // Only as many as a thin timeline can use; the rest would be payload
+  // nobody scrolls to.
+  const inlineNews = newsPool
+    .filter(n => !usedInRail.has(n.link))
+    // Same preference as the rail: a row with a thumbnail carries more
+    // weight in a timeline than a line of text does.
+    .sort((a, b) => Number(!!b.image) - Number(!!a.image))
+    .slice(0, 8)
 
 
   // Why a pending pick isn't graded, when there's a reason worth showing.
@@ -186,7 +212,17 @@ export default async function FeedPage(props: {
               : 'No picks posted yet — the games above are live either way.'}
           </p>
         )}
-        {withNotes.map((post: any) => <PostCard key={post.id} post={post} />)}
+        {/* A headline after every fifth pick. The timeline is thin while
+            the site is new, and five is far enough apart that it reads as
+            punctuation rather than as the feed being mostly news. */}
+        {withNotes.flatMap((post: any, i: number) => {
+          const rows = [<PostCard key={post.id} post={post} />]
+          const nth = Math.floor(i / NEWS_EVERY)
+          if ((i + 1) % NEWS_EVERY === 0 && inlineNews[nth]) {
+            rows.push(<FeedNews key={inlineNews[nth].link} item={inlineNews[nth]} />)
+          }
+          return rows
+        })}
       </div>
     </div>
   )

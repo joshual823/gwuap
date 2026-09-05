@@ -57,25 +57,65 @@ export const NEWS_LEAGUES = ['Top', ...Object.keys(CBS)]
 
 type Source = { name: string; url: string }
 
+/** Yahoo redirects /rss.xml to its real path; fetch follows that. */
+const YAHOO: Record<string, string> = {
+  'NBA': 'nba', 'NFL': 'nfl', 'MLB': 'mlb', 'NHL': 'nhl',
+  'Soccer': 'soccer', 'Tennis': 'tennis', 'Golf': 'golf',
+  'College Football': 'college-football', 'College Basketball': 'college-basketball',
+}
+
+/** Strong on football and tennis, and every item carries an image. */
+const GUARDIAN: Record<string, string> = {
+  'Soccer': 'football', 'Tennis': 'sport/tennis', 'Boxing': 'sport/boxing',
+  'NFL': 'sport/nfl', 'NBA': 'sport/nba', 'MLB': 'sport/mlb', 'Golf': 'sport/golf',
+}
+
 function sourcesFor(league: string): Source[] {
   const cbs = CBS[league]
   const espn = ESPN[league]
-  return [
+  const yahoo = YAHOO[league]
+  const guardian = GUARDIAN[league]
+  const out: Source[] = [
     { name: 'CBS Sports', url: cbs
         ? `https://www.cbssports.com/rss/headlines/${cbs}/`
         : 'https://www.cbssports.com/rss/headlines/' },
     { name: 'ESPN', url: espn
         ? `https://www.espn.com/espn/rss/${espn}/news`
         : 'https://www.espn.com/espn/rss/news' },
+    { name: 'Yahoo Sports', url: yahoo
+        ? `https://sports.yahoo.com/${yahoo}/rss.xml`
+        : 'https://sports.yahoo.com/rss/' },
+    { name: 'Sporting News', url: 'https://www.sportingnews.com/us/rss' },
   ]
+  if (guardian) out.push({ name: 'The Guardian', url: `https://www.theguardian.com/${guardian}/rss` })
+  return out
 }
 
-/** <enclosure url="..." type="image/jpeg"/> — CBS attaches one per story. */
-function enclosureImage(block: string): string | null {
-  const m = /<enclosure\b[^>]*\burl=["']([^"']+)["'][^>]*>/i.exec(block)
-  if (!m) return null
-  const url = decodeEntities(m[1])
-  return /^https:\/\//.test(url) ? url : null
+/** Same story from two outlets, told twice. Compared loosely on purpose. */
+function titleKey(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 60)
+}
+
+/**
+ * The picture, however this particular feed chose to attach one.
+ *
+ * CBS uses <enclosure>. Sporting News and the Guardian use media:content
+ * and media:thumbnail, which the enclosure-only reader ignored — so two
+ * sources that ship an image with every story were contributing none.
+ */
+function itemImage(block: string): string | null {
+  const patterns = [
+    /<enclosure\b[^>]*\burl=["']([^"']+)["'][^>]*>/i,
+    /<media:content\b[^>]*\burl=["']([^"']+)["'][^>]*>/i,
+    /<media:thumbnail\b[^>]*\burl=["']([^"']+)["'][^>]*>/i,
+  ]
+  for (const re of patterns) {
+    const m = re.exec(block)
+    if (!m) continue
+    const url = decodeEntities(m[1])
+    if (/^https:\/\//.test(url)) return url
+  }
+  return null
 }
 
 function stripCdata(raw: string): string {
@@ -106,11 +146,37 @@ function tagContent(block: string, tag: string): string | null {
  * being down should never take the page with it.
  */
 export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]> {
-  for (const source of sourcesFor(league)) {
-    const items = await fetchFrom(source, limit)
-    if (items.length > 0) return items
+  // Every source, merged — not the first one that answers. CBS was
+  // effectively the only source anyone ever saw, because it rarely
+  // fails, so ESPN was a fallback that never ran.
+  const batches = await Promise.all(
+    sourcesFor(league).map(source => fetchFrom(source, limit)),
+  )
+
+  // Round-robin, not sorted by date. Yahoo publishes fifty items an hour
+  // and sorting purely by time handed it the entire feed — the sources
+  // that ship images were all newer-than-nothing and got sliced off the
+  // end. Taking one from each in turn keeps every outlet represented and
+  // still runs newest-first inside each of them.
+  const seenLink = new Set<string>()
+  const seenTitle = new Set<string>()
+  const merged: NewsItem[] = []
+  for (let round = 0; merged.length < limit; round++) {
+    let added = false
+    for (const batch of batches) {
+      const item = batch[round]
+      if (!item) continue
+      added = true
+      const key = titleKey(item.title)
+      if (seenLink.has(item.link) || (key && seenTitle.has(key))) continue
+      seenLink.add(item.link)
+      if (key) seenTitle.add(key)
+      merged.push(item)
+      if (merged.length >= limit) break
+    }
+    if (!added) break
   }
-  return []
+  return merged
 }
 
 /**
@@ -168,7 +234,7 @@ async function fetchFrom(source: Source, limit: number): Promise<NewsItem[]> {
         link,
         published: parsed && !isNaN(parsed.getTime()) ? parsed.toISOString() : null,
         summary: tagContent(block, 'description'),
-        image: enclosureImage(block),
+        image: itemImage(block),
         source: source.name,
       })
       if (items.length >= limit) break
