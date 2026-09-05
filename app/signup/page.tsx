@@ -201,6 +201,13 @@ export default function SignupPage() {
           {loading ? 'Creating account…' : 'Sign up'}
         </button>
       </form>
+      {/* Said before the account is made, not buried in a footer. */}
+      <p style={{ marginTop: 14, fontSize: 12.5, color: 'var(--ink-faint)', lineHeight: 1.5 }}>
+        By signing up you agree to how we handle your data, set out on the{' '}
+        <a href="/privacy" style={{ color: 'var(--ink-dim)', textDecoration: 'underline' }}>privacy page</a>.
+        Your email is for your account and the emails you ask for — it does not
+        go to advertisers.
+      </p>
       <p style={{ marginTop: 16, fontSize: 14, color: 'var(--ink-dim)' }}>
         Already have an account? <a href="/login" style={{ color: 'var(--twitter-blue)' }}>Log in</a>
       </p>

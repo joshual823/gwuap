@@ -46,6 +46,9 @@ export default function AccountMenu() {
           <Link href="/help" className="post-menu-item" onClick={() => setOpen(false)}>
             How it works &amp; help
           </Link>
+          <Link href="/privacy" className="post-menu-item" onClick={() => setOpen(false)}>
+            Privacy
+          </Link>
           <LogoutButton />
         </div>
       )}

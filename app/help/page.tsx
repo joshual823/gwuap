@@ -99,6 +99,15 @@ export default function HelpPage() {
           much quicker to sort out.
         </p>
       </div>
+
+      <div className="help-card">
+        <h2>Your data</h2>
+        <p>
+          What we keep, who else sees it, and how to have it deleted —{' '}
+          <Link href="/privacy" className="help-link">the privacy page</Link> says
+          all of it in about a minute&apos;s reading.
+        </p>
+      </div>
     </div>
   )
 }
