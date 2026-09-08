@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabaseServer'
 import { sendEmail, emailShell } from '@/lib/email'
 import { SITE_NAME, SITE_URL } from '@/lib/brand'
-import { pickSummary } from '@/lib/odds'
+import { renderDigest, type Notif, type Pick } from '@/lib/digest'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,71 +29,6 @@ const MAX_AGE_HOURS = 72
  */
 const GAP_MS = 700
 const pause = () => new Promise(r => setTimeout(r, GAP_MS))
-
-type Notif = {
-  id: string
-  user_id: string
-  type: string
-  outcome: string | null
-  post_id: string | null
-  actor: { username: string } | null
-}
-
-/** Just enough of a post to say which pick this is about. */
-type Pick = {
-  id: string
-  tag: string | null
-  tag2: string | null
-  sentiment: string | null
-  bet_type: string | null
-  line: number | null
-}
-
-function gradedVerb(outcome: string | null): string {
-  return outcome === 'win' ? '<b>won</b>'
-    : outcome === 'loss' ? '<b>lost</b>'
-    : outcome === 'push' ? '<b>pushed</b>'
-    : 'was settled'
-}
-
-function line(n: Notif, pick?: Pick | null): string {
-  const who = n.actor?.username ? `@${n.actor.username}` : 'Someone'
-  switch (n.type) {
-    case 'graded': {
-      // Which pick, not just that one was graded. Somebody with four
-      // picks running on a Sunday learns nothing from "your pick won",
-      // and the answer shouldn't require opening the site.
-      const what = pickSummary(pick ?? {})
-      return `Your pick ${gradedVerb(n.outcome)}.`
-        + (what ? `<span style="color:#7A838F"> ${what}</span>` : '')
-    }
-    case 'reaction': return `${who} reacted to your post.`
-    case 'comment':  return `${who} commented on your post.`
-    case 'reply':    return `${who} replied to you.`
-    case 'follow':   return `${who} followed you.`
-    case 'repost':   return `${who} reposted your pick.`
-    case 'dm_request': return `${who} wants to message you.`
-    case 'dm_message': return `${who} sent you a message.`
-    default: return `${who} did something.`
-  }
-}
-
-function subjectFor(items: Notif[], picks: Map<string, Pick>): string {
-  if (items.length === 1) {
-    const only = items[0]
-    if (only.type === 'graded') {
-      // The cashtags only. The direction and the number belong in the
-      // body — a subject line is truncated by every client there is.
-      const pick = only.post_id ? picks.get(only.post_id) : null
-      const on = pick?.tag ? ` — ${pick.tag}${pick.tag2 ? ` vs ${pick.tag2}` : ''}` : ''
-      return (only.outcome === 'win' ? `Your pick won` : `Your pick was graded`) + on
-    }
-    return line(only).replace(/<\/?b>/g, '').replace(/<[^>]+>/g, '').replace(/\.$/, '')
-  }
-  const graded = items.filter(i => i.type === 'graded').length
-  if (graded === items.length) return `${graded} of your picks were graded`
-  return `${items.length} new notifications on ${SITE_NAME}`
-}
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
@@ -180,36 +115,12 @@ export async function GET(req: Request) {
     const to = found?.user?.email
     if (!to) { skipped++; continue }
 
-    // Every row that has a post is its own link, so a digest of four
-    // graded picks is four ways in rather than one button to a list.
-    const body = items.slice(0, 8).map(i => {
-      const text = line(i, i.post_id ? picks.get(i.post_id) : null)
-      return i.post_id
-        ? `<div style="margin:6px 0"><a href="${SITE_URL}/post/${i.post_id}"
-             style="color:#ECEDEE;text-decoration:none">${text}</a></div>`
-        : `<div style="margin:6px 0">${text}</div>`
-    }).join('')
-    const more = items.length > 8 ? `<div style="margin:6px 0;color:#7A838F">…and ${items.length - 8} more.</div>` : ''
-    const href = items.length === 1 && items[0].post_id
-      ? `${SITE_URL}/post/${items[0].post_id}`
-      : `${SITE_URL}/notifications`
-    const subject = subjectFor(items, picks)
-
+    const digest = renderDigest(items, picks)
     const result = await sendEmail({
       to,
-      subject,
-      html: emailShell({
-        heading: subject,
-        // One pick, one link: the button says so rather than "open Gwuap".
-        cta: { label: items.length === 1 && items[0].post_id ? 'See the pick' : 'Open Gwuap', href },
-        body: body + more,
-      }),
-      // The plain-text part carries the links too — a client that won't
-      // render HTML shouldn't leave someone with no way through.
-      text: items.map(i => {
-        const t = line(i, i.post_id ? picks.get(i.post_id) : null).replace(/<[^>]+>/g, '')
-        return i.post_id ? `${t}\n${SITE_URL}/post/${i.post_id}` : t
-      }).join('\n\n') + `\n\n${href}`,
+      subject: digest.subject,
+      html: digest.html,
+      text: digest.text,
     })
     if (result.ok) {
       sent++

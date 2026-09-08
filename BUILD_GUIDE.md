@@ -208,10 +208,10 @@ before trusting them.
   columns directly rather than assuming.
 - **A dev server may still be running** on localhost:3000 from the last
   session. It dies with the terminal; `npm run dev` brings it back.
-- **Not verified end-to-end yet:** the graded-pick email. `.env.local`
-  has no `RESEND_API_KEY` or `CRON_SECRET`, so `/api/notify` can't be
-  fired locally. `vercel env pull` would fix that. The code path is
-  typechecked and built, but no one has read the actual email.
+- **The graded-pick email can be read without sending one.** The digest
+  moved out of the route into `lib/digest.ts`, which is pure — rows in,
+  subject/HTML/text out, nothing on the network. `lib/digest.test.ts`
+  covers it. Still not *sent* end-to-end: see the Resend note below.
 
 ### How to pick this up in a new terminal
 
@@ -342,6 +342,16 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   building cannot solve.
 - **Leaked-password protection** is Pro-plan only; minimum length is 8
   instead.
+- **`vercel env pull` cannot retrieve `RESEND_API_KEY`, `CRON_SECRET` or
+  `SUPABASE_SERVICE_ROLE_KEY`.** All three are marked **Sensitive** in
+  Vercel, which makes them write-only by design — a pull writes
+  `[SENSITIVE]` as a placeholder and says so in a line that's easy to
+  scroll past. This is a Vercel feature, not a login problem, and no
+  amount of re-authenticating changes it. To run those paths locally,
+  paste the value in by hand or mint a fresh one (a second Resend key is
+  free and revocable, and is the safer move anyway). The three that
+  aren't sensitive — `RESEND_EMAIL_DOMAIN`, `NEXT_PUBLIC_REDDIT_PIXEL_ID`,
+  the Supabase URL/anon key — do come down fine.
 - **Block and ban filtering covers the feed only.** Profile pages and
   direct post links still render for blocked or banned users.
 - **Auto-grading is live and verified** (3 Sep 2026). `CRON_SECRET` is
