@@ -125,6 +125,32 @@ export function labelFor(d: Direction, betType?: BetType | null): string {
   return DIRECTION_LABELS[d] ?? d
 }
 
+/**
+ * A pick in one line: what it's on, and which way.
+ *
+ * For the places that refer to a pick without showing the card — a
+ * notification row, a line in a digest email. "Your pick won" is true
+ * and useless if you posted four of them today, and the fix is naming
+ * the pick, not linking to it and hoping.
+ *
+ * Deliberately not the card's full stat row: no odds, no stake, no
+ * profit. Those are money, some of it private, and a notification is
+ * read in places a post card isn't.
+ */
+export function pickSummary(p: {
+  tag?: string | null
+  tag2?: string | null
+  sentiment?: string | null
+  bet_type?: string | null
+  line?: number | null
+}): string | null {
+  if (!p.tag) return null
+  const side = p.tag2 ? `${p.tag} vs ${p.tag2}` : p.tag
+  if (!p.sentiment) return side
+  const dir = labelFor(p.sentiment as Direction, (p.bet_type ?? null) as BetType | null)
+  return `${side} · ${dir}${p.line != null ? ` ${p.line}` : ''}`
+}
+
 export function directionsFor(
   kind: PostKind, betType: BetType, teams?: { primary?: string; secondary?: string },
 ): { value: Direction; label: string }[] {

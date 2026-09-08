@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import { timeAgo } from '@/lib/time'
+import { pickSummary } from '@/lib/odds'
 import MarkAllRead from './MarkAllRead'
 
 export const dynamic = 'force-dynamic'
@@ -35,6 +36,21 @@ export default async function NotificationsPage() {
     .limit(50)
 
   const rows = (data ?? []) as any[]
+
+  // Which pick was graded. Its own query, following the rule the rest of
+  // the app learned the hard way: the select above is what decides
+  // whether this page renders at all, and folding a column into it
+  // breaks the page until the migration runs. A failure here costs the
+  // summary line and nothing else.
+  const pickIds = [...new Set(
+    rows.filter(n => n.type === 'graded' && n.post_id).map(n => n.post_id),
+  )] as string[]
+  const picks = new Map<string, any>()
+  if (pickIds.length > 0) {
+    const { data: posts } = await supabase
+      .from('posts').select('id, tag, tag2, sentiment, bet_type, line').in('id', pickIds)
+    for (const p of posts ?? []) picks.set(p.id, p)
+  }
   // A failed query and an empty inbox used to render identically, which
   // makes a broken notification system look like a quiet one.
   if (error) {
@@ -69,6 +85,7 @@ export default async function NotificationsPage() {
           : n.post_id
             ? `/post/${n.post_id}`
             : `/profile/${n.actor?.username}`
+        const summary = n.type === 'graded' ? pickSummary(picks.get(n.post_id) ?? {}) : null
         return (
           <Link href={href} key={n.id} className={`notif ${n.read_at ? '' : 'unread'}`}>
             <span className="notif-icon">
@@ -80,9 +97,14 @@ export default async function NotificationsPage() {
             </span>
             <span className="notif-text">
               {n.type === 'graded' ? (
-                <>Your pick <strong>{n.outcome === 'win' ? 'won'
-                  : n.outcome === 'loss' ? 'lost'
-                  : n.outcome === 'push' ? 'pushed' : 'was settled'}</strong></>
+                <>
+                  Your pick <strong>{n.outcome === 'win' ? 'won'
+                    : n.outcome === 'loss' ? 'lost'
+                    : n.outcome === 'push' ? 'pushed' : 'was settled'}</strong>
+                  {/* Which one. Four picks on a Sunday and the row above
+                      is unreadable without it. */}
+                  {summary && <span className="notif-pick">{summary}</span>}
+                </>
               ) : (
                 <><strong>@{n.actor?.username ?? 'someone'}</strong> {describe(n)}</>
               )}
