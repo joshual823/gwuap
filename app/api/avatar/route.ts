@@ -45,7 +45,14 @@ export async function POST(req: Request) {
   }
 
   // The path is built from the session, never from the request body.
-  const path = `${user.id}/${Date.now()}.jpg`
+  //
+  // One file per account rather than one per upload. A timestamped name
+  // meant every upload kept the last, so any signed-in account could
+  // fill the bucket two megabytes at a time and nothing ever reclaimed
+  // it — the only limit was patience. Overwriting caps it at one file
+  // per person; the version below is what stops the browser showing the
+  // old picture from cache.
+  const path = `${user.id}/avatar.jpg`
   const admin = createAdminClient()
   const { error } = await admin.storage
     .from('avatars')
@@ -53,6 +60,9 @@ export async function POST(req: Request) {
 
   if (error) return Response.json({ error: error.message }, { status: 502 })
 
-  const url = admin.storage.from('avatars').getPublicUrl(path).data.publicUrl
-  return Response.json({ url })
+  // Same path every time, so the URL has to change or nobody sees the
+  // new picture — theirs least of all, since their browser has the old
+  // one freshest.
+  const base = admin.storage.from('avatars').getPublicUrl(path).data.publicUrl
+  return Response.json({ url: `${base}?v=${Date.now()}` })
 }

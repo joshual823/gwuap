@@ -376,9 +376,31 @@ function parseMarkets(odds: any, awayCode: string, homeCode: string): Market[] {
   return markets
 }
 
+/**
+ * Parsed fixtures, held in the instance for a minute.
+ *
+ * `next: { revalidate }` below is the real cache and handles almost
+ * everything — but Next refuses to store a response over 2MB, and the
+ * two tennis scoreboards are 2.3MB and 2.6MB. So every request touching
+ * tennis went all the way to ESPN and pulled about four megabytes,
+ * uncached, and `/api/games` and `/api/cashtags` are both public and
+ * take the league from the query string. One cheap request in, four
+ * megabytes and a JSON parse out, as often as anyone likes.
+ *
+ * This memo is what closes that: it holds the *parsed* games, which are
+ * a few kilobytes, so the 2MB ceiling never applies. Per instance and
+ * lost on a cold start, which is fine — it exists to absorb a flood, not
+ * to be a source of truth.
+ */
+const MEMO_MS = 60_000
+const memo = new Map<string, { at: number; games: Game[] }>()
+
 async function fetchPath(
   path: string, league: string, dates?: string, full = false,
 ): Promise<Game[]> {
+  const key = `${path}|${league}|${dates ?? ''}|${full}`
+  const hit = memo.get(key)
+  if (hit && Date.now() - hit.at < MEMO_MS) return hit.games
   try {
     const query = dates ? `?dates=${dates}` : ''
     const res = await fetch(
@@ -393,7 +415,7 @@ async function fetchPath(
     const data = await res.json()
 
     if (path.startsWith('tennis/') || path.startsWith('mma/')) {
-      return parseIndividual(data, league, full)
+      return remember(key, parseIndividual(data, league, full))
     }
 
     const games: Game[] = []
@@ -425,10 +447,21 @@ async function fetchPath(
         book: odds?.provider?.name ?? undefined,
       })
     }
-    return games
+    return remember(key, games)
   } catch {
     return []
   }
+}
+
+/** Only successes are held — a failure should be retried, not cached. */
+function remember(key: string, games: Game[]): Game[] {
+  memo.set(key, { at: Date.now(), games })
+  // The key space is leagues x windows, so it's small and bounded. This
+  // is only here so a long-lived instance doesn't hold yesterday's.
+  if (memo.size > 64) {
+    for (const [k, v] of memo) if (Date.now() - v.at > MEMO_MS) memo.delete(k)
+  }
+  return games
 }
 
 /** Games for one category. Empty list if the league has no scoreboard. */

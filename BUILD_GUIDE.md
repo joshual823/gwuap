@@ -1415,6 +1415,106 @@ it live.
 
 ---
 
+## Security review — 8 Sep 2026
+
+A full pass over every route, grant, policy and input, plus live probes
+of the production database with the public anon key. `npm audit` is clean
+and RLS holds: as `anon`, every private table (`messages`,
+`conversations`, `reports`, `notifications`, `vent_messages`,
+`game_messages`) returns zero rows, every write is refused, and
+`login_attempts` refuses even to be read. Column grants are correct —
+`authenticated` still has no UPDATE on `posts` at all.
+
+Four things were wrong. Three are fixed in code; one needs a migration.
+
+### 1. Login throttling could be bypassed with LIKE wildcards — FIXED
+
+`/api/login` throttles ten attempts per username per fifteen minutes,
+keyed on the string it was given, and passed that string straight into a
+Postgres `ilike`. `%` and `_` are wildcards there, so `jbreezy823`,
+`jbreezy82%`, `jbreez%` and `%reezy823` are four different throttle keys
+that all resolve to the same one account — four separate allowances, and
+no limit on how many more patterns you can invent. Verified against the
+live database before fixing: all four returned that single account.
+
+Not a login bypass; the password still had to be right. But it removed
+the thing that makes guessing expensive, against a site where the minimum
+password is 8 characters and leaked-password protection is Pro-only.
+
+Two checks now, because one wasn't enough. The username must match
+`^[a-zA-Z0-9_]{3,20}$` before it reaches the database — but `_` is legal
+in a name *and* a single-character wildcard, so shape alone still let
+`jbreezy82_` through. The route now also requires that the row it found
+is the row that was asked for, which leaves the exact username as the
+only string that can authenticate and therefore the only key worth
+throttling. `lib/username.test.ts` covers both.
+
+That regex had been defined three times, in three client components, and
+nowhere on the server — which is how a rule becomes advice. One copy now,
+in `lib/username.ts`.
+
+### 2. `is_admin` was readable by the public — NEEDS MIGRATION 040
+
+Anyone could ask the REST API which account is the admin, without signing
+in, using the anon key that ships in the page. That's the first half of an
+attack — pick the target, then guess — and the second half was #1.
+
+**`supabase/migrations/040_hide_admin_flag.sql` has not been run yet.**
+It revokes `select (is_admin, email_notifications, welcomed_at)` on
+`profiles` from `anon` only; `authenticated` keeps them, because every
+check in the app is a signed-in user reading its own row. Two count
+queries that asked for `select('*')` on `profiles` were narrowed to
+`select('id')` first — under the revoke, a `select=*` from anon starts
+erroring with "permission denied for column is_admin", and the
+logged-out feed's founding counter is the thing that would have hit it.
+
+### 3. Two public endpoints amplified cheap requests — FIXED
+
+- **The tennis scoreboards are never cached.** `next: { revalidate }`
+  refuses anything over 2MB and those responses are 2.3MB and 2.6MB, so
+  every request touching tennis went to ESPN and pulled about four
+  megabytes. `/api/games` and `/api/cashtags` are both public and take
+  the league from the query string. `lib/scores.ts` now memoises the
+  *parsed* fixtures — a few kilobytes, so the ceiling never applies —
+  for sixty seconds per instance.
+- **`/api/receipts` rendered a 1080×1080 PNG on every hit**, public,
+  unauthenticated, `force-dynamic`. Nothing in it is per-visitor, so it
+  now carries `s-maxage=300` and the CDN absorbs the repeats.
+
+### 4. Avatar uploads were unbounded — FIXED
+
+Any signed-in account could fill the storage bucket two megabytes at a
+time: the path was timestamped, so every upload kept the last and nothing
+reclaimed it. One file per account now (`<id>/avatar.jpg`, overwritten),
+with a `?v=` on the returned URL so the new picture actually shows.
+
+### Also added
+
+No security headers existed. `next.config.js` now sets
+`frame-ancestors 'none'` and `X-Frame-Options: DENY` (every destructive
+control on this site is one click behind a session that stays signed in,
+which is exactly what clickjacking wants), plus `nosniff`,
+`Referrer-Policy` and a `Permissions-Policy`. **A real CSP restricting
+script sources is still missing** and is the biggest remaining hardening
+job — it needs testing against Clarity, the Reddit pixel, Vercel
+Analytics, Supabase realtime and Google Fonts, and getting it wrong
+half-breaks the site in ways that look like a different bug.
+
+### Residual risks, accepted for now
+
+- **No rate limiting on content.** Posts, comments, DMs, vent and chat
+  messages have none. One account can flood any of them. Fine at six
+  users; do this before a public launch, and note the moderation queue is
+  one person.
+- **Avatar content is only checked by its declared type.** `file.type`
+  comes from the browser. Storage forces `image/jpeg` on the way out, so
+  it can't become a stored-XSS vector, but arbitrary bytes can still be
+  parked in the bucket by a signed-in account.
+- **Email confirmation is still off**, so an address is never proven.
+  Already noted under Known gaps; it matters more once ads run.
+
+---
+
 ## Advertising
 
 Nothing has run yet. This section exists so that when something does, the

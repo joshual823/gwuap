@@ -41,7 +41,7 @@ export default async function FeedPage(props: {
   let foundingLeft: number | null = null
   if (!user) {
     const { count } = await supabase
-      .from('profiles').select('*', { count: 'exact', head: true })
+      .from('profiles').select('id', { count: 'exact', head: true })
       .contains('badges', ['founding'])
     if (count !== null) foundingLeft = Math.max(0, FOUNDING_LIMIT - count)
   }

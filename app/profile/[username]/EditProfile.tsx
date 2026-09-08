@@ -7,8 +7,8 @@ import { uploadAvatar } from '@/lib/uploadAvatar'
 import ThemeToggle from '@/components/ThemeToggle'
 import LeaguePicker from '@/components/LeaguePicker'
 import { cleanPreferences, MAX_PREFERRED } from '@/lib/preferences'
+import { USERNAME_RE } from '@/lib/username'
 
-const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
 export default function EditProfile({ profile }: {
   profile: {

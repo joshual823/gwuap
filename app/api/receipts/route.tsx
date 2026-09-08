@@ -140,6 +140,17 @@ export async function GET() {
         </div>
       </div>
     ),
-    { width: 1080, height: 1080 },
+    {
+      width: 1080, height: 1080,
+      // Public, unauthenticated, and it renders a 1080x1080 PNG from
+      // scratch on every hit — one cheap request in, a font load and a
+      // full rasterise out. Nothing here is per-visitor (it's the site's
+      // settled picks, not yours), so the CDN can answer almost all of
+      // it. Five minutes is far finer than the data moves: grading runs
+      // hourly.
+      headers: {
+        'Cache-Control': 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600',
+      },
+    },
   )
 }

@@ -13,7 +13,7 @@ export async function GET() {
   const supabase = await createClient()
   const { count, error } = await supabase
     .from('profiles')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .contains('badges', ['founding'])
 
   // A number that might be wrong is worse than no number here, since the

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabaseServer'
+import { isValidUsername } from '@/lib/username'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,8 +19,17 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(req: NextRequest) {
   const { username, password } = await req.json().catch(() => ({}))
-  if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
+  if (typeof password !== 'string' || !password) {
     return NextResponse.json({ error: 'Wrong username or password.' }, { status: 400 })
+  }
+  // Checked before it reaches the database, not for tidiness: the lookup
+  // below is an `ilike`, so a `%` or `_` in here is a wildcard. One
+  // account can be named by any number of patterns, and the throttle is
+  // keyed on the string it was given — so without this, ten attempts per
+  // username per fifteen minutes is ten attempts per *pattern*, and
+  // there is no limit on patterns. See lib/username.ts.
+  if (!isValidUsername(username)) {
+    return NextResponse.json({ error: 'Wrong username or password.' }, { status: 401 })
   }
 
   const deny = () =>
@@ -57,11 +67,20 @@ export async function POST(req: NextRequest) {
 
   const { data: profile } = await admin
     .from('profiles')
-    .select('id')
+    .select('id, username')
     .ilike('username', username.trim())
     .maybeSingle()
 
   if (!profile) return deny()
+
+  // The format check above stops `%`, but `_` is a legal username
+  // character *and* a single-character LIKE wildcard — so `jbreezy82_`
+  // gets through it and still matches `jbreezy823`. Rather than escape
+  // the pattern, insist the row we found is the row that was asked for.
+  // Any pattern that resolved to some other name fails here whatever the
+  // password is, which leaves the exact username as the only string that
+  // can authenticate, and therefore the only key worth throttling.
+  if (profile.username.toLowerCase() !== key) return deny()
 
   const { data: found, error: lookupError } = await admin.auth.admin.getUserById(profile.id)
   const email = found?.user?.email

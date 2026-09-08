@@ -6,8 +6,8 @@ import { uploadAvatar } from '@/lib/uploadAvatar'
 import Avatar from '@/components/Avatar'
 import LeaguePicker from '@/components/LeaguePicker'
 import { MAX_PREFERRED } from '@/lib/preferences'
+import { USERNAME_RE } from '@/lib/username'
 
-const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 
 /**
  * The step where an account becomes real.
