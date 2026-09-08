@@ -1,4 +1,4 @@
-import { SITE_NAME, SITE_URL, SUPPORT_EMAIL } from './brand'
+import { SITE_NAME, SITE_URL, SUPPORT_EMAIL, BRAND_GREEN, BRAND_INK } from './brand'
 
 /**
  * Sending mail, through Resend.
@@ -58,7 +58,7 @@ export async function sendEmail(opts: {
  */
 export function emailShell(opts: { heading: string; body: string; cta?: { label: string; href: string } }): string {
   const button = opts.cta
-    ? `<a href="${opts.cta.href}" style="display:inline-block;background:#00C805;color:#06210A;
+    ? `<a href="${opts.cta.href}" style="display:inline-block;background:${BRAND_GREEN};color:${BRAND_INK};
          font-weight:700;font-size:15px;text-decoration:none;padding:13px 24px;border-radius:999px;
          margin-top:18px">${opts.cta.label}</a>`
     : ''
@@ -68,7 +68,7 @@ export function emailShell(opts: { heading: string; body: string; cta?: { label:
   <div style="max-width:520px;margin:0 auto;padding:32px 24px;
               font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
               color:#ECEDEE;background:#0B0E11">
-    <div style="font-size:22px;font-weight:800;color:#00C805;letter-spacing:-0.5px">${SITE_NAME}</div>
+    <div style="font-size:22px;font-weight:800;color:${BRAND_GREEN};letter-spacing:-0.5px">${SITE_NAME}</div>
     <div style="height:1px;background:#22282F;margin:18px 0 22px"></div>
     <div style="font-size:19px;font-weight:700;color:#ECEDEE;line-height:1.35">${opts.heading}</div>
     <div style="font-size:15px;line-height:1.6;color:#A3AEB9;margin-top:12px">${opts.body}</div>

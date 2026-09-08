@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { SITE_NAME } from '@/lib/brand'
+import { SITE_NAME, BRAND_GREEN, BRAND_INK, COIN_GRADIENT } from '@/lib/brand'
 
 // Generated at build rather than kept as a binary, so the wording and
 // the name can never drift from what the site actually says.
@@ -25,13 +25,13 @@ export default function OpengraphImage() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 104, height: 104, borderRadius: 999,
-              background: 'radial-gradient(120% 100% at 50% -10%, #9BFFA6 0%, #35E24A 26%, #00C805 52%, #009B0A 76%, #04630C 100%)',
+              background: COIN_GRADIENT,
               color: '#053B08', fontSize: 68, fontWeight: 800,
             }}
           >
             G
           </div>
-          <div style={{ display: 'flex', fontSize: 92, fontWeight: 800, color: '#00C805', letterSpacing: -3 }}>
+          <div style={{ display: 'flex', fontSize: 92, fontWeight: 800, color: BRAND_GREEN, letterSpacing: -3 }}>
             {SITE_NAME}
           </div>
         </div>
@@ -44,7 +44,7 @@ export default function OpengraphImage() {
         <div
           style={{
             display: 'flex', marginTop: 40, alignSelf: 'flex-start',
-            background: '#00C805', color: '#06210A',
+            background: BRAND_GREEN, color: BRAND_INK,
             fontSize: 28, fontWeight: 700,
             padding: '14px 26px', borderRadius: 999,
           }}

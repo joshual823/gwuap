@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { createClient } from '@/lib/supabaseServer'
-import { SITE_NAME } from '@/lib/brand'
+import { SITE_NAME, BRAND_GREEN } from '@/lib/brand'
 import { labelFor, formatSignedUsd, profitForStatus, type Direction, type PickStatus } from '@/lib/odds'
 
 export const size = { width: 1200, height: 630 }
@@ -30,7 +30,7 @@ export default async function PostOgImage({ params }: { params: Promise<{ id: st
   const status = (post?.status ?? 'pending') as PickStatus
   const settled = post?.profit ?? profitForStatus(status, post?.odds, post?.stake)
 
-  const tone = status === 'win' ? '#00C805' : status === 'loss' ? '#F0424D' : '#8B98A5'
+  const tone = status === 'win' ? BRAND_GREEN : status === 'loss' ? '#F0424D' : '#8B98A5'
   const resultWord = status === 'pending' ? 'Open' : status.toUpperCase()
 
   return new ImageResponse(

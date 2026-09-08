@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { createClient } from '@/lib/supabaseServer'
-import { SITE_NAME } from '@/lib/brand'
+import { SITE_NAME, BRAND_GREEN, COIN_GRADIENT } from '@/lib/brand'
 import { labelFor, type Direction } from '@/lib/odds'
 import type { BetType } from '@/lib/odds'
 
@@ -59,7 +59,7 @@ export async function GET() {
   const losses = rows.filter(r => r.status === 'loss').length
 
   const tone = (s: Row['status']) =>
-    s === 'win' ? '#00C805' : s === 'loss' ? '#F0424D' : '#8B98A5'
+    s === 'win' ? BRAND_GREEN : s === 'loss' ? '#F0424D' : '#8B98A5'
 
   return new ImageResponse(
     (
@@ -75,13 +75,13 @@ export async function GET() {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 76, height: 76, borderRadius: 999,
-              background: 'radial-gradient(120% 100% at 50% -10%, #9BFFA6 0%, #35E24A 26%, #00C805 52%, #009B0A 76%, #04630C 100%)',
+              background: COIN_GRADIENT,
               color: '#053B08', fontSize: 50, fontWeight: 800,
             }}
           >
             G
           </div>
-          <div style={{ display: 'flex', fontSize: 60, fontWeight: 800, color: '#00C805', letterSpacing: -2 }}>
+          <div style={{ display: 'flex', fontSize: 60, fontWeight: 800, color: BRAND_GREEN, letterSpacing: -2 }}>
             {SITE_NAME}
           </div>
         </div>
@@ -130,7 +130,7 @@ export async function GET() {
           marginTop: 24, flexShrink: 0,
         }}>
           <div style={{ display: 'flex', fontSize: 44, fontWeight: 800 }}>
-            <span style={{ color: '#00C805' }}>{wins}</span>
+            <span style={{ color: BRAND_GREEN }}>{wins}</span>
             <span style={{ color: '#8B98A5', margin: '0 8px' }}>–</span>
             <span style={{ color: '#F0424D' }}>{losses}</span>
           </div>
