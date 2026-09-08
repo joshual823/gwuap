@@ -11,10 +11,10 @@ import { profitForStatus } from '@/lib/odds'
  * instead.
  *
  * The important rule is the one below: an admin cannot grade their own
- * pick. There is one admin, they may well enter their own contest, and
- * "the person running it can mark their own picks" is the exact
- * accusation a cash prize invites. Refusing it in code means the answer
- * is verifiable rather than a promise.
+ * pick. There is one admin, they post picks like everyone else, and
+ * "the person running it can mark their own picks" is the first thing
+ * anyone assumes about a leaderboard. Refusing it in code means the
+ * answer is verifiable rather than a promise.
  */
 export async function POST(req: NextRequest) {
   const supabase = await createClient()

@@ -35,9 +35,10 @@ export type Outcome = 'win' | 'loss' | 'push' | 'void'
  * a game that hasn't finished is the system working, and everything else
  * is a pick that will sit pending forever unless a person looks at it.
  *
- * Before a cash prize, silence was survivable. With one, a pick that
- * never grades and never explains itself reads as the contest being
- * rigged — so every refusal now says which kind it is.
+ * A pick that never grades and never explains itself reads as the board
+ * being rigged. The record is the entire product here, so silence about
+ * why one isn't counting is expensive — every refusal says which kind
+ * it is.
  */
 export type Blocked =
   | 'not-final'          // the game is still on, or hasn't started

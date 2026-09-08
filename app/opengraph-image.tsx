@@ -1,9 +1,8 @@
 import { ImageResponse } from 'next/og'
 import { SITE_NAME } from '@/lib/brand'
-import { CONTEST } from '@/lib/contest'
 
-// Generated at build rather than kept as a binary, so the prize and the
-// name can never drift from what the site actually says.
+// Generated at build rather than kept as a binary, so the wording and
+// the name can never drift from what the site actually says.
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 export const alt = `${SITE_NAME} — every pick graded from the final score`
@@ -50,7 +49,7 @@ export default function OpengraphImage() {
             padding: '14px 26px', borderRadius: 999,
           }}
         >
-          ${CONTEST.prize.toLocaleString()} for the best records by {CONTEST.endsLabel}
+          Free. No deposit, nothing at stake but your record.
         </div>
       </div>
     ),

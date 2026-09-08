@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { SITE_NAME, SUPPORT_EMAIL } from '@/lib/brand'
-import { CONTEST } from '@/lib/contest'
 
 export const metadata = {
   title: `How ${SITE_NAME} works`,
@@ -83,9 +82,6 @@ export default function HelpPage() {
           picks tied to a real fixture count. It&apos;s the whole point of the
           site: a record you couldn&apos;t have faked.
         </p>
-        <Link href="/contest" className="help-link">
-          The ${CONTEST.prize.toLocaleString()} launch contest →
-        </Link>
       </div>
 
       <div className="help-card">

@@ -35,7 +35,7 @@ export default async function AdminPage() {
 
   // Picks the grader refused and wrote a reason on. Not the same queue as
   // reports and deliberately above them: a stuck pick is somebody's
-  // contest entry silently not counting.
+  // record silently not counting.
   const { data: stuck } = await supabase
     .from('posts')
     .select(`

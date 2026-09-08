@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { formatSignedUsd } from '@/lib/odds'
 import Avatar from '@/components/Avatar'
 import Badges from '@/components/Badges'
+import { MIN_GRADED_PICKS } from '@/lib/rules'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,9 +16,10 @@ export default async function LeaderboardPage() {
     <div style={{ marginTop: 24 }}>
       <h1 className="display" style={{ fontSize: 22 }}>Leaderboard</h1>
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 16 }}>
-        Win rate and profit over the last 30 days · minimum 5 settled picks ·
+        Win rate and profit over the last 30 days · minimum {MIN_GRADED_PICKS} settled
+        picks ·
         graded automatically from the final score, never self-reported ·
-        the house model is listed and labelled, and is not in the contest
+        the house model is listed and labelled
       </p>
       <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '2px 14px' }}>
         {(rows ?? []).map((r: any, i: number) => {
@@ -30,7 +32,7 @@ export default async function LeaderboardPage() {
                 <span style={{ fontWeight: 600, fontSize: 14 }}>
                   @{r.username}
                   {r.is_bot && (
-                    <span className="bot-tag" title="Automated account. Graded like everyone else, but not in the contest.">
+                    <span className="bot-tag" title="Automated account. Graded like everyone else.">
                       MODEL
                     </span>
                   )}
@@ -55,7 +57,7 @@ export default async function LeaderboardPage() {
           )
         })}
         {(!rows || rows.length === 0) && (
-          <p style={{ color: 'var(--ink-dim)', padding: '16px 0' }}>No qualifying records yet — post 5 picks on a game and they'll settle themselves once it finishes.</p>
+          <p style={{ color: 'var(--ink-dim)', padding: '16px 0' }}>No qualifying records yet — post {MIN_GRADED_PICKS} picks on a game and they&apos;ll settle themselves once it finishes.</p>
         )}
       </div>
     </div>

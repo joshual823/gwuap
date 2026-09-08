@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CONTEST } from '@/lib/contest'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 
 const SEEN_KEY = 'gwuap:welcome-seen'
@@ -48,20 +47,22 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
   return (
     <div className="welcome-backdrop" role="dialog" aria-modal="true" aria-label="Welcome to Gwuap">
       <div className="welcome-card">
-        {/* The prize is the reason to read on, so it leads. The drawn
-            pick that was here decorated the card without saying
-            anything a stranger cares about in the first two seconds. */}
-        <div className="welcome-prize">
-          <span className="welcome-amount">${CONTEST.prize}</span>
+        {/* What leads has to be the reason a stranger stays, and with the
+            prize gone that's the thing nobody else offers: a record that
+            isn't self-reported. The founding count sits under it as the
+            reason to do it today rather than eventually. */}
+        <div className="welcome-hero">
+          <span className="welcome-hero-line">Graded</span>
           <span className="welcome-sub">
-            Top three records by {CONTEST.endsLabel}
+            by the final score, not by you
           </span>
         </div>
 
-        <h2>Free to enter. Nothing to deposit.</h2>
+        <h2>Free to post. Nothing to deposit.</h2>
         <p>
-          Post NFL picks, the final score grades them, best record wins.
-          No money at risk and nothing to pay — ever.
+          Post a pick and the scoreboard settles it. Nobody grades their own,
+          and nothing can be edited once a game starts — so a record here
+          means something.
         </p>
 
         <ul className="welcome-points">
@@ -76,12 +77,8 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
         <Link href="/signup" className="btn welcome-cta" onClick={close}>
           Sign up free
         </Link>
-
-        {/* The rules are one tap away because the card makes a claim
-            about money. A prize with nowhere to read the terms is the
-            shape of every scam anyone has ever been shown. */}
-        <Link href="/contest" className="welcome-rules" onClick={close}>
-          Read the contest rules
+        <Link href="/help" className="welcome-rules" onClick={close}>
+          How it works
         </Link>
 
         <button type="button" className="welcome-close" onClick={close} disabled={!ready}>

@@ -264,9 +264,8 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Picks the grader refuses now say why** and land in a review queue at
   the top of `/admin`. `gradePick` returns `{outcome}` or `{blocked}`;
   `needsReview()` separates "the game hasn't finished" from "this will
-  sit pending forever". Before a cash prize, silence was survivable;
-  with one, a pick that never grades and never explains itself reads as
-  the contest being rigged.
+  sit pending forever". A pick that never grades and never explains
+  itself reads as the board being rigged, and the board is the product.
 - **`SUPABASE_SERVICE_ROLE_KEY` must exist in Vercel Production.** It was
   missing until 3 Sep 2026 and nothing noticed, because only two things
   use `createAdminClient()`: the grading job and admin ban/remove. The
@@ -386,32 +385,38 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **A pick can't be deleted once its game starts (migration 027).**
   Auto-grading stopped anyone marking a loss as a win; deleting reached
   the same outcome another way — post twenty, delete the losers, keep a
-  5-0 record. With a prize on the board that's the first thing anyone
-  clever tries. Before kick-off a pick is still withdrawable, which is
+  5-0 record. That's the first thing anyone clever tries. Before kick-off a pick is still withdrawable, which is
   fair. Graded picks are never deletable. Enforced by RLS, and the menu
   is told so it can explain rather than offering a button that silently
   does nothing: a blocked delete returns success with no rows touched.
 - **An admin cannot grade their own pick.** Enforced in
   `/api/admin/grade`, not in the UI, and the button is replaced by an
-  explanation rather than hidden. There is one admin who may enter their
-  own contest, so this is the accusation the prize invites — refusing it
-  in code makes the answer verifiable.
+  explanation rather than hidden. There is one admin and they post picks
+  like everyone else, so this is the first thing anyone assumes about the
+  board — refusing it in code makes the answer verifiable.
 - **Manual grading uses the service role**, never a grant. Granting
   update on posts back to `authenticated` would reopen the self-grading
   hole 022 closed, so the exception lives behind an is_admin check in a
   route instead.
-- **The launch contest lives in `lib/contest.ts`** — prize, deadline and
-  minimum picks in one place, because they appear on the banner, the
-  contest page and the share card. Change the date there and everything
-  follows. The banner hides itself once `hasEnded()`.
+- **The $300 launch contest is gone.** `lib/contest.ts`, `/contest` and
+  the `week1_champion` badge were removed; the site now sells the thing
+  it always actually had, which is a record nobody grades themselves.
+  Migrations 024, 027, 031, 037 and 038 still argue from "a cash prize"
+  in their comments — they are history and were left alone, but the
+  rules they enforce stand on the leaderboard being trustworthy, not on
+  a prize, so none of them should be relaxed on the grounds that the
+  contest ended.
+- **The 5-pick minimum is enforced by the leaderboard view**, not by
+  code (`having count(*) filter (...) >= 5`, re-declared by every
+  migration that redefines the view). `MIN_GRADED_PICKS` in
+  `lib/rules.ts` only keeps the page's copy from drifting from it —
+  moving the real threshold takes a migration.
 - **Share previews are generated, not stored.** `app/opengraph-image.tsx`
-  renders a 1200×630 PNG at build from the same constants, so the prize
-  on the card can't drift from the prize on the site. `metadataBase` in
+  renders a 1200×630 PNG at build from the same constants the site uses,
+  so the card can't claim something the pages don't. `metadataBase` in
   `app/layout.tsx` is what makes the tag absolute — without it messaging
   apps drop the image silently and the link still previews, just with no
   picture, which is easy to miss.
-- **No migration needed for the contest.** It reads the existing
-  leaderboard view.
 - **Feed preferences (migration 023).** Up to 3 leagues per profile,
   chosen at signup and editable from Edit profile. Null/empty means the
   default mix, so nothing changed for existing accounts and logged-out
@@ -467,10 +472,12 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   would throttle all users together instead of the attacker.
 - **Badges (migration 031).** `profiles.badges` is a text[] of earned
   marks: `founding` for the first 200 accounts, awarded by a trigger so
-  the cap holds however an account is made, and `week1_champion` awarded
-  by hand after the contest — the SQL is in the migration's comments.
-  Deliberately absent from the `authenticated` update grant: a badge you
-  can give yourself is a decoration, not a record.
+  the cap holds however an account is made. The migration also defines
+  `week1_champion` and its check constraint still permits it, but the
+  contest it marked is gone and `lib/badges.ts` no longer renders it —
+  an unknown id is dropped rather than shown. Badges are deliberately
+  absent from the `authenticated` update grant: one you can give
+  yourself is a decoration, not a record.
 - **Adding a profile column? Read it in its own query.** This has now
   caught me twice — `preferred_leagues` and then `badges`. The main
   profile select gates `notFound()`, so a column that doesn't exist yet

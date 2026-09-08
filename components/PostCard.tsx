@@ -111,7 +111,7 @@ export default function PostCard({ post }: { post: Post }) {
       <div className="post-body">
         <div className="post-head">
           <Link href={`/profile/${post.author.username}`} className="uname">@{post.author.username}</Link>
-        {post.author.is_bot && <span className="bot-tag" title="Automated account. Not on the leaderboard or in the contest.">MODEL</span>}
+        {post.author.is_bot && <span className="bot-tag" title="Automated account. Graded like everyone else.">MODEL</span>}
           <span className="dot">·</span>
           <span className="time">{timeAgo(post.created_at)}</span>
           {post.post_kind === 'take' && <span className="stamp take">take</span>}
@@ -138,8 +138,8 @@ export default function PostCard({ post }: { post: Post }) {
           {post.post_kind === 'pick' && post.odds_source === 'book' && post.odds_book &&
             <span className="stamp booked" title={`Price taken from ${post.odds_book}`}>{post.odds_book}</span>}
           {/* Everyone sees that a pick is held rather than quietly not
-              counting — with a prize on the board, an invisible hold is
-              indistinguishable from a rigged one. */}
+              counting. An invisible hold is indistinguishable from a
+              rigged one, and the board is the whole product. */}
           {post.post_kind === 'pick' && post.status === 'pending' && post.grade_note &&
             <span className="stamp review">under review</span>}
           <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id}
@@ -220,9 +220,9 @@ export default function PostCard({ post }: { post: Post }) {
         )}
 
         {/* The author gets the reason, not just the badge. Someone whose
-            pick isn't counting during a contest should be able to see why
-            without asking, and most of these are fixable facts rather
-            than verdicts. */}
+            pick isn't counting toward their record should be able to see
+            why without asking, and most of these are fixable facts
+            rather than verdicts. */}
         {post.grade_note && post.viewer_id === post.author.id && (
           <p className="review-why">
             {BLOCKED_LABELS[post.grade_note as Blocked] ?? post.grade_note}. An

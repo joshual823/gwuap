@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic'
  * The house account posts a pick.
  *
  * Runs on a schedule so a new site's timeline has something on it. It is
- * not pretending to be anyone: the account carries is_bot, every post it
- * makes is labelled, and it can't reach the leaderboard or the contest.
+ * not pretending to be anyone: the account carries is_bot, and every
+ * post it makes is labelled, on the leaderboard included.
  *
  * Its picks are graded by the same job as everyone else's, from the same
  * scoreboard, and its record is public. If the model goes 4-6 that's

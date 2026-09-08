@@ -7,9 +7,9 @@
  */
 export const FOUNDING_LIMIT = 200
 
-export type BadgeId = 'founding' | 'week1_champion'
+export type BadgeId = 'founding'
 
-type Badge = { id: BadgeId; label: string; title: string; tone: 'founder' | 'champion' }
+type Badge = { id: BadgeId; label: string; title: string; tone: 'founder' }
 
 export const BADGES: Record<BadgeId, Badge> = {
   founding: {
@@ -21,12 +21,6 @@ export const BADGES: Record<BadgeId, Badge> = {
     // costs more than the word was ever worth.
     title: `One of the first ${FOUNDING_LIMIT} accounts on Gwuap.`,
     tone: 'founder',
-  },
-  week1_champion: {
-    id: 'week1_champion',
-    label: 'Week 1 champion',
-    title: 'Best verified record of the NFL Week 1 contest.',
-    tone: 'champion',
   },
 }
 

@@ -197,9 +197,8 @@ export async function GET(req: Request) {
           <p style="margin:0 0 12px">Two things worth knowing on day one:
           picks have to be in within five minutes of the start to count, and
           five settled picks puts you on the leaderboard.</p>
-          <p style="margin:0">There's a $300 prize for the best records in the
-          launch contest. Free to enter — no deposit, nothing at stake but your
-          record.</p>`,
+          <p style="margin:0">Free, and it stays free — no deposit, no card,
+          nothing at stake but your record.</p>`,
         cta: { label: 'Post your first pick', href: `${SITE_URL}/post/new` },
       }),
       text: `You're in, @${p.username}.\n\nPost a pick and the final score settles it. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new`,
