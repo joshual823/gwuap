@@ -193,6 +193,26 @@ The grading loop is real and running: 53 picks have been settled from
 final scores with nobody able to grade their own. That is the thing the
 site is for, and it works. What it lacks is people to point it at.
 
+### State at the last checkpoint — 7 Sep 2026, 21:30
+
+Everything below was true when this was written. Re-read the numbers
+before trusting them.
+
+- **Working tree clean.** All work committed.
+- **`origin/main` has** everything through `594b148` — the contest
+  removal, the green unification, the house-account slowdown, the
+  scorecard fix and the graded-pick notifications are all deployed.
+- **One commit waiting to push:** `283c940`, this guide's refresh, plus
+  whatever follows it. Push from GitHub Desktop.
+- **No migration is pending.** All 39 are live; verified by querying the
+  columns directly rather than assuming.
+- **A dev server may still be running** on localhost:3000 from the last
+  session. It dies with the terminal; `npm run dev` brings it back.
+- **Not verified end-to-end yet:** the graded-pick email. `.env.local`
+  has no `RESEND_API_KEY` or `CRON_SECRET`, so `/api/notify` can't be
+  fired locally. `vercel env pull` would fix that. The code path is
+  typechecked and built, but no one has read the actual email.
+
 ### How to pick this up in a new terminal
 
 ```bash
@@ -211,6 +231,31 @@ Then say: **"read BUILD_GUIDE.md and tell me where we are"**.
 2. **If a migration is named, run it in the Supabase SQL editor FIRST**
 3. Push from GitHub Desktop — CLI pushes have no stored credential
 4. Pushing to `main` deploys to production automatically
+5. **Update this file in the same commit as the change it describes.**
+
+Step 5 is not optional and not a tidy-up at the end of a session. This
+file went 19 migrations and four days out of date, and the cost wasn't
+untidiness — it was that "the only thing left is people" sat at the top
+for five sessions while feature after feature got built underneath it. A
+guide that describes an older, smaller site is worse than no guide,
+because it's trusted.
+
+What counts as worth writing down:
+
+- **Any migration.** Its number, what it changes, and why. If it can't be
+  re-run safely, say so.
+- **Any change to the site** someone would notice — a feature, a removal,
+  a rule about what's allowed, a fix whose reason isn't obvious from the
+  code.
+- **Any advertising or growth attempt**, which is the one this file has
+  never recorded: what was tried, where, what it cost, and what came
+  back. Steps 1-4 above are how code reaches production; nothing has ever
+  described how a person reaches the site. Given that the outstanding
+  blocker is people and not features, an untried channel and a channel
+  that was tried and failed need to be told apart, and only this file can
+  do it.
+- **Anything learned the hard way**, especially a failure whose symptom
+  didn't match its cause. Those are the entries that have paid off most.
 
 **The single most common failure in this project** is a migration that
 didn't run. The symptom is always the same: a feature that quietly does
