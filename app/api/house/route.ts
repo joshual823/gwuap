@@ -18,8 +18,24 @@ export const dynamic = 'force-dynamic'
  * shipping, and the reason it's a feature rather than a trick.
  */
 
-/** A couple per run, so an hourly schedule reads as a person's cadence. */
-const PICKS_PER_RUN = 2
+/**
+ * One pick, once every three hours.
+ *
+ * It was two per run on an hourly schedule, which is up to 48 picks a
+ * day from one account — the feed read as the house talking to itself
+ * with people's posts in the gaps. A pick every three hours is still a
+ * timeline that's never empty and no longer the only thing in it.
+ */
+const PICKS_PER_RUN = 1
+
+/**
+ * Enforced here rather than in the schedule on purpose. Nothing in this
+ * repo sets the cadence — vercel.json has no entry for this route, so
+ * whatever calls it is outside the codebase and could be changed, or
+ * retried, or pointed at by two schedulers at once. The gap holds
+ * however often the endpoint is hit.
+ */
+const MIN_GAP_HOURS = 3
 
 /** Only what a final score can settle, and only from a posted price. */
 function marketToPick(game: Game, market: Market) {
@@ -68,6 +84,25 @@ export async function GET(req: Request) {
       error: 'No account is flagged is_bot. Create one through signup, then ' +
              "run: update profiles set is_bot = true where username = '<name>';",
     }, { status: 412 })
+  }
+
+  // Nothing to do if the last one is still recent. Read from the posts
+  // themselves rather than a stored timestamp: the picks are the record
+  // of what was posted, and a counter could disagree with them.
+  const { data: last } = await supabase
+    .from('posts').select('created_at').eq('author_id', house.id)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle()
+
+  if (last?.created_at) {
+    const sinceMs = Date.now() - Date.parse(last.created_at)
+    const waitMs = MIN_GAP_HOURS * 3600_000 - sinceMs
+    if (waitMs > 0) {
+      return Response.json({
+        account: house.username, posted: 0, picks: [],
+        heldFor: `${Math.ceil(waitMs / 60_000)}m`,
+        reason: `one pick per ${MIN_GAP_HOURS}h`,
+      })
+    }
   }
 
   // Leagues rotate by the hour so it doesn't post ten NFL picks in a row

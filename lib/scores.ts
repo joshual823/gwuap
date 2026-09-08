@@ -99,6 +99,28 @@ const SCOREBOARDS: Record<string, string[]> = {
   'Soccer': ['soccer/eng.1', 'soccer/usa.1', 'soccer/uefa.champions', 'soccer/esp.1'],
 }
 
+/**
+ * What a league is called when there's no room to say it properly.
+ *
+ * A game card is 152px wide and the league sits on one line with the
+ * live indicator, so "College Football" — set in 11px 800 with letter
+ * spacing — is wider than the card it's on. It was escaping the rounded
+ * corner and landing on top of the next card in the rail.
+ *
+ * Abbreviating beats truncating here: "COLLEGE FOOTB…" tells you no more
+ * than "CFB" and looks like a bug. Anything already short is itself, and
+ * an unknown league falls back to its own name, which the CSS then
+ * truncates rather than letting it overflow again.
+ */
+const SHORT_LEAGUE: Record<string, string> = {
+  'College Football': 'CFB',
+  'College Basketball': 'CBB',
+}
+
+export function shortLeague(league: string): string {
+  return SHORT_LEAGUE[league] ?? league
+}
+
 /** ESPN path for a league, used by the game-detail endpoint. */
 export function espnPathFor(league: string): string | null {
   return SCOREBOARDS[league]?.[0] ?? null

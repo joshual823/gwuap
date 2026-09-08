@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { gameHref, kickoff, type Game } from '@/lib/scores'
+import { gameHref, kickoff, shortLeague, type Game } from '@/lib/scores'
 
 function leagueSlug(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
@@ -25,7 +25,7 @@ export default function GameCard({ game, className = '', ...rest }: {
       {...rest}
     >
       <div className="game-top">
-        <span className="game-league">{game.league}</span>
+        <span className="game-league" title={game.league}>{shortLeague(game.league)}</span>
         {game.state === 'in' && <span className="game-live"><span className="live-dot" />LIVE</span>}
       </div>
 
