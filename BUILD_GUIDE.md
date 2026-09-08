@@ -17,12 +17,14 @@ where we left off.
 3. Restyle to the mobile-first hybrid design (current step)
 4. Deploy it live (Vercel)
 5. Dollar amounts, odds/stake dropdowns, unverified badge ✅
-6. Make it not broken — dead links + cashtag autocomplete (current step)
-7. Seed the feed, then invite the first real testers
-8. Sports news tab, with a "post a pick on this" button
-9. DM requests (permission-based)
-10. League chat rooms + the moderated Vent room
-11. Polish round two, then a wider invite
+6. Make it not broken — dead links + cashtag autocomplete ✅
+7. Seed the feed, then invite the first real testers ✅ (feed seeded; the
+   inviting is the part that hasn't happened)
+8. Sports news tab, with a "post a pick on this" button ✅
+9. DM requests (permission-based) ✅
+10. League chat rooms + the moderated Vent room ✅
+11. Polish round two, then a wider invite ← **current step, and it is
+    the invite half that's outstanding, not the polish**
 
 Do not skip ahead before earlier steps are done and working. An empty,
 un-launched site with every feature built is worth less than a live site
@@ -169,12 +171,27 @@ confirm the card shows +$45.45 in green.
 ## YOU ARE HERE
 
 **Everything is built, deployed and live at https://gwuap.co.**
-20 migrations run (001-020). Next.js 16, React 19, 0 vulnerabilities.
+39 migrations run (001-039). Next.js 16, React 19, 0 vulnerabilities.
 Security advisor: 0 errors.
 
-**The only thing left is people.** The feed needs picks and the site
-needs users. That has been the real blocker since Session 5 and no
-amount of building has changed it.
+**The only thing left is people, and the numbers say so plainly.**
+As of 7 Sep 2026:
+
+| | |
+|---|---|
+| Accounts | 6 (5 people, 1 house model) |
+| Posts | 125 — **106 of them the house model**, 19 from people |
+| Picks settled by the scoreboard | 53 win/loss, 53 still pending |
+| On the leaderboard (5+ settled) | 2: @gwuap 17-25, @jbreezy823 2-3 |
+
+Read the second row before building anything else. Five sessions of
+features have not moved it, and a timeline that is 85% one automated
+account is not a feed — it's a demo. The house model was cut from two
+picks an hour to one every three hours on 7 Sep for exactly this reason.
+
+The grading loop is real and running: 53 picks have been settled from
+final scores with nobody able to grade their own. That is the thing the
+site is for, and it works. What it lacks is people to point it at.
 
 ### How to pick this up in a new terminal
 
@@ -227,8 +244,37 @@ DMs with request/accept, follows, watchlists.
 **Vent room** — realtime, signed-in only, crisis resources pinned,
 reports jump the moderation queue.
 
+**Grading** — picks are settled from the final score by a job that runs
+hourly, never by their author. A refusal is recorded with a reason and
+queued at the top of `/admin` rather than left pending in silence. Picks
+posted more than five minutes after kick-off are void, and a pick can't
+be deleted once its game starts.
+
+**The house model** — one labelled `is_bot` account posting a pick every
+three hours from real book prices, so the timeline is never empty. It's
+graded like everyone else, its record is public and often losing, and it
+appears on the leaderboard marked MODEL. It is not a person and never
+pretends to be.
+
+**Email** — a Resend-backed digest, one per person per run, hourly from
+GitHub Actions. Covers reactions, comments, replies, follows, reposts, DM
+requests and graded picks; a graded row names the pick and links straight
+to it. A welcome email goes once, stamped only after it actually sends.
+Turned off per account under Edit profile.
+
+**Receipts** — the day's settled picks rendered as one shareable image
+(`/receipts`), and a per-post OG card, both generated at request time
+from the same constants the site uses.
+
+**Badges** — `founding` for the first 200 accounts, awarded by a trigger
+so the cap holds however an account is made. Deliberately outside the
+`authenticated` update grant: a badge you can give yourself is a
+decoration, not a record.
+
 **Trust** — posted odds are immutable, profit is computed not typed,
-ungraded picks are shown publicly and keep you off the leaderboard.
+ungraded picks are shown publicly and keep you off the leaderboard, an
+admin cannot grade their own pick, and money on a pick can be kept
+private without hiding the pick itself.
 
 **Chrome** — light/dark following the OS with a manual toggle, profile
 pictures resized in-browser, news carousel, search across people and
@@ -242,7 +288,13 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 - **Email confirmation is OFF.** gwuap.co has no sending reputation yet,
   so resets land in spam. A spam-foldered confirmation kills signups
   silently. Turn it on when you post the link somewhere you can't text
-  the person.
+  the person. Note this is separate from the notification digests, which
+  do send, through Resend on a verified domain.
+- **Nothing has been advertised yet.** The Reddit conversion pixel is
+  wired and defaults to off; the privacy page was written specifically so
+  paid traffic could be taken honestly. Neither has been used. This is
+  the outstanding half of Session 11 and the only remaining blocker that
+  building cannot solve.
 - **Leaked-password protection** is Pro-plan only; minimum length is 8
   instead.
 - **Block and ban filtering covers the feed only.** Profile pages and
@@ -1236,8 +1288,67 @@ lying.
 Realtime everywhere else still waits for traffic. The plumbing is proven
 now, so adding it to cashtag pages later is small.
 
+## Session 12 — Making it worth arriving at (4-7 Sep 2026)
+
+Four days of work that never made it into this file until 7 Sep. All of
+it live.
+
+- **The house account (037, 038).** One `is_bot` profile posting from
+  real book prices so a visitor doesn't land on an empty timeline. 037
+  kept it off the leaderboard entirely; 038 put it back on, labelled,
+  because a model whose record is hidden is a model nobody can check. It
+  posted two picks an hour until 7 Sep, which made the feed 85% one
+  account — now one every three hours, enforced in `/api/house` from the
+  account's own last post rather than in the schedule that calls it.
+- **Email notifications (039).** `lib/email.ts` is the shell, Resend is
+  the sender, `/api/notify` builds one digest per person per run. Rows
+  are claimed by stamping `emailed_at` *before* sending so two runs can't
+  double-send, and a failed send hands the claim back. The welcome email
+  is stamped only after it lands — the first version marked everyone
+  welcomed while the sends were failing, and that greeting only happens
+  once.
+- **Three hourly jobs, all on GitHub Actions**, because Hobby refuses
+  sub-daily crons: grading at :17, house picks at :37 (now every third
+  hour), notification emails at :47. Each fails loudly on a non-200; a
+  401 means `CRON_SECRET` in Actions and in Vercel disagree.
+- **Receipts.** `/receipts` renders the day's settled picks as one image
+  worth posting, and each post has its own OG card.
+- **Private money, period bets, reposts** (026, 028-030) — the pick can
+  be public while the stake isn't, bets on part of a game are asked the
+  way people say them, and a repost is its own post starting at zero.
+- **The launch contest, added 4 Sep and removed 7 Sep.** $300 for the
+  best Week 1 records. It came off because it was the loudest thing on
+  the welcome card, the share image and the first email, and it was a
+  promise the site didn't need to make — what it actually offers is a
+  record nobody grades themselves. `lib/contest.ts`, `/contest` and the
+  `week1_champion` badge are gone; `MIN_GRADED_PICKS` moved to
+  `lib/rules.ts` because the 5-pick threshold was never a contest term.
+  Migrations 024, 027, 031, 037 and 038 still argue from "a cash prize"
+  in their comments — they're history and were left alone, but the rules
+  they enforce stand on the leaderboard being trustworthy, so none of
+  them should be relaxed on the grounds that the contest ended.
+- **One green, at last.** The light-theme commit tokenised every
+  dark-only colour but left the dark half as `--btn-ink: var(--btn-ink)`
+  — five properties pointing at themselves, invalid at computed-value
+  time. Dark mode ran for five days with no `--btn-ink`, `--chrome`,
+  `--shadow`, `--tint-brand` or `--tint-bear`: no fill behind your own DM
+  bubble, no chrome behind the tab bar, no text colour on a green button.
+  Fixed, and every green is now `--brand` or derived from it, with
+  `lib/brand.ts` holding the same values for email and the OG images,
+  which can't read CSS. `lib/brand.test.ts` fails if the copies drift.
+- **A game card can no longer draw on its neighbour.** "College Football"
+  set in 11px/800 is wider than the 152px card, and `white-space: nowrap`
+  with nothing containing it put the chip on top of the next game in the
+  rail. Long league names abbreviate now (CFB, CBB) and the card clips
+  its own content.
+
+---
+
 ## Session 11 — Polish round two, then a wider invite
 
+- [ ] **Invite people.** This is the whole remaining step. Five accounts
+      and 19 human posts after five sessions of building; the next
+      feature will not change that number and the last several didn't.
 - [ ] Fix whatever the first testers tripped over
 - [ ] Re-enable "Confirm email" in Supabase with a real email provider —
       currently OFF, which is fine for five friends and not fine for
@@ -1294,6 +1405,9 @@ now, so adding it to cashtag pages later is small.
 
 ---
 
-*Last updated after approving the mobile-first StockTwits/Twitter/Instagram
-hybrid mockup. Update this file as we make new decisions so it stays the
-source of truth.*
+*Last updated 7 Sep 2026: brought current after four undocumented days
+(house account, email digests, receipts, the contest added and removed),
+and the counts in YOU ARE HERE re-read from the live database rather than
+remembered. Update this file as we make new decisions so it stays the
+source of truth — and re-read the numbers rather than trusting the ones
+above, which is how they went 19 migrations stale.*
