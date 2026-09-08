@@ -1415,6 +1415,62 @@ it live.
 
 ---
 
+## Advertising
+
+Nothing has run yet. This section exists so that when something does, the
+next session can tell an untried channel from one that was tried and
+didn't work — the distinction the rest of this file has never been able
+to make.
+
+**Log every attempt here: what ran, where, what it cost, what came back.**
+A creative that was made is not a creative that ran.
+
+### Assets
+
+`~/Desktop/gwuap-ads` — outside the repo, because the PNGs are ~300KB
+each and git is the wrong place for them. It has its own README.
+
+- `v2/` — seven concepts for a Reddit signup campaign, 8 Sep 2026, each
+  at 1080×1080 (feed) and 1200×628 (link ads). Sources are plain HTML
+  rendered by headless Chrome; `v2/generate.mjs` rebuilds the set.
+- `retired/` — `01-free` and `02-300`, both advertising the $300 contest.
+  **Never run these.** They'd land people on a page with no prize on it,
+  which is the worst possible first impression for a site whose entire
+  pitch is that it doesn't lie to you.
+
+### Two things learned making them
+
+- **A creative that quotes a live number expires.** The house model's
+  record was 17-25 when the ad was generated and 19-25 forty minutes
+  later, because grading ran in between. `generate.mjs` now reads the
+  leaderboard at render time, and there's a number-free variant (`07`)
+  for when regenerating before a flight isn't practical.
+- **The ad has to be the same green as the landing page.** The creatives
+  take `#00C805` from `lib/brand.ts`, the same constant the site and the
+  emails use. A near-miss green between ad and page is the first thing
+  that reads as a phishing attempt.
+
+### The pitch, and what it deliberately avoids
+
+No guarantees, no win rates, no implied edge, no money anyone could make.
+The product is a record that can't be faked, so an ad that overclaims
+undercuts the only thing being sold. Two of the seven creatives lead with
+the house model *losing* on purpose — on Reddit that reads as proof, and
+it's the least copyable thing about the site.
+
+### Before spending anything
+
+- `NEXT_PUBLIC_REDDIT_PIXEL_ID` is set in Vercel and the pixel defaults
+  to off. Turn it on and confirm a signup registers as a conversion
+  *before* buying traffic, or the spend teaches you nothing.
+- The privacy page was written for exactly this moment. Re-read it once
+  against what the pixel actually sends.
+- Email confirmation is still OFF (see Known gaps). Strangers arriving
+  from an ad is precisely the case it's off for — decide deliberately
+  which risk you prefer before the first click lands.
+
+---
+
 ## Reference: what we've already decided
 
 - **Name:** Gwuap
