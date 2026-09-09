@@ -1220,3 +1220,41 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   color: var(--ink-dim);
 }
 .view-opt.active { background: var(--card-2); color: var(--ink); box-shadow: 0 1px 2px var(--shadow); }
+
+/* Squads. A group with its own room — the list is cards, the room reuses
+   the game chat's styling wholesale so the two feel like one product. */
+.squad-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.squad-list { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 0; }
+.squad-card {
+  display: block; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 13px 14px;
+}
+.squad-card-top { display: flex; align-items: center; gap: 8px; }
+.squad-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.squad-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--brand); background: var(--tint-brand); border-radius: 5px; padding: 3px 7px;
+}
+.squad-desc { font-size: 13px; line-height: 1.45; color: var(--ink-dim); margin: 5px 0 0; }
+.squad-meta { display: block; margin-top: 7px; font-size: 11.5px; color: var(--ink-faint); }
+
+/* Who's in it, as faces rather than a list — a squad is small enough
+   that the whole membership fits on one wrapped row. */
+.squad-members { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+.squad-member {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+}
+.squad-member-name { font-size: 12.5px; font-weight: 600; }
+.squad-owner-tag {
+  margin-left: 5px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.squad-locked {
+  margin-top: 16px; padding: 16px; border: 1px dashed var(--line); border-radius: 12px;
+  color: var(--ink-dim); font-size: 13.5px; line-height: 1.55;
+}
+.gc-del {
+  border: none; background: none; padding: 0; cursor: pointer;
+  font-size: 11.5px; color: var(--ink-faint); font-weight: 600;
+}

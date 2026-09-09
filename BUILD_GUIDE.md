@@ -1611,6 +1611,31 @@ were human, so there was nothing to interleave with. Both are stopgaps
 with the same expiry — once people post enough to fill the feed on their
 own, `arrangeFeed` does nothing and can be deleted.
 
+**Built fourth: a personal record page, a following feed, and squads.**
+
+- **`/profile/<name>/record`** splits a record by league and by bet type,
+  shows the last ten as form, and names the current and longest run.
+  `lib/record.ts` is pure so all of it is tested. Pushes decide nothing —
+  outside the win rate, outside form, and they don't break a streak. An
+  empty record reports no win rate rather than 0%, because 0% is a claim.
+- **Everyone / Following** on the feed, offered only once somebody
+  actually follows an account. Following skips the rebalancing — it's
+  whoever you picked, in the order they posted.
+- **Squads (migration 042).** A named group with a members-only live
+  room. The site had the whole-site timeline and a two-person DM and
+  nothing in between, which is where sports talk actually happens.
+  Public to signed-in users so a room can be found; the room itself is
+  members-only and RLS enforces it, so a broken UI can show an empty room
+  but can't leak one. The owner is enrolled by a trigger rather than by
+  the route, so it holds however a squad is made. `is_private` exists and
+  is deliberately unread — invite-only brings real moderation questions
+  and half of it would be worse than none.
+
+`lib/squad.test.ts` reads the check constraint out of 042 and asserts it
+matches the regex in the app. That pairing has bitten before in a
+different form: a shape enforced in two places drifts, and the failure
+surfaces as a database error nobody can act on.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their
