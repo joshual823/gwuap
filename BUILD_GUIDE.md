@@ -1415,6 +1415,49 @@ it live.
 
 ---
 
+## Profile editing was broken for three days (migration 041)
+
+Reported 8 Sep: "I cannot edit my bio", with **permission denied for
+table profiles** under the form.
+
+Not the bio, and not migration 040 despite the timing. **Every profile
+save had been failing since 039 ran on 5 Sep** — bio, display name,
+username, avatar and league choices alike, for every account.
+
+039 added `email_notifications` and the edit form started sending it. The
+column-level UPDATE grant was never widened to include it. A Postgres
+UPDATE that names a single column the role can't write fails whole, and
+the form sends every field on every save — so one missing column took the
+entire form down.
+
+Three days of nobody noticing, because the failure is a red line under a
+form rather than anything the server logs, and there are six accounts.
+This is the same shape as the two `relation "x" does not exist` incidents
+in Known gaps: **a feature that quietly does nothing, with the cause one
+migration back.**
+
+`041_grant_email_notifications.sql` restates the whole grant —
+`username, display_name, bio, avatar_url, preferred_leagues,
+email_notifications` — and never `is_admin`, `is_banned`, `badges` or
+`welcomed_at`, which is the entire reason the grant is column-level. RLS
+already limits updates to `auth.uid() = id`, so widening a column can
+only ever affect the account's own row.
+
+**`lib/grants.test.ts` now fails the build if the edit form writes a
+column the migrations don't grant** — it parses the grant out of the SQL
+and the payload out of the component and compares them. Verified by
+removing 041 and watching it fail. It cannot tell whether a migration has
+actually been *run* against the database; that's still on you.
+
+### The rule this earns
+
+**Adding a column the user can edit is two changes, not one:** the
+`alter table`, and the `grant update`. 039 did the first and not the
+second. The same trap as the `notifications_type_check` list — restate
+the whole thing, never append from memory.
+
+---
+
 ## Security review — 8 Sep 2026
 
 A full pass over every route, grant, policy and input, plus live probes
