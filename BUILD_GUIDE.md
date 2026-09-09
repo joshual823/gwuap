@@ -1676,6 +1676,33 @@ member list are not. Same call as the challenge page.
 and asserts every type in it has a sentence in the email. Without that, a
 type added later quietly produces "Someone did something."
 
+**Built seventh: highlight clips, and outlined icons.**
+
+- **Clips (`lib/clips.ts`, `/clips`).** The leagues' own highlights,
+  embedded from their own YouTube channels. **The footage is never
+  hosted here** — that's someone else's copyright, and a takedown against
+  a site selling verifiability would be a remarkable way to go. The embed
+  player is what's licensed for this: the league gets the view and the ad
+  money.
+  - Read over **RSS**, not the Data API. `youtube.com/feeds/videos.xml?channel_id=`
+    needs no key and costs no quota, so clips work whether or not
+    `YOUTUBE_API_KEY` is set and can't starve the Live room of its 10,000
+    units a day. Worth remembering before reaching for the API again.
+  - Note the distinction from `lib/watch.ts`, which says the NFL, NBA,
+    MLB and NHL can't be added. That's true of **live streams**, which
+    they sell. Highlights they publish themselves.
+  - Titles are filtered for "highlight" because a league channel posts
+    shows, interviews and its own adverts in the same feed — "NFL+ - Bed"
+    is a real title from the real feed. There's no field saying what kind
+    of video it is, so the only signal is what the league called it.
+  - Comments on clips are **not built**. The plan, when it is: key them
+    by video id with no clips table, exactly as `game_messages` is keyed
+    by `LEAGUE:espn_event_id` with no games table.
+
+- **The chrome is outlined icons** (`components/Icon.tsx`) rather than
+  emoji, which rendered differently on every OS. Messages is a paper
+  plane — an envelope reads as email.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their

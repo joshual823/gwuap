@@ -1307,3 +1307,43 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .icon-wrap { display: inline-flex; align-items: center; justify-content: center; color: var(--ink-dim); }
 .icon-wrap:hover { color: var(--ink); }
 .tab-icon { display: flex; align-items: center; justify-content: center; height: 23px; }
+
+/* Highlight clips. A card is a link — nothing plays in a rail, because
+   four autoplaying embeds cost a phone its battery to show four
+   thumbnails. */
+.clip-block { margin: 18px 0 6px; }
+.clip-card { flex: 0 0 auto; width: 210px; display: flex; flex-direction: column; gap: 6px; }
+.clip-tile { width: auto; }
+.clip-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px; margin-top: 10px;
+}
+.clip-thumb {
+  position: relative; display: block; width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 10px; overflow: hidden; background: var(--card-2);
+  border: 1px solid var(--line);
+}
+.clip-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.clip-thumb-blank { display: block; width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--card-2), var(--line)); }
+.clip-play {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 13px; color: #fff;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(2px); padding-left: 2px;
+}
+.clip-league {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.clip-title { font-size: 13px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+
+/* The player. aspect-ratio rather than the old padding-bottom trick,
+   because every browser this site supports has had it for years. */
+.clip-player {
+  width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); background: #000;
+}
+.clip-player iframe { width: 100%; height: 100%; border: 0; display: block; }
+.clip-page-title { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 14px 0 4px; line-height: 1.35; }
+.clip-page-meta { font-size: 12.5px; color: var(--ink-faint); margin: 0; }

@@ -17,6 +17,8 @@ import FeedTabs from '@/components/FeedTabs'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
 import { arrangeFeed } from '@/lib/feed'
+import ClipRail from '@/components/ClipRail'
+import { fetchClips } from '@/lib/clips'
 
 /** How many posts the feed shows. */
 const FEED_SIZE = 50
@@ -253,6 +255,11 @@ export default async function FeedPage(props: {
             ))}
           </div>
         )}
+
+        {/* Under the news, above the timeline. Highlights are the other
+            thing a cold visitor can look at without an account, and they
+            are the one that doesn't need reading. */}
+        <ClipRail clips={await fetchClips(preferred, 12)} />
 
         <NewsRail items={newsTeaser} />
 
