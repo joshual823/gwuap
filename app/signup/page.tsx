@@ -9,6 +9,7 @@ import FoundingCount from '@/components/FoundingCount'
 import LeaguePicker from '@/components/LeaguePicker'
 import { MAX_PREFERRED } from '@/lib/preferences'
 import { trackSignUp } from '@/lib/rdt'
+import { trackSignUp as trackSignUpX } from '@/lib/twq'
 import { USERNAME_RE } from '@/lib/username'
 
 
@@ -114,6 +115,7 @@ export default function SignupPage() {
     }
 
     trackSignUp()
+    trackSignUpX()
     setLoading(false)
     setStep('leagues')
   }

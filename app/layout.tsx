@@ -6,6 +6,7 @@ import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
 import RedditPixel from '@/components/RedditPixel'
+import XPixel from '@/components/XPixel'
 import AppScroll from '@/components/AppScroll'
 
 // Self-hosted at build time. The old CSS @import made the browser fetch
@@ -161,6 +162,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Analytics />
         <Clarity />
         <RedditPixel />
+        <XPixel />
       </body>
     </html>
   )

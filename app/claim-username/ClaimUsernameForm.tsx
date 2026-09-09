@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabaseClient'
 import { trackSignUp } from '@/lib/rdt'
+import { trackSignUp as trackSignUpX } from '@/lib/twq'
 import { uploadAvatar } from '@/lib/uploadAvatar'
 import Avatar from '@/components/Avatar'
 import LeaguePicker from '@/components/LeaguePicker'
@@ -90,6 +91,7 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
 
     // Counted here, where the account becomes real.
     trackSignUp()
+    trackSignUpX()
 
     // A full load so the header and tab bar pick up the new profile.
     window.location.href = next
