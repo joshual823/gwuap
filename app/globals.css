@@ -1261,3 +1261,30 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 /* The Vent room, pinned above the squads. Marked out so it doesn't read
    as somebody's group. */
 .squad-pinned { border-color: var(--edge-brand); margin-bottom: 18px; }
+
+/* Challenges. Two sides of one market, so everything here is a pair —
+   laid out as a pair rather than as a list of two things. */
+.ch-preview, .ch-board {
+  display: flex; align-items: center; gap: 10px; margin-top: 16px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+}
+.ch-side, .ch-board-side {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+}
+.ch-who { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); }
+.ch-pick, .ch-board-pick { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+.ch-vs, .ch-board-vs { font-size: 12px; font-weight: 700; color: var(--ink-faint); text-transform: uppercase; }
+.ch-board-name { font-size: 13px; font-weight: 600; color: var(--ink-dim); }
+.ch-board-open {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px dashed var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 800; color: var(--ink-faint);
+}
+.ch-result { margin-top: 14px; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.ch-cta { margin-top: 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.ch-cta-line { font-size: 14px; line-height: 1.55; color: var(--ink-dim); margin: 0; }
+.ch-cta-line strong { color: var(--ink); font-weight: 700; }
+.ch-cta-alt { font-size: 13px; color: var(--ink-faint); font-weight: 600; }
+.post-alt {
+  margin: 14px 0 -4px; font-size: 13px; line-height: 1.5; color: var(--ink-dim);
+}

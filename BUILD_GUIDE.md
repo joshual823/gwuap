@@ -1636,6 +1636,22 @@ matches the regex in the app. That pairing has bitten before in a
 different form: a shape enforced in two places drifts, and the failure
 surfaces as a database error nobody can act on.
 
+**Built fifth: head-to-head challenges (migration 043).** The only
+feature here aimed at somebody who isn't on the site yet. One person
+takes a side and gets a link; whoever opens it takes the other. `/c/<code>`
+is readable **without an account** on purpose — gating it would mean
+signing up to find out what you were signing up for.
+
+The design decision that made it small: **a challenge has no grading of
+its own.** Each side posts as an ordinary pick, the existing hourly job
+settles both, and the result is derived from those two posts rather than
+stored. So it counts toward both records, can't be graded by either
+party, and there's no second code path to disagree with the first.
+
+`lib/challenge.ts` is pure and tested. The case worth knowing about is
+the spread: the opponent's number has to flip sign as well as team, or
+you've handed two people the same bet and called it a head-to-head.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their
