@@ -94,32 +94,124 @@ function decode(s: string): string {
 }
 
 /**
- * Newest first, across the leagues asked for. One feed failing is one
- * league missing, never a page that doesn't render — the same rule the
- * scoreboard and the Live room follow.
+ * The newest few from each league, rather than the newest overall.
+ *
+ * Pure recency doesn't work here: MLB plays every day and posts several
+ * highlight reels a night, so in September it filled the rail on its own
+ * and a visitor who follows the NFL saw nothing they'd asked for. Taking
+ * a fixed number per league first and sorting afterwards means a league
+ * in season can't crowd out one that isn't.
  */
-export async function fetchClips(leagues: string[], limit = 12): Promise<Clip[]> {
-  const wanted = CLIP_FEEDS.filter(f => leagues.includes(f.league))
-  const feeds = wanted.length > 0 ? wanted : CLIP_FEEDS
-
-  const batches = await Promise.all(feeds.map(async feed => {
-    try {
-      const res = await fetch(feedUrl(feed.channel), {
-        // Highlights land within minutes of a game finishing, and a
-        // channel feed is 24KB. Ten minutes is often enough to feel live
-        // and rare enough to be free.
-        next: { revalidate: 600 },
-        headers: { Accept: 'application/atom+xml' },
-      })
-      if (!res.ok) return []
-      return parseClipFeed(await res.text(), feed)
-    } catch {
-      return []
-    }
-  }))
-
+export function capPerLeague(clips: Clip[], perLeague: number): Clip[] {
+  const seen = new Map<string, number>()
+  const kept: Clip[] = []
+  // Input is already newest-first per feed, so "the first n" is "the
+  // newest n" without sorting twice.
+  for (const c of clips) {
+    const used = seen.get(c.league) ?? 0
+    if (used >= perLeague) continue
+    seen.set(c.league, used + 1)
+    kept.push(c)
+  }
   const at = (c: Clip) => (c.publishedAt ? Date.parse(c.publishedAt) : 0)
-  return batches.flat().sort((a, b) => at(b) - at(a)).slice(0, limit)
+  return kept.sort((a, b) => at(b) - at(a))
+}
+
+/**
+ * The same videos from the Data API, which returns a deeper window.
+ *
+ * RSS gives the latest 15 uploads and nothing more. That's plenty for a
+ * channel that posts a few times a week and useless for the NFL's, which
+ * posts shows, interviews and its own adverts all day — on 9 Sep, two
+ * days after Week 1, not one of its latest 15 was a highlight reel. The
+ * playlist endpoint takes maxResults=50 for the same single quota unit,
+ * which reaches past the noise.
+ *
+ * Used only when YOUTUBE_API_KEY is set. Four channels every ten minutes
+ * is about 600 units a day against an allowance of 10,000, so this can
+ * run alongside the Live room without crowding it.
+ */
+export function parseClipPlaylist(json: any, feed: ClipFeed): Clip[] {
+  const items = Array.isArray(json?.items) ? json.items : []
+  const out: Clip[] = []
+  for (const item of items) {
+    const snip = item?.snippet
+    const id = snip?.resourceId?.videoId
+    const title = snip?.title
+    if (typeof id !== 'string' || !id || typeof title !== 'string' || !title) continue
+    if (!feed.match.some(word => title.toLowerCase().includes(word))) continue
+    out.push({
+      id,
+      title,
+      thumbnail: snip?.thumbnails?.medium?.url ?? snip?.thumbnails?.default?.url ?? null,
+      publishedAt: typeof snip?.publishedAt === 'string' ? snip.publishedAt : null,
+      league: feed.league,
+    })
+  }
+  return out
+}
+
+async function readOneFeed(feed: ClipFeed): Promise<Clip[]> {
+  const key = process.env.YOUTUBE_API_KEY
+  if (key) {
+    try {
+      const res = await fetch(
+        'https://www.googleapis.com/youtube/v3/playlistItems' +
+        `?part=snippet&maxResults=50&playlistId=UU${feed.channel.slice(2)}&key=${key}`,
+        { next: { revalidate: 600 } },
+      )
+      if (res.ok) {
+        const clips = parseClipPlaylist(await res.json(), feed)
+        if (clips.length > 0) return clips
+      }
+      // A dead key, a quota wall or simply nothing matching: fall through
+      // to RSS rather than showing an empty rail.
+    } catch { /* same */ }
+  }
+
+  try {
+    const res = await fetch(feedUrl(feed.channel), {
+      // Highlights land within minutes of a game finishing, and a
+      // channel feed is 24KB. Ten minutes is often enough to feel live
+      // and rare enough to be free.
+      next: { revalidate: 600 },
+      headers: { Accept: 'application/atom+xml' },
+    })
+    if (!res.ok) return []
+    return parseClipFeed(await res.text(), feed)
+  } catch {
+    return []
+  }
+}
+
+async function readFeeds(feeds: ClipFeed[]): Promise<Clip[]> {
+  return (await Promise.all(feeds.map(readOneFeed))).flat()
+}
+
+/**
+ * Clips for one person, in the leagues they said they follow.
+ *
+ * Falling back to everything when their own leagues are quiet is
+ * deliberate. Somebody who chose the NFL in February hasn't stopped
+ * caring about the NFL — there's just nothing on — and an empty rail
+ * teaches them the feature is broken. The same rule the scores rail
+ * follows: preferences lead, the default mix always backfills.
+ *
+ * One feed failing is one league missing, never a page that doesn't
+ * render.
+ */
+export async function fetchClips(
+  leagues: string[],
+  { limit = 12, perLeague = 2 }: { limit?: number; perLeague?: number } = {},
+): Promise<Clip[]> {
+  const wanted = CLIP_FEEDS.filter(f => leagues.includes(f.league))
+
+  if (wanted.length > 0) {
+    const chosen = capPerLeague(await readFeeds(wanted), perLeague)
+    if (chosen.length > 0) return chosen.slice(0, limit)
+  }
+
+  return capPerLeague(await readFeeds(CLIP_FEEDS), perLeague).slice(0, limit)
 }
 
 export const embedFor = (id: string) => `https://www.youtube.com/embed/${id}`

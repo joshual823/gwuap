@@ -10,7 +10,7 @@ const ID_RE = /^[\w-]{11}$/
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!ID_RE.test(id)) return { title: 'Highlight' }
-  const clip = (await fetchClips([], 60)).find(c => c.id === id)
+  const clip = (await fetchClips([], { limit: 60, perLeague: 15 })).find(c => c.id === id)
   return { title: clip?.title ?? 'Highlight', robots: { index: false, follow: false } }
 }
 
@@ -20,7 +20,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
   // anything else here would be somebody choosing what this page embeds.
   if (!ID_RE.test(id)) notFound()
 
-  const clips = await fetchClips([], 60)
+  const clips = await fetchClips([], { limit: 60, perLeague: 15 })
   const clip = clips.find(c => c.id === id)
   const rest = clips.filter(c => c.id !== id).slice(0, 6)
 

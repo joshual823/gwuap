@@ -259,7 +259,7 @@ export default async function FeedPage(props: {
         {/* Under the news, above the timeline. Highlights are the other
             thing a cold visitor can look at without an account, and they
             are the one that doesn't need reading. */}
-        <ClipRail clips={await fetchClips(preferred, 12)} />
+        <ClipRail clips={await fetchClips(preferred, { limit: 12, perLeague: 2 })} />
 
         <NewsRail items={newsTeaser} />
 

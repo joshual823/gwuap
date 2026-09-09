@@ -1695,6 +1695,23 @@ type added later quietly produces "Someone did something."
     shows, interviews and its own adverts in the same feed — "NFL+ - Bed"
     is a real title from the real feed. There's no field saying what kind
     of video it is, so the only signal is what the league called it.
+  - **Capped per league**, and the leagues are the ones chosen at signup.
+    Pure recency didn't work: MLB plays daily and posts several reels a
+    night, so in September it filled the rail alone and an NFL follower
+    saw nothing they'd asked for. When the chosen leagues are quiet the
+    default mix backfills — somebody who picked the NFL in February
+    hasn't stopped caring about it, and an empty rail teaches them the
+    feature is broken.
+  - **RSS returns only the latest 15 uploads**, which is plenty for a
+    quiet channel and useless for the NFL's: two days after Week 1, not
+    one of its latest 15 was a highlight reel. So when `YOUTUBE_API_KEY`
+    is set, the playlist endpoint is used instead — `maxResults=50` for
+    the same single quota unit — and RSS is the fallback. Four channels
+    every ten minutes is roughly 600 units a day against 10,000, so it
+    doesn't crowd the Live room. **Setting that key in Vercel visibly
+    improves this feature**; without it, NFL clips are hit and miss.
+  - NBA and NHL showing nothing in September is correct — they're out of
+    season, and there are no highlights to show.
   - Comments on clips are **not built**. The plan, when it is: key them
     by video id with no clips table, exactly as `game_messages` is keyed
     by `LEAGUE:espn_event_id` with no games table.

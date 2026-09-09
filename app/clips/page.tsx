@@ -14,7 +14,9 @@ export default async function ClipsPage() {
     ? await supabase.from('profiles').select('preferred_leagues').eq('id', user.id).maybeSingle()
     : { data: null }
   const preferred = cleanPreferences(prefRow?.preferred_leagues)
-  const clips = await fetchClips(preferred, 40)
+  // The dedicated page can afford a deeper run per league than the
+  // rail, which has one row to work with.
+  const clips = await fetchClips(preferred, { limit: 40, perLeague: 8 })
 
   return (
     <div>
