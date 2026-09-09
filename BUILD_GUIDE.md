@@ -1712,9 +1712,15 @@ type added later quietly produces "Someone did something."
     improves this feature**; without it, NFL clips are hit and miss.
   - NBA and NHL showing nothing in September is correct — they're out of
     season, and there are no highlights to show.
-  - Comments on clips are **not built**. The plan, when it is: key them
-    by video id with no clips table, exactly as `game_messages` is keyed
-    by `LEAGUE:espn_event_id` with no games table.
+  - **Comments on clips (migration 045)**, keyed by video id with no
+    clips table — exactly as `game_messages` is keyed by
+    `LEAGUE:espn_event_id` with no games table. Nothing to seed, nothing
+    to sync, and no row to go stale when a league deletes a video.
+    Publicly readable, unlike the Vent room and game chat: this is a
+    comment under a public video on a public page, and a visitor from an
+    ad should be able to see somebody is here.
+  - Sharing lives in `components/ShareRow.tsx`, used by both the clip
+    page and the squad invite. It was hardcoded twice before that.
 
 - **The chrome is outlined icons** (`components/Icon.tsx`) rather than
   emoji, which rendered differently on every OS. Messages is a paper

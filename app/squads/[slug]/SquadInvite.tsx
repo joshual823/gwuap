@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabaseClient'
 import { isValidUsername } from '@/lib/username'
+import ShareRow from '@/components/ShareRow'
 
 /**
  * Bringing people in, two ways.
@@ -25,7 +26,6 @@ export default function SquadInvite({ squadId, squadName, userId, url }: {
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
 
   const text = `Join ${squadName} on Gwuap`
 
@@ -58,18 +58,6 @@ export default function SquadInvite({ squadId, squadName, userId, url }: {
     setNote(`Invited @${profile.username}. They'll see it in their notifications.`)
   }
 
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true); setTimeout(() => setCopied(false), 2000)
-    } catch { setError('Could not copy — long-press the link instead.') }
-  }
-
-  async function nativeShare() {
-    try { await navigator.share({ title: squadName, text, url }) }
-    catch { /* dismissing the sheet isn't an error */ }
-  }
-
   return (
     <div className="squad-invite">
       <h2 className="rec-h2">Bring people in</h2>
@@ -89,24 +77,7 @@ export default function SquadInvite({ squadId, squadName, userId, url }: {
       {note && <p className="squad-invite-ok">{note}</p>}
       {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
 
-      <div className="share-row">
-        <button type="button" className="share-btn" onClick={copy}>
-          {copied ? 'Copied' : 'Copy link'}
-        </button>
-        <a className="share-btn" target="_blank" rel="noreferrer"
-          href={`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`}>WhatsApp</a>
-        <a className="share-btn" target="_blank" rel="noreferrer"
-          href={`https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`}>X</a>
-        <a className="share-btn" target="_blank" rel="noreferrer"
-          href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}>Facebook</a>
-        <a className="share-btn" target="_blank" rel="noreferrer"
-          href={`sms:?&body=${encodeURIComponent(`${text} ${url}`)}`}>Message</a>
-        {/* The OS sheet, where there is one — it reaches every app on the
-            phone rather than the five guessed at above. Rendered
-            unconditionally because navigator.share only exists in the
-            browser, and a server render can't know. */}
-        <button type="button" className="share-btn share-native" onClick={nativeShare}>More…</button>
-      </div>
+      <ShareRow url={url} text={text} />
     </div>
   )
 }

@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchClips, embedFor, watchOn } from '@/lib/clips'
+import { createClient } from '@/lib/supabaseServer'
+import ClipComments from '@/components/ClipComments'
+import ShareRow from '@/components/ShareRow'
+import { SITE_URL } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +27,9 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
   const clips = await fetchClips([], { limit: 60, perLeague: 15 })
   const clip = clips.find(c => c.id === id)
   const rest = clips.filter(c => c.id !== id).slice(0, 6)
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   return (
     <div style={{ marginTop: 20 }}>
@@ -49,6 +56,10 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
           </p>
         </>
       )}
+
+      <ShareRow url={`${SITE_URL}/clips/${id}`} text={clip?.title ?? 'Highlight'} />
+
+      <ClipComments videoId={id} viewerId={user?.id ?? null} />
 
       {rest.length > 0 && (
         <>
