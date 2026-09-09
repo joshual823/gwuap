@@ -1564,6 +1564,52 @@ half-breaks the site in ways that look like a different bug.
 
 ---
 
+## Making an empty site useful (9 Sep 2026)
+
+The question that matters once ads run: a bettor arrives, sees live
+scores they can get anywhere, news they can get anywhere, and a social
+feed with six accounts on it. Why would they stay?
+
+**The diagnosis.** Scores and news are commodities and can't be won.
+The feed is currently worse than neutral — 106 of 125 posts are the house
+model, which a stranger reads as fake or dead, not as quiet. The grading
+engine is the only thing here that isn't a commodity, and the important
+property of it is that **it needs no other users to be valuable.**
+
+**The reframe.** Stop selling "join our community", which can't be paid
+back at this size. Sell "prove you were right" — a tool that works with a
+userbase of one and produces artifacts that travel *out* to the group
+chats members are already in.
+
+**Built first: the personal receipts card** (`/receipts/<username>`,
+`/api/receipts?user=`). The site-wide card is marketing; a card of *your*
+week is what somebody actually posts, and it's the only distribution the
+site has while it's small. It shows wins and losses, never money. A
+"Share record" button sits next to Edit profile.
+
+**Still to do, in order:**
+1. Demote the house model in the default feed — it should season the
+   feed, not be it. Cutting it to one per three hours fixed the flow; the
+   back catalogue is still 85%.
+2. A real personal record page — by league, by bet type, streaks. A
+   tracker is useful at one user, and bettors genuinely don't know their
+   own numbers.
+3. Scope rooms to games, not the site. Six people across a whole site
+   feels abandoned; six in one live thread feels like a room. Game chat
+   already exists — surface it during live games.
+4. Shorten the first loop. Sign up → empty feed → post → wait hours is
+   too slow and too social to be a first experience.
+
+**Not to do:** more scores, more news, odds comparison — all commodity,
+all lose to their own book. And no more bot accounts; one labelled model
+is honest, several is the thing the whole pitch is against.
+
+**The metric.** Not signups. The share of new accounts that post at least
+one pick and come back when it grades. High means a distribution problem;
+low means more traffic burns the ad budget faster.
+
+---
+
 ## Advertising
 
 Nothing has run yet. This section exists so that when something does, the

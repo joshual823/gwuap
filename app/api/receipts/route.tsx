@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, BRAND_GREEN, COIN_GRADIENT } from '@/lib/brand'
 import { labelFor, type Direction } from '@/lib/odds'
+import { isValidUsername } from '@/lib/username'
 import type { BetType } from '@/lib/odds'
 
 export const runtime = 'nodejs'
@@ -23,6 +24,16 @@ export const dynamic = 'force-dynamic'
  */
 const HOURS = 36
 
+/**
+ * A personal card looks back further than the site's daily one. A single
+ * account doesn't settle six picks in 36 hours — it settles a couple a
+ * week — and a card with one row on it isn't worth posting.
+ */
+const USER_HOURS = 24 * 7
+
+/** Rows on the card. More than this and the type is too small to read. */
+const MAX_ROWS = 6
+
 type Row = {
   tag: string
   tag2: string | null
@@ -41,18 +52,47 @@ function describe(r: Row): string {
   return `${side} ${line}`
 }
 
-export async function GET() {
+/**
+ * The day's settled picks, or one person's week.
+ *
+ * `?user=<username>` makes it personal. That's the version worth having:
+ * a card about the whole site is marketing, and a card about *your* week
+ * is the thing you paste into the group chat that's already arguing —
+ * which is the only distribution this site has while it's small.
+ *
+ * Public either way. It shows what a profile already shows to anyone,
+ * and no money: the stake and the profit stay off, because some of it is
+ * private and none of it is the point. The point is that the scoreboard
+ * decided, not the person posting.
+ */
+export async function GET(request: Request) {
   const supabase = await createClient()
-  const since = new Date(Date.now() - HOURS * 3600_000).toISOString()
+  const asked = new URL(request.url).searchParams.get('user')?.trim().replace(/^@/, '')
+  const who = isValidUsername(asked) ? asked : null
 
-  const { data } = await supabase
+  // An unknown name gets the site card rather than an error: this URL is
+  // the src of an <img>, and a broken image is a worse answer than a
+  // slightly wrong one.
+  let author: { id: string; username: string } | null = null
+  if (who) {
+    const { data } = await supabase
+      .from('profiles').select('id, username').ilike('username', who).maybeSingle()
+    if (data && data.username.toLowerCase() === who.toLowerCase()) author = data
+  }
+
+  const hours = author ? USER_HOURS : HOURS
+  const since = new Date(Date.now() - hours * 3600_000).toISOString()
+
+  let query = supabase
     .from('posts')
     .select('tag, tag2, bet_type, sentiment, line, status')
     .in('status', ['win', 'loss', 'push'])
     .eq('post_kind', 'pick')
     .gte('graded_at', since)
     .order('graded_at', { ascending: false })
-    .limit(6)
+  if (author) query = query.eq('author_id', author.id)
+
+  const { data } = await query.limit(MAX_ROWS)
 
   const rows = (data ?? []) as Row[]
   const wins = rows.filter(r => r.status === 'win').length
@@ -90,13 +130,13 @@ export async function GET() {
           display: 'flex', fontSize: 38, fontWeight: 700, letterSpacing: -1,
           margin: '30px 0 22px', flexShrink: 0,
         }}>
-          Graded in the last {HOURS} hours
+          {author ? `@${author.username} — this week, graded` : `Graded in the last ${HOURS} hours`}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flexShrink: 0 }}>
           {rows.length === 0 && (
             <div style={{ display: 'flex', fontSize: 32, color: '#8B98A5' }}>
-              Nothing settled yet today.
+              {author ? 'No picks settled this week yet.' : 'Nothing settled yet today.'}
             </div>
           )}
           {rows.map((r, i) => (
