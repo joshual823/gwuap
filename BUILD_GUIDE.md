@@ -1587,6 +1587,15 @@ week is what somebody actually posts, and it's the only distribution the
 site has while it's small. It shows wins and losses, never money. A
 "Share record" button sits next to Edit profile.
 
+**Built second: the welcome modal waits for interest.** It used to open
+on arrival and lock its own close button for three seconds. Survivable
+for someone who typed the address in; the wrong way to meet someone who
+clicked an ad, who has no idea yet what they'd be signing up for and
+whose first experience is the site refusing to move. It now waits for
+600px of scrolling or fifteen seconds, and the close button doesn't lock.
+The listener is on `main.scroll`, not the window — the document never
+scrolls here, so a window handler would never fire.
+
 **Still to do, in order:**
 1. Demote the house model in the default feed — it should season the
    feed, not be it. Cutting it to one per three hours fixed the flow; the

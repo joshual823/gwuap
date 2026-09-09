@@ -240,11 +240,6 @@ a { color: inherit; text-decoration: none; }
   font-size: 12.5px; font-weight: 600; color: var(--ink-faint);
 }
 .welcome-close:disabled { cursor: default; }
-.welcome-bar {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px;
-  width: 92px; height: 3px; border-radius: 999px; background: var(--line); overflow: hidden;
-}
-.welcome-bar-fill { display: block; height: 100%; background: var(--ink-faint); }
 
 .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
 /* A rule with a word in it, so the two ways in read as alternatives

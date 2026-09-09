@@ -4,45 +4,74 @@ import Link from 'next/link'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 
 const SEEN_KEY = 'gwuap:welcome-seen'
-const WAIT_MS = 3000
+
+/** How far down the feed counts as "they're actually reading this". */
+const SCROLL_TRIGGER_PX = 600
+
+/** And the backstop, for someone who reads the top of the page and stops. */
+const TIME_TRIGGER_MS = 15_000
 
 /**
- * The pitch, once, to a logged-out visitor.
+ * The pitch, once, to a logged-out visitor — after they've seen the site,
+ * not before.
  *
- * Shown a single time per browser — a modal on every visit is how a site
- * teaches people to close it without reading. The close button unlocks
- * after three seconds, with a bar showing the wait, which is what was
- * asked for; it's worth knowing that forcing a wait costs some people
- * who would otherwise have scrolled, so the number below the bar is
- * there to make the wait feel purposeful rather than arbitrary.
+ * It used to open on arrival and lock its own close button for three
+ * seconds. That's survivable for someone who typed the address in; it is
+ * the wrong way to meet somebody who clicked an ad, because they have no
+ * idea yet what they'd be signing up for and the first thing the site
+ * does is refuse to get out of the way.
+ *
+ * So it waits for a sign of interest: 600px of scrolling, or fifteen
+ * seconds, whichever comes first. The modal describes automatic grading;
+ * the feed demonstrates it, with real picks carrying real results. The
+ * demonstration should go first.
+ *
+ * The close button no longer locks. Once somebody has scrolled the feed,
+ * making them sit through a progress bar buys nothing.
+ *
+ * Note the listener is on `main.scroll`, not the window: the document
+ * itself never scrolls here — `html, body { overflow: hidden }` — so a
+ * window scroll handler would sit there and never fire once.
  */
 export default function WelcomeModal({ remaining }: { remaining: number | null }) {
   const [open, setOpen] = useState(false)
-  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     let seen = false
     try { seen = localStorage.getItem(SEEN_KEY) === '1' } catch { /* private mode */ }
     if (seen) return
 
-    setOpen(true)
-    const started = Date.now()
-    const tick = setInterval(() => {
-      const done = Math.min(1, (Date.now() - started) / WAIT_MS)
-      setProgress(done)
-      if (done >= 1) clearInterval(tick)
-    }, 50)
-    return () => clearInterval(tick)
+    const scroller = document.querySelector<HTMLElement>('main.scroll')
+    let done = false
+    const show = () => {
+      if (done) return
+      done = true
+      setOpen(true)
+      cleanup()
+    }
+    const onScroll = () => {
+      const top = scroller ? scroller.scrollTop : window.scrollY
+      if (top > SCROLL_TRIGGER_PX) show()
+    }
+    const timer = setTimeout(show, TIME_TRIGGER_MS)
+    function cleanup() {
+      clearTimeout(timer)
+      scroller?.removeEventListener('scroll', onScroll)
+      window.removeEventListener('scroll', onScroll)
+    }
+    scroller?.addEventListener('scroll', onScroll, { passive: true })
+    // Belt and braces: if the shell is ever restructured so the document
+    // scrolls again, this keeps working instead of silently never firing.
+    if (!scroller) window.addEventListener('scroll', onScroll, { passive: true })
+    return cleanup
   }, [])
 
   function close() {
-    if (progress < 1) return
     setOpen(false)
     try { localStorage.setItem(SEEN_KEY, '1') } catch { /* ditto */ }
   }
 
   if (!open) return null
-  const ready = progress >= 1
 
   return (
     <div className="welcome-backdrop" role="dialog" aria-modal="true" aria-label="Welcome to Gwuap">
@@ -81,11 +110,8 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
           How it works
         </Link>
 
-        <button type="button" className="welcome-close" onClick={close} disabled={!ready}>
-          {ready ? 'Maybe later' : 'Have a look first…'}
-          <span className="welcome-bar" aria-hidden="true">
-            <span className="welcome-bar-fill" style={{ width: `${progress * 100}%` }} />
-          </span>
+        <button type="button" className="welcome-close" onClick={close}>
+          Maybe later
         </button>
       </div>
     </div>
