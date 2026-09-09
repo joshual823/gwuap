@@ -1300,3 +1300,10 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
   font-size: 12.5px; font-weight: 600; cursor: pointer;
 }
+
+/* Outlined icons replaced the emoji. Emoji carried their own size and
+   colour; these inherit both, so the rules that used to set a font-size
+   now just have to line them up. */
+.icon-wrap { display: inline-flex; align-items: center; justify-content: center; color: var(--ink-dim); }
+.icon-wrap:hover { color: var(--ink); }
+.tab-icon { display: flex; align-items: center; justify-content: center; height: 23px; }

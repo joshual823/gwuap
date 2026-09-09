@@ -6,6 +6,7 @@ import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
 import RedditPixel from '@/components/RedditPixel'
+import Icon from '@/components/Icon'
 import XPixel from '@/components/XPixel'
 import AppScroll from '@/components/AppScroll'
 
@@ -118,23 +119,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 until the features are real. */}
             <div className="top-icons">
               {/* /admin has no link otherwise — it was URL-only. */}
-              {isAdmin && <Link href="/admin" className="icon-wrap" title="Moderation queue">🛡️</Link>}
+              {isAdmin && (
+                <Link href="/admin" className="icon-wrap" title="Moderation queue">
+                  <Icon name="shield" />
+                </Link>
+              )}
               {/* Ranks moved up here from the tab bar. It's a place you
                   look occasionally, not one of the five things you do —
                   and Squads is. */}
-              <Link href="/leaderboard" className="icon-wrap" title="Leaderboard">🏆</Link>
+              <Link href="/leaderboard" className="icon-wrap" title="Leaderboard">
+                <Icon name="trophy" />
+              </Link>
               {user && (
                 <Link href="/notifications" className="icon-wrap" title="Notifications">
-                  🔔{unread > 0 && <span className="count-badge">{unread > 9 ? '9+' : unread}</span>}
+                  <Icon name="bell" />
+                  {unread > 0 && <span className="count-badge">{unread > 9 ? '9+' : unread}</span>}
                 </Link>
               )}
 
               {user && (
                 <Link href="/messages" className="icon-wrap" title="Messages">
-                  ✉️{inbox > 0 && <span className="count-badge">{inbox > 9 ? '9+' : inbox}</span>}
+                  <Icon name="send" />
+                  {inbox > 0 && <span className="count-badge">{inbox > 9 ? '9+' : inbox}</span>}
                 </Link>
               )}
-              <Link href="/search" className="icon-wrap">🔍</Link>
+              <Link href="/search" className="icon-wrap" title="Search">
+                <Icon name="search" />
+              </Link>
             </div>
           </div>
         </header>
@@ -145,19 +156,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             icons meant. A word under each removes the guessing. */}
         <nav className="tabbar">
           <Link href="/feed" className="tab active">
-            <span className="tab-icon">⌂</span><span className="tab-label">Home</span>
+            <span className="tab-icon"><Icon name="home" size={23} /></span><span className="tab-label">Home</span>
           </Link>
           <Link href="/watchlist" className="tab">
-            <span className="tab-icon">⭐</span><span className="tab-label">Watch</span>
+            <span className="tab-icon"><Icon name="star" size={23} /></span><span className="tab-label">Watch</span>
           </Link>
           <Link href="/post/new" className="tab tab-center">
-            <span className="tab-post">+</span><span className="tab-label">Post</span>
+            <span className="tab-post"><Icon name="plus" size={22} strokeWidth={2.4} /></span><span className="tab-label">Post</span>
           </Link>
           <Link href="/squads" className="tab">
-            <span className="tab-icon">👥</span><span className="tab-label">Squads</span>
+            <span className="tab-icon"><Icon name="users" size={23} /></span><span className="tab-label">Squads</span>
           </Link>
           <Link href={profileHref} className="tab">
-            <span className="tab-icon">👤</span><span className="tab-label">Profile</span>
+            <span className="tab-icon"><Icon name="user" size={23} /></span><span className="tab-label">Profile</span>
           </Link>
         </nav>
         </div>
