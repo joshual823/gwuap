@@ -171,7 +171,7 @@ confirm the card shows +$45.45 in green.
 ## YOU ARE HERE
 
 **Everything is built, deployed and live at https://gwuap.co.**
-39 migrations run (001-039). Next.js 16, React 19, 0 vulnerabilities.
+41 migrations run (001-041). Next.js 16, React 19, 0 vulnerabilities.
 Security advisor: 0 errors.
 
 **The only thing left is people, and the numbers say so plainly.**
@@ -204,8 +204,10 @@ before trusting them.
   scorecard fix and the graded-pick notifications are all deployed.
 - **One commit waiting to push:** `283c940`, this guide's refresh, plus
   whatever follows it. Push from GitHub Desktop.
-- **No migration is pending.** All 39 are live; verified by querying the
-  columns directly rather than assuming.
+- **No migration is pending.** All 41 are live. 040 and 041 were run on
+  8-9 Sep and both verified — 040 by the privileges query returning zero
+  rows, 041 by saving a bio on the site, which is the only check that
+  proves the thing people actually do.
 - **A dev server may still be running** on localhost:3000 from the last
   session. It dies with the terminal; `npm run dev` brings it back.
 - **The graded-pick email can be read without sending one.** The digest
@@ -1443,6 +1445,9 @@ email_notifications` — and never `is_admin`, `is_banned`, `badges` or
 already limits updates to `auth.uid() = id`, so widening a column can
 only ever affect the account's own row.
 
+**Run 9 Sep and confirmed working** — a bio saves. Three days of broken
+profile editing, closed.
+
 **`lib/grants.test.ts` now fails the build if the edit form writes a
 column the migrations don't grant** — it parses the grant out of the SQL
 and the payload out of the component and compares them. Verified by
@@ -1496,14 +1501,15 @@ That regex had been defined three times, in three client components, and
 nowhere on the server — which is how a rule becomes advice. One copy now,
 in `lib/username.ts`.
 
-### 2. `is_admin` was readable by the public — NEEDS MIGRATION 040
+### 2. `is_admin` was readable by the public — FIXED (migration 040, run 8 Sep)
 
 Anyone could ask the REST API which account is the admin, without signing
 in, using the anon key that ships in the page. That's the first half of an
 attack — pick the target, then guess — and the second half was #1.
 
-**`supabase/migrations/040_hide_admin_flag.sql` has not been run yet.**
-It revokes `select (is_admin, email_notifications, welcomed_at)` on
+`supabase/migrations/040_hide_admin_flag.sql` **has been run and
+verified** — the privileges query returns zero rows for `anon`. It
+revokes `select (is_admin, email_notifications, welcomed_at)` on
 `profiles` from `anon` only; `authenticated` keeps them, because every
 check in the app is a signed-in user reading its own row. Two count
 queries that asked for `select('*')` on `profiles` were narrowed to
