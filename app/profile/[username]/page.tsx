@@ -174,10 +174,10 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           label under the figure rather than beside it. Everything else
           is a count, and counts belong on one quiet line. */}
       <div className="stat-strip">
-        <div className="stat-block">
+        <Link href={`/profile/${profile.username}/record`} className="stat-block stat-link">
           <span className="stat-figure">{wins}-{losses}</span>
-          <span className="stat-label">Record</span>
-        </div>
+          <span className="stat-label">Record →</span>
+        </Link>
         {/* All three, always. Hiding the empty ones left a single figure
             floating on its own, which reads as a broken row rather than
             as a new account. A dash says "nothing yet" without pretending
