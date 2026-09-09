@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabaseClient'
 import { trackSignUp } from '@/lib/rdt'
-import { trackSignUp as trackSignUpX } from '@/lib/twq'
+import { trackSignUp as trackSignUpX, flushPixels } from '@/lib/twq'
 import { uploadAvatar } from '@/lib/uploadAvatar'
 import Avatar from '@/components/Avatar'
 import LeaguePicker from '@/components/LeaguePicker'
@@ -92,6 +92,11 @@ export default function ClaimUsernameForm({ userId, suggested, next }: {
     // Counted here, where the account becomes real.
     trackSignUp()
     trackSignUpX()
+
+    // The line below is a hard navigation, which destroys the page — and
+    // both pixels queue their request rather than sending it inline, so
+    // without this pause the signup that just happened is never counted.
+    await flushPixels()
 
     // A full load so the header and tab bar pick up the new profile.
     window.location.href = next

@@ -33,3 +33,21 @@ export function trackSignUp(): void {
   if (!event) return
   twq()?.('event', event, {})
 }
+
+/**
+ * Give a just-fired pixel long enough to actually leave the browser.
+ *
+ * `twq` queues the call and the tag sends it on its own schedule. A hard
+ * navigation immediately afterwards — `window.location.href = ...` —
+ * tears the page down first, and the request dies in the queue. The
+ * event then never arrives and the site looks like it isn't firing at
+ * all, which is indistinguishable from a broken pixel.
+ *
+ * A third of a second is not noticeable to somebody who has just pressed
+ * a button that visibly does something, and it is the difference between
+ * a counted signup and a lost one. Client-side navigations
+ * (`router.push`) don't need it — the page isn't destroyed.
+ */
+export function flushPixels(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 350))
+}
