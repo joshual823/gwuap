@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { renderDigest, line, type Notif, type Pick } from './digest'
 
 /**
@@ -85,6 +86,22 @@ console.log('\nthe other notification types still read correctly')
   check('follow', line(notif({ type: 'follow', actor })), '@blocca followed you.')
   check('dm request', line(notif({ type: 'dm_request', actor })), '@blocca wants to message you.')
   check('no actor is not "@undefined"', line(notif({ type: 'follow', actor: null })), 'Someone followed you.')
+}
+
+console.log('\nevery notification type the database allows has a sentence')
+{
+  // The check constraint is the list of types that can exist. If one of
+  // them has no case in line(), somebody gets an email reading "Someone
+  // did something", which is worse than sending nothing. This has come
+  // close twice: 026 and 039 both rewrote that constraint from memory.
+  const sql = readFileSync(new URL('../supabase/migrations/044_squad_invites.sql', import.meta.url), 'utf8')
+  const block = sql.slice(sql.indexOf('add constraint notifications_type_check'))
+  const types = [...block.slice(0, block.indexOf('));')).matchAll(/'([a-z_]+)'/g)].map(m => m[1])
+  check('the constraint lists every type', types.length, 9)
+  for (const t of types) {
+    const sentence = line(notif({ type: t, actor: { username: 'x' }, post_id: null }))
+    check(`${t} reads as English`, sentence.includes('did something'), false)
+  }
 }
 
 console.log(`\n${pass} passed, ${fail} failed`)

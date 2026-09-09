@@ -1652,6 +1652,30 @@ party, and there's no second code path to disagree with the first.
 the spread: the opponent's number has to flip sign as well as team, or
 you've handed two people the same bet and called it a head-to-head.
 
+**Built sixth: squad invites (migration 044).** By username for somebody
+already here, by link for somebody who isn't — WhatsApp, X, Facebook,
+SMS, copy, and the OS share sheet.
+
+**An invite is an offer, not an enrolment.** The invitee gets a
+notification and joins themselves; 042's membership policy still only
+allows a row to be inserted for yourself, and this doesn't weaken it.
+Being dropped into a group chat you never agreed to is how group chats
+become things people mute.
+
+Notifications have no INSERT policy on purpose (008) — they're written by
+triggers so nobody can spam anybody directly. So an invite is a row in
+its own table with its own rules, and a trigger turns it into the
+notification. One invite per person per squad, twenty a day per account.
+
+044 also makes a squad **previewable without an account**, which 042 got
+wrong: a link forwarded to WhatsApp hit a login wall before saying what
+it was. The name, blurb and join button are public now; the room and the
+member list are not. Same call as the challenge page.
+
+`lib/digest.test.ts` now reads the type constraint out of the migration
+and asserts every type in it has a sentence in the email. Without that, a
+type added later quietly produces "Someone did something."
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their

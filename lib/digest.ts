@@ -59,6 +59,7 @@ export function line(n: Notif, pick?: Pick | null): string {
     case 'reply':    return `${who} replied to you.`
     case 'follow':   return `${who} followed you.`
     case 'repost':   return `${who} reposted your pick.`
+    case 'squad_invite': return `${who} invited you to a squad.`
     case 'dm_request': return `${who} wants to message you.`
     case 'dm_message': return `${who} sent you a message.`
     default: return `${who} did something.`

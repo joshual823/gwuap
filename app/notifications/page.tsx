@@ -16,6 +16,7 @@ function describe(n: any): string {
     case 'dm_request': return 'wants to message you'
     case 'dm_message': return 'sent you a message'
     case 'repost': return 'reposted your pick'
+    case 'squad_invite': return 'invited you to a squad'
     default: return 'did something'
   }
 }
@@ -28,7 +29,7 @@ export default async function NotificationsPage() {
   const { data, error } = await supabase
     .from('notifications')
     .select(`
-      id, type, outcome, post_id, comment_id, conversation_id, emoji, read_at, created_at,
+      id, type, outcome, post_id, comment_id, conversation_id, squad_id, emoji, read_at, created_at,
       actor:profiles!notifications_actor_id_fkey ( username )
     `)
     .eq('user_id', user.id)
@@ -63,6 +64,16 @@ export default async function NotificationsPage() {
       </div>
     )
   }
+  // Where an invite points. Its own query, like the picks above — the
+  // select that gates this page shouldn't grow a dependency on a table
+  // added four migrations later.
+  const squadIds = [...new Set(rows.filter(n => n.squad_id).map(n => n.squad_id))] as string[]
+  const squadSlug = new Map<string, string>()
+  if (squadIds.length > 0) {
+    const { data: sq } = await supabase.from('squads').select('id, slug').in('id', squadIds)
+    for (const row of sq ?? []) squadSlug.set((row as any).id, (row as any).slug)
+  }
+
   const unread = rows.filter(n => !n.read_at).length
 
   return (
@@ -80,11 +91,16 @@ export default async function NotificationsPage() {
       )}
 
       {rows.map(n => {
+        const squadHref = n.squad_id && squadSlug.get(n.squad_id)
+          ? `/squads/${squadSlug.get(n.squad_id)}`
+          : null
         const href = n.conversation_id
           ? `/messages/${n.conversation_id}`
-          : n.post_id
-            ? `/post/${n.post_id}`
-            : `/profile/${n.actor?.username}`
+          : squadHref
+            ? squadHref
+            : n.post_id
+              ? `/post/${n.post_id}`
+              : `/profile/${n.actor?.username}`
         const summary = n.type === 'graded' ? pickSummary(picks.get(n.post_id) ?? {}) : null
         return (
           <Link href={href} key={n.id} className={`notif ${n.read_at ? '' : 'unread'}`}>
@@ -93,6 +109,7 @@ export default async function NotificationsPage() {
                 : n.type === 'reaction' ? (n.emoji || '♥')
                 : n.type === 'follow' ? '👤'
                 : n.type === 'repost' ? '🔁'
+                : n.type === 'squad_invite' ? '👥'
                 : n.type.startsWith('dm_') ? '✉️' : '💬'}
             </span>
             <span className="notif-text">
