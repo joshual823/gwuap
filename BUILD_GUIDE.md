@@ -1620,6 +1620,43 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### The X pixel is live and verified (9 Sep 2026)
+
+Pixel `rezpf`, signup event `tw-rezpf-rf4l3`, both as `NEXT_PUBLIC_`
+variables in Vercel Production. Verified properly rather than assumed:
+X recorded Sign Up at 10:21 AM ET and `@tester123` was inserted at
+14:21:18 UTC. Same moment. Pixel loaded, event fired, X received it, real
+row in the database.
+
+Reddit's pixel is also installed and predates this. Both stay out of
+`/vent`, `/messages` and `/reset`, and both are named on the privacy
+page.
+
+**Three things learned getting there, all of which cost time:**
+
+- **`NEXT_PUBLIC_` values are baked in at build time.** Saving the
+  variable in Vercel changes nothing until you redeploy. This is the step
+  that looks done and isn't.
+- **Don't test a pixel in Safari, least of all Private Browsing.**
+  Safari's tracking prevention blocks `redditstatic.com` outright and
+  restricts `t.co`/`twitter.com`. A signup made there fires nothing, and
+  the dashboard is indistinguishable from a pixel that was never
+  installed. That's what the first failed test was.
+- **A hard navigation after firing a pixel loses the event.**
+  `/claim-username` set `window.location.href` immediately after firing
+  both tags, which tears the page down while the request is still queued.
+  `flushPixels()` in `lib/twq.ts` waits 350ms first. `/signup` never had
+  the problem — it changes step without leaving the page.
+
+**Expect permanent under-reporting and don't read it as broken.** Safari
+does this to every pixel on every site, and iOS Safari is a large slice
+of a mobile-first sports audience. Judge a campaign on real signups in
+the database against spend, not on X's conversion count — the two will
+not agree and the database is the one that's right. The Conversion API
+is the fix for that gap and is deliberately not built: it's a real piece
+of work and there's no volume yet to justify it. Revisit when spend is
+large enough that the optimiser being half-blind actually costs money.
+
 ### Assets
 
 `~/Desktop/gwuap-ads` — outside the repo, because the PNGs are ~300KB
