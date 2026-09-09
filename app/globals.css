@@ -1258,3 +1258,6 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   border: none; background: none; padding: 0; cursor: pointer;
   font-size: 11.5px; color: var(--ink-faint); font-weight: 600;
 }
+/* The Vent room, pinned above the squads. Marked out so it doesn't read
+   as somebody's group. */
+.squad-pinned { border-color: var(--edge-brand); margin-bottom: 18px; }

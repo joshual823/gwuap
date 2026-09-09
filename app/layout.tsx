@@ -119,14 +119,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="top-icons">
               {/* /admin has no link otherwise — it was URL-only. */}
               {isAdmin && <Link href="/admin" className="icon-wrap" title="Moderation queue">🛡️</Link>}
+              {/* Ranks moved up here from the tab bar. It's a place you
+                  look occasionally, not one of the five things you do —
+                  and Squads is. */}
+              <Link href="/leaderboard" className="icon-wrap" title="Leaderboard">🏆</Link>
               {user && (
                 <Link href="/notifications" className="icon-wrap" title="Notifications">
                   🔔{unread > 0 && <span className="count-badge">{unread > 9 ? '9+' : unread}</span>}
                 </Link>
               )}
-              {user && (
-                <Link href="/vent" className="icon-wrap" title="Vent room">🫂</Link>
-              )}
+
               {user && (
                 <Link href="/messages" className="icon-wrap" title="Messages">
                   ✉️{inbox > 0 && <span className="count-badge">{inbox > 9 ? '9+' : inbox}</span>}
@@ -151,8 +153,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Link href="/post/new" className="tab tab-center">
             <span className="tab-post">+</span><span className="tab-label">Post</span>
           </Link>
-          <Link href="/leaderboard" className="tab">
-            <span className="tab-icon">🏆</span><span className="tab-label">Ranks</span>
+          <Link href="/squads" className="tab">
+            <span className="tab-icon">👥</span><span className="tab-label">Squads</span>
           </Link>
           <Link href={profileHref} className="tab">
             <span className="tab-icon">👤</span><span className="tab-label">Profile</span>
