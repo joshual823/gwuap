@@ -16,6 +16,12 @@ import NewsRail from '@/components/NewsRail'
 import FeedTabs from '@/components/FeedTabs'
 import { SITE_NAME } from '@/lib/brand'
 import Link from 'next/link'
+import { arrangeFeed } from '@/lib/feed'
+
+/** How many posts the feed shows. */
+const FEED_SIZE = 50
+/** How many it reads to build them from — see the note on the query. */
+const FEED_WINDOW = 150
 
 export const dynamic = 'force-dynamic'
 
@@ -71,13 +77,29 @@ export default async function FeedPage(props: {
     // still carried the banned user's posts.
     .eq('author.is_banned', false)
     .order('created_at', { ascending: false })
-    .limit(50)
+    // Deliberately wider than the feed itself. The house account posts
+    // several times a day and a handful of people post every few days,
+    // so the 50 most recent posts contained just two human ones — there
+    // was nothing left for arrangeFeed to interleave with. Reading a
+    // wider window and trimming afterwards is what puts people back on
+    // the page.
+    //
+    // Same stopgap as lib/feed.ts and it expires the same way: once
+    // people post enough to fill 50 slots on their own, this can go back
+    // to a plain limit.
+    .limit(FEED_WINDOW)
 
   if (blockedIds.length > 0) {
     query = query.not('author_id', 'in', `(${blockedIds.join(',')})`)
   }
 
-  const { data: posts } = await query
+  const { data: rawPosts } = await query
+
+  // People first, the model at a fixed ratio behind them. Ordering by
+  // date alone handed the whole timeline to the house account, which
+  // posts every few hours against a handful of people posting every few
+  // days — see lib/feed.ts.
+  const posts = arrangeFeed(rawPosts ?? []).slice(0, FEED_SIZE)
 
   const shaped = (posts ?? []).map((p: any) => ({
     ...p,

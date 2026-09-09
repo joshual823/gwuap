@@ -1596,11 +1596,23 @@ whose first experience is the site refusing to move. It now waits for
 The listener is on `main.scroll`, not the window — the document never
 scrolls here, so a window handler would never fire.
 
+**Built third: the house model no longer owns the feed.** On 9 Sep the
+twelve most recent posts were all it — a stranger arriving from an ad saw
+one automated account talking to itself. `lib/feed.ts` now leads with
+people and lets the model fill behind them at two-to-one. The first
+twelve cards went from 12 model / 0 people to 4 model / 8 people.
+
+Two things this turned up. The feed is now **ranked, not chronological** —
+a person's post from yesterday can sit above the model's from an hour
+ago. Every card still shows its own timestamp, so nothing is hidden, but
+it's a real change rather than a tidy-up. And the query had to widen from
+50 posts to 150 before trimming: only *two* of the 50 most recent posts
+were human, so there was nothing to interleave with. Both are stopgaps
+with the same expiry — once people post enough to fill the feed on their
+own, `arrangeFeed` does nothing and can be deleted.
+
 **Still to do, in order:**
-1. Demote the house model in the default feed — it should season the
-   feed, not be it. Cutting it to one per three hours fixed the flow; the
-   back catalogue is still 85%.
-2. A real personal record page — by league, by bet type, streaks. A
+1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their
    own numbers.
 3. Scope rooms to games, not the site. Six people across a whole site
