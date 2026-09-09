@@ -59,18 +59,25 @@ export default function PrivacyPage() {
         <li><strong>Resend</strong> — sends confirmation and password emails.</li>
         <li><strong>Microsoft Clarity</strong> — how pages are used, so layout problems are visible.</li>
         <li><strong>Reddit</strong> — a pixel telling us which ads led to sign-ups.</li>
+        <li><strong>X</strong> — the same thing, for ads run there.</li>
       </ul>
       <p>
         <strong>The Vent room, private messages and password resets are excluded
-        from Clarity and from the Reddit pixel.</strong> Those pages are not
+        from Clarity and from both ad pixels.</strong> Those pages are not
         recorded and not reported to anyone. Vent especially: people go there to
         say something in private, and handing an ad network the fact that
         somebody opened it would defeat the point of having the room.
       </p>
       <p>
         Reddit offers a feature that sends advertisers&apos; visitors&apos; email
-        addresses back for better ad matching. <strong>It is switched off.</strong>{' '}
+        addresses back for better ad matching. <strong>It is switched off</strong>,
+        and nothing equivalent is switched on for X.{' '}
         Your email is for your account and for emails you asked for.
+      </p>
+      <p>
+        Both pixels are blocked outright by Safari&apos;s tracking prevention and
+        by most ad blockers, which we think is fine — they exist to tell us
+        whether an ad worked, and nothing on this site depends on them running.
       </p>
       <p>We do not sell your data, and there is no advertising on the site itself.</p>
 
