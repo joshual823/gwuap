@@ -1682,6 +1682,28 @@ each and git is the wrong place for them. It has its own README.
   emails use. A near-miss green between ad and page is the first thing
   that reads as a phishing attempt.
 
+### X flagged the first campaign as gambling (9 Sep 2026)
+
+*"Your ad text reads as Gambling and Games Content."* Four signals: the
+ad account is `@Gamblenchill`, the keyword list was full of sportsbook
+vocabulary, the look-alikes were books and a prediction market, and the
+creatives and copy said "no deposit", "$0 to play" and "nothing at
+stake" — gambling words even when used to say the opposite.
+
+The full post-mortem, the cleaned targeting, the word list to avoid and
+the creatives that passed the audit are in `~/Desktop/gwuap-ads/README.md`.
+Two things worth carrying here:
+
+- **The classifier reads the whole campaign, not the creative.** Keyword
+  targeting that reads as gambling halts an ad however clean the post is.
+  The guidance that targeting could use the audience's vocabulary while
+  creatives avoided it was wrong as written.
+- **The handle is the strongest signal and the hardest to fix.** An ad
+  from `@Gamblenchill` pointing at a site whose whole pitch is
+  trustworthiness is working against itself twice — once at review, once
+  with the stranger reading it. A Gwuap-branded X account is the real fix
+  and hasn't been done.
+
 ### The pitch, and what it deliberately avoids
 
 No guarantees, no win rates, no implied edge, no money anyone could make.
