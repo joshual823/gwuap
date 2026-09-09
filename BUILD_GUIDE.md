@@ -1740,6 +1740,34 @@ low means more traffic burns the ad budget faster.
 
 ---
 
+## A button that does nothing (9 Sep 2026)
+
+"When I press Create the challenge, nothing happens." It was disabled,
+and **there was no `.btn:disabled` rule in the stylesheet at all** — so
+every disabled button on the site looked exactly like a working one.
+Pressing it did nothing and said nothing, which reads as the site being
+broken rather than as the form being unfinished.
+
+Two lessons, both wider than the one form:
+
+- **A disabled control has to look disabled**, and ideally say why. The
+  challenge form now names the missing step under the button — no
+  league, no game, or no side chosen.
+- **The form was wrong to be disabled at all.** It required a posted
+  book price to build a side, and plenty of fixtures carry none; the
+  picker offered them anyway. A head-to-head on who wins needs two teams
+  and nothing else, so a game with no market now offers the two teams
+  directly. It also refuses a game that has already started, rather than
+  creating a challenge nobody can win.
+
+Also fixed alongside: the post form said a game "started 202 minutes
+ago". `humanDuration()` in `lib/time.ts` says "3 hours 22 minutes" —
+minutes below an hour, minutes alongside hours up to six, then hours,
+days, weeks. `timeAgo` is unchanged; it's the compact form for the corner
+of a card, and this is the one that goes in a sentence.
+
+---
+
 ## Advertising
 
 Nothing has run yet. This section exists so that when something does, the

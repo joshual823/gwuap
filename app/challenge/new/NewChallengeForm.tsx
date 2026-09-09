@@ -43,15 +43,46 @@ export default function NewChallengeForm({ userId, categories }: {
   const [query, setQuery] = useState('')
   const [game, setGame] = useState<Slim | null>(null)
   const [market, setMarket] = useState<Market | null>(null)
+  // Which team, when the game has no posted prices to pick a side from.
+  const [team, setTeam] = useState<'away' | 'home' | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const mine = game && market ? sideFromMarket(game, market) : null
+  /**
+   * A side, from a posted price if there is one and from the two teams
+   * if there isn't.
+   *
+   * Requiring a price was wrong, and silently so: plenty of fixtures
+   * carry no market, the form offered them anyway, and choosing one left
+   * the button disabled with nothing said. A head-to-head on who wins
+   * needs two teams and nothing else — the score settles it whether or
+   * not a book ever put a number on it.
+   */
+  const mine: Side | null =
+    game && market ? sideFromMarket(game, market)
+    : game && team ? {
+        bet_type: 'moneyline',
+        tag: `$${game[team].code}`,
+        tag2: `$${game[team === 'away' ? 'home' : 'away'].code}`,
+        sentiment: 'backing',
+        line: null,
+      }
+    : null
   const theirs = mine ? opposingSide(mine) : null
+
+  // Picks have to be in before the start, so a challenge on a game
+  // already under way can never be graded. Said here rather than
+  // discovered later by two people waiting for a result.
+  const started = game?.startsAt ? Date.parse(game.startsAt) <= Date.now() : false
+
+  function chooseGame(g: Slim, m: Market | null) {
+    setGame(g); setMarket(m); setTeam(null); setError(null)
+  }
 
   async function create(e: React.FormEvent) {
     e.preventDefault()
-    if (!game || !market || !mine || !theirs) return
+    if (!game || !mine || !theirs) return
+    if (started) { setError('That game has already started.'); return }
     const categoryId = categories.find(c => c.name === game.league)?.id
     if (categoryId === undefined) {
       setError(`No category for ${game.league} — that's a bug worth reporting.`)
@@ -66,7 +97,12 @@ export default function NewChallengeForm({ userId, categories }: {
     const { data: post, error: postError } = await supabase.from('posts').insert({
       author_id: userId, category_id: categoryId, post_kind: 'pick',
       tag: mine.tag, tag2: mine.tag2, sentiment: mine.sentiment, bet_type: mine.bet_type,
-      line: mine.line, odds: market.odds, odds_source: 'book', odds_book: game.book ?? null,
+      line: mine.line,
+      // Only claim a book price when there was one. A challenge built
+      // from two team names has no price and shouldn't pretend to.
+      odds: market?.odds ?? null,
+      odds_source: market ? 'book' : null,
+      odds_book: market ? game.book ?? null : null,
       money_public: true, game_id: game.id, game_league: game.league,
       game_starts_at: game.startsAt,
       caption: `Head to head: I've got ${describe(mine)}. Who wants the other side?`,
@@ -81,7 +117,7 @@ export default function NewChallengeForm({ userId, categories }: {
       bet_type: theirs.bet_type, line: theirs.line,
       opponent_tag: theirs.tag, opponent_tag2: theirs.tag2,
       opponent_sentiment: theirs.sentiment,
-      opponent_odds: market.odds, odds_book: game.book ?? null,
+      opponent_odds: market?.odds ?? null, odds_book: market ? game.book ?? null : null,
       category_id: categoryId,
     }).select('code').single()
 
@@ -117,13 +153,42 @@ export default function NewChallengeForm({ userId, categories }: {
               league={league}
               query={query}
               selectedGameId={game?.id ?? null}
-              onSelect={(g, m) => { setGame(g); setMarket(m) }}
-              onSelectGame={g => { setGame(g); setMarket(null) }}
+              onSelect={(g, m) => chooseGame(g, m)}
+              onSelectGame={g => chooseGame(g, null)}
             />
           </>
         )}
 
-        {mine && theirs && (
+        {/* No posted price, so the side is chosen by naming a team. */}
+        {game && !market && !started && (
+          <>
+            <label className="form-label">Which side are you taking?</label>
+            <p className="rec-note">
+              No posted prices on this one, so this is a straight head-to-head on
+              who wins. It still grades itself from the final score.
+            </p>
+            <div className="ch-teams">
+              {(['away', 'home'] as const).map(which => (
+                <button key={which} type="button"
+                  className={`ch-team ${team === which ? 'active' : ''}`}
+                  onClick={() => setTeam(which)}>
+                  {game[which].label || game[which].code}
+                  <span className="ch-team-sub">{which === 'away' ? 'away' : 'home'}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {started && (
+          <p className="form-warn">
+            This game has already started, so a pick on it can&apos;t be graded —
+            and a challenge nobody can win isn&apos;t worth sending. Pick one that
+            hasn&apos;t kicked off.
+          </p>
+        )}
+
+        {mine && theirs && !started && (
           <div className="ch-preview">
             <div className="ch-side">
               <span className="ch-who">You take</span>
@@ -137,9 +202,19 @@ export default function NewChallengeForm({ userId, categories }: {
           </div>
         )}
 
-        <button className="btn" type="submit" disabled={saving || !mine} style={{ marginTop: 14 }}>
+        <button className="btn" type="submit" disabled={saving || !mine || started}
+          style={{ marginTop: 14 }}>
           {saving ? 'Creating…' : 'Create the challenge'}
         </button>
+        {/* Why the button won't move, rather than a button that does
+            nothing when pressed. */}
+        {!mine && !started && (
+          <p className="rec-note" style={{ marginTop: 8 }}>
+            {!league ? 'Choose a league to start.'
+              : !game ? 'Pick the game you want to take a side on.'
+              : 'Choose which side you’re taking.'}
+          </p>
+        )}
         {error && <p style={{ color: 'var(--bear)', fontSize: 13, marginTop: 10 }}>{error}</p>}
       </form>
 

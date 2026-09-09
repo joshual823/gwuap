@@ -9,6 +9,7 @@ import { wordsFor } from '@/lib/sportWords'
 import { periodTotalLine, PERIOD_TOTAL_SHARE, LATE_ENTRY_GRACE_MS, GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
+import { humanDuration } from '@/lib/time'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
   parseAmericanOdds, profitOnWin, payoutOnWin, formatUsd,
@@ -603,7 +604,7 @@ export default function NewPickForm() {
         {/* Said before posting, not discovered afterwards. */}
         {kind === 'pick' && gameId && tooLate && (
           <p className="form-warn">
-            This {words.event} started {minutesIn} minutes ago, so the pick{' '}
+            This {words.event} started {humanDuration(minutesIn ?? 0)} ago, so the pick{' '}
             <strong>won&apos;t be graded</strong> and won&apos;t count toward your
             record or the leaderboard. Picks count if they&apos;re in within five
             minutes of the start. You can still post it as an opinion.
