@@ -30,9 +30,20 @@ const NEWS_EVERY = 5
 export default async function FeedPage(props: {
   searchParams: Promise<Record<string, string | undefined>>
 }) {
-  await props.searchParams
+  const search = await props.searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Who this person follows. Read whatever the view, because the toggle
+  // only makes sense to offer once they follow somebody — showing
+  // "Following" to an account that follows nobody is an empty tab and a
+  // dead end.
+  const { data: followRows } = user
+    ? await supabase.from('follows').select('following_id').eq('follower_id', user.id)
+    : { data: null }
+  const followingIds: string[] = (followRows ?? []).map((f: any) => f.following_id)
+  const canFilter = followingIds.length > 0
+  const onlyFollowing = canFilter && search.view === 'following'
 
   // What this person follows, if they said. A logged-out visitor has no
   // preferences to read and gets the default mix, which is the point of
@@ -53,6 +64,12 @@ export default async function FeedPage(props: {
   }
 
   const tabs = <FeedTabs active="home" />
+  const viewSwitch = canFilter ? (
+    <div className="view-switch">
+      <Link href="/feed" className={`view-opt ${onlyFollowing ? '' : 'active'}`}>Everyone</Link>
+      <Link href="/feed?view=following" className={`view-opt ${onlyFollowing ? 'active' : ''}`}>Following</Link>
+    </div>
+  ) : null
 
   // News needs no account. It's the one thing a cold visitor can actually
   // look at, which is the entire reason it exists — gating it behind
@@ -93,13 +110,25 @@ export default async function FeedPage(props: {
     query = query.not('author_id', 'in', `(${blockedIds.join(',')})`)
   }
 
+  // The whole point of Following is that it's only the people you chose,
+  // so the house model is in it exactly when somebody has chosen to
+  // follow the house model.
+  if (onlyFollowing) {
+    query = query.in('author_id', followingIds)
+  }
+
   const { data: rawPosts } = await query
 
   // People first, the model at a fixed ratio behind them. Ordering by
   // date alone handed the whole timeline to the house account, which
   // posts every few hours against a handful of people posting every few
   // days — see lib/feed.ts.
-  const posts = arrangeFeed(rawPosts ?? []).slice(0, FEED_SIZE)
+  // Only the everyone-feed needs rebalancing. Following is whoever you
+  // picked, in the order they posted — reordering someone's own choices
+  // would be presumptuous, and the model can't crowd a list it isn't on.
+  const posts = onlyFollowing
+    ? (rawPosts ?? []).slice(0, FEED_SIZE)
+    : arrangeFeed(rawPosts ?? []).slice(0, FEED_SIZE)
 
   const shaped = (posts ?? []).map((p: any) => ({
     ...p,
@@ -227,11 +256,18 @@ export default async function FeedPage(props: {
 
         <NewsRail items={newsTeaser} />
 
+        {/* Sits directly above the timeline it changes, rather than up
+            with Home/Sports — those switch pages, this switches what one
+            page is showing. */}
+        {viewSwitch}
+
         {shaped.length === 0 && (
           <p style={{ color: 'var(--ink-dim)', marginTop: 16 }}>
-            {user
-              ? 'No picks yet. Be the first to post one.'
-              : 'No picks posted yet — the games above are live either way.'}
+            {onlyFollowing
+              ? 'Nobody you follow has posted yet. The everyone feed is still there.'
+              : user
+                ? 'No picks yet. Be the first to post one.'
+                : 'No picks posted yet — the games above are live either way.'}
           </p>
         )}
         {/* A headline after every fifth pick. The timeline is thin while

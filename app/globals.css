@@ -1206,3 +1206,17 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 /* The record block is the one people want to open, so it says so. */
 .stat-link { color: inherit; }
 .stat-link .stat-label { color: var(--brand); }
+
+/* Everyone / Following. A segmented switch rather than another row of
+   tabs: Home and Sports change page, this changes what one page shows,
+   and making them look alike would say they were the same kind of
+   choice. */
+.view-switch {
+  display: inline-flex; gap: 2px; padding: 2px; margin: 14px 0 4px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+}
+.view-opt {
+  padding: 6px 15px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  color: var(--ink-dim);
+}
+.view-opt.active { background: var(--card-2); color: var(--ink); box-shadow: 0 1px 2px var(--shadow); }
