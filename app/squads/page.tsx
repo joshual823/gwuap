@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import FeedTabs from '@/components/FeedTabs'
 import Avatar from '@/components/Avatar'
@@ -10,15 +9,23 @@ export const metadata = { title: 'Squads' }
 /**
  * Every squad, with the ones you're in first.
  *
- * Signed-in only. A squad list is a list of rooms you could walk into,
- * which is meaningless to somebody who can't walk into any of them —
- * and the rooms themselves are members-only, so a logged-out visitor
- * would be reading a menu they can't order from.
+ * Signed in, that's the page. Logged out it used to redirect to /login,
+ * on the reasoning that a list of rooms you can't enter is a menu you
+ * can't order from. That reasoning is still right about the *list* and
+ * wrong about the page, and paid traffic is what exposed the difference:
+ * an ad for squad rooms landed a stranger on a bare login form, which is
+ * the same broken promise as an ad for a prize that no longer exists.
+ *
+ * `/squads/[slug]` already settled this for a single room — "sending them
+ * to a login wall first would mean signing up to find out what you were
+ * signing up to". The index now does what that page does: say what a
+ * squad is, then offer the door. The list still isn't shown, because
+ * that part of the old reasoning holds.
  */
 export default async function SquadsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/squads')
+  if (!user) return <SquadsIntro />
 
   const [{ data: squads }, { data: mine }] = await Promise.all([
     supabase.from('squads').select('id, slug, name, description, avatar_url, created_at')
@@ -88,6 +95,51 @@ export default async function SquadsPage() {
       ) : (
         <div className="squad-list">{rest.map(s => <Card key={s.id} s={s} member={false} />)}</div>
       )}
+    </div>
+  )
+}
+
+/**
+ * What a squad is, for somebody who isn't signed in — an ad's landing
+ * page as much as a page. Every claim on it is a thing the room actually
+ * does: members-only is enforced by RLS, the grading is the site's, and
+ * the table is `standings` over the members' settled picks.
+ *
+ * "We never ask for a card" rather than "nothing to deposit": cold
+ * landing pages get the plain wording, because the flagged vocabulary
+ * scores the same whether it affirms or denies.
+ */
+function SquadsIntro() {
+  return (
+    <div className="legal">
+      <h1 className="page-title">Squads</h1>
+      <p className="legal-sub">Your group, in a room of its own.</p>
+
+      <p style={{ fontSize: 14, lineHeight: 1.6 }}>
+        Everyone in the group chat has an opinion every weekend and nobody
+        writes any of it down. A squad is that group with a room of its own
+        and a table that keeps itself.
+      </p>
+
+      <ul className="welcome-points" style={{ marginTop: 18 }}>
+        <li><strong>Members only.</strong> What&apos;s said in the room stays in
+          the room — nobody outside it can read a word.</li>
+        <li><strong>The final score settles it.</strong> Everyone&apos;s picks
+          are graded from the scoreboard. Nobody grades their own, and nothing
+          can be edited once a game starts.</li>
+        <li><strong>The table sorts itself.</strong> No more arguing about who
+          called what in October.</li>
+      </ul>
+
+      <p style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+        <Link href="/signup?next=/squads/new" className="btn">Start a squad</Link>
+        <Link href="/login?next=/squads" className="btn secondary">Log in</Link>
+      </p>
+
+      <p className="rec-foot">
+        Free to join and we never ask for a card. We&apos;re not a sportsbook
+        and don&apos;t take bets. <Link href="/help" className="help-link">How it works</Link>
+      </p>
     </div>
   )
 }

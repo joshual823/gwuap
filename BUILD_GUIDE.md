@@ -1905,6 +1905,31 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### /squads had no door for a stranger (10 Sep 2026)
+
+Planning a campaign for the squad rooms turned up the thing that would
+have wasted it: **`/squads` redirected logged-out visitors to `/login`.**
+An ad for squad rooms would have paid for a click and delivered a bare
+login form — the same broken promise as an ad for a prize that no longer
+exists, just quieter.
+
+The old reasoning was written down and half right: a list of rooms you
+can't enter is a menu you can't order from. That's true of the *list*,
+and it says nothing about the *page*. `/squads/[slug]` had already
+settled the same question for a single room — its comment reads "sending
+them to a login wall first would mean signing up to find out what you
+were signing up to" — so the index now does what the room page does: says
+what a squad is, then offers the door. The list itself still isn't shown
+to strangers, because that part of the old reasoning holds.
+
+Every claim on it is one the room actually keeps: members-only is
+enforced by RLS, the grading is the site's own, and the table is
+`standings` over the members' settled picks.
+
+**Deploy this before the squad campaign runs.** The ad points at
+`gwuap.co/squads`, and until `main` is pushed that URL is still a login
+redirect in production.
+
 ### The Reddit campaign had been running for six days (10 Sep 2026)
 
 **It was live the whole time this file said nothing had been advertised.**
