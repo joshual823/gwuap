@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { fetchClips, CLIP_FEEDS } from '@/lib/clips'
 import { cleanPreferences } from '@/lib/preferences'
 import FeedTabs from '@/components/FeedTabs'
+import InlineClip from '@/components/InlineClip'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Highlights' }
@@ -33,16 +34,7 @@ export default async function ClipsPage() {
         </p>
       ) : (
         <div className="clip-grid">
-          {clips.map(c => (
-            <Link key={c.id} href={`/clips/${c.id}`} className="clip-card clip-tile">
-              <span className="clip-thumb">
-                {c.thumbnail ? <img src={c.thumbnail} alt="" loading="lazy" /> : <span className="clip-thumb-blank" />}
-                <span className="clip-play">▶</span>
-              </span>
-              <span className="clip-league">{c.league}</span>
-              <span className="clip-title">{c.title}</span>
-            </Link>
-          ))}
+          {clips.map(c => <InlineClip key={c.id} clip={c} className="clip-tile" />)}
         </div>
       )}
     </div>

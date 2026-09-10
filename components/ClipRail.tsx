@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import InlineClip from '@/components/InlineClip'
 import type { Clip } from '@/lib/clips'
 
 /**
@@ -20,18 +21,7 @@ export default function ClipRail({ clips }: { clips: Clip[] }) {
       </div>
       <div className="board-rail">
         <div className="board-track">
-          {clips.map(c => (
-            <Link key={c.id} href={`/clips/${c.id}`} className="clip-card">
-              <span className="clip-thumb">
-                {c.thumbnail
-                  ? <img src={c.thumbnail} alt="" loading="lazy" />
-                  : <span className="clip-thumb-blank" />}
-                <span className="clip-play">▶</span>
-              </span>
-              <span className="clip-league">{c.league}</span>
-              <span className="clip-title">{c.title}</span>
-            </Link>
-          ))}
+          {clips.map(c => <InlineClip key={c.id} clip={c} />)}
         </div>
       </div>
     </div>

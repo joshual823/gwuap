@@ -1726,6 +1726,28 @@ type added later quietly produces "Someone did something."
   emoji, which rendered differently on every OS. Messages is a paper
   plane — an envelope reads as email.
 
+**Built eighth: clips play in place, squads have a picture (046), and
+the `$` autocomplete knows what's on.**
+
+- **No autoplay, deliberately.** Facebook and X autoplay their own MP4s —
+  a few hundred KB they host. These are YouTube iframes, about a megabyte
+  of player each before a single frame. Four starting on their own would
+  cost a phone its battery and its data to show four thumbnails. The
+  player is built on the first tap instead: nothing but an image loads
+  until somebody asks, and then it starts with sound, because the tap is
+  the permission browsers otherwise make you earn by muting.
+- **Squad pictures (046).** The column, plus a **column-scoped** UPDATE
+  grant: 042's policy was row-level and never named columns, so an owner
+  could have rewritten their squad's slug — the thing every link already
+  sent points at. Files go through the existing `/api/avatar`, which now
+  checks the caller owns the squad.
+- **`$` suggests teams that are actually playing**, live first, then
+  soonest kick-off, then the curated list. A cashtag typed into a room is
+  nearly always about a fixture, and a static list can't tell July from
+  ten minutes before first pitch. A bare `$` still offers nothing — with
+  every tennis draw in the window, the six soonest fixtures are not a
+  useful answer to a question nobody has finished asking.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their

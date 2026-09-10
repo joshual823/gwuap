@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import FeedTabs from '@/components/FeedTabs'
+import Avatar from '@/components/Avatar'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Squads' }
@@ -20,7 +21,7 @@ export default async function SquadsPage() {
   if (!user) redirect('/login?next=/squads')
 
   const [{ data: squads }, { data: mine }] = await Promise.all([
-    supabase.from('squads').select('id, slug, name, description, created_at')
+    supabase.from('squads').select('id, slug, name, description, avatar_url, created_at')
       .order('created_at', { ascending: false }).limit(50),
     supabase.from('squad_members').select('squad_id').eq('user_id', user.id),
   ])
@@ -39,6 +40,7 @@ export default async function SquadsPage() {
   const Card = ({ s, member }: { s: any; member: boolean }) => (
     <Link href={`/squads/${s.slug}`} className="squad-card" key={s.id}>
       <div className="squad-card-top">
+        <Avatar url={s.avatar_url} size={30} name={s.name} />
         <span className="squad-name">{s.name}</span>
         {member && <span className="squad-badge">Joined</span>}
       </div>

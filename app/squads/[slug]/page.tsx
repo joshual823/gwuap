@@ -5,6 +5,7 @@ import Avatar from '@/components/Avatar'
 import SquadChat from '@/components/SquadChat'
 import SquadMembership from './SquadMembership'
 import SquadInvite from './SquadInvite'
+import SquadPicture from './SquadPicture'
 import { SITE_URL, SITE_NAME } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +30,7 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: squad } = await supabase
-    .from('squads').select('id, slug, name, description, owner_id, created_at')
+    .from('squads').select('id, slug, name, description, owner_id, avatar_url, created_at')
     .eq('slug', slug.toLowerCase()).maybeSingle()
   if (!squad) notFound()
 
@@ -73,7 +74,11 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
       <p className="rec-back"><Link href="/squads" className="help-link">← Squads</Link></p>
 
       <div className="squad-head">
-        <h1 className="display" style={{ fontSize: 22 }}>{squad.name}</h1>
+        <span className="squad-title">
+          <SquadPicture squadId={squad.id} name={squad.name}
+            url={squad.avatar_url} canEdit={isOwner} />
+          <h1 className="display" style={{ fontSize: 22 }}>{squad.name}</h1>
+        </span>
         <SquadMembership squadId={squad.id} userId={user.id} isMember={isMember} isOwner={isOwner} />
       </div>
       {squad.description && (

@@ -9,10 +9,17 @@ import { squareResize, MAX_SOURCE_BYTES } from './image'
  * policy nobody can read back.
  *
  * Returns a message rather than throwing, because every caller wants to
- * show it: both places that upload one treat a failed picture as
+ * show it: every place that uploads one treats a failed picture as
  * something to mention, not something to lose an account over.
+ *
+ * `squadId` sets a squad's picture instead of the caller's own. The
+ * server checks the caller owns that squad; this only says which one is
+ * meant.
  */
-export async function uploadAvatar(file: File): Promise<{ url: string } | { error: string }> {
+export async function uploadAvatar(
+  file: File,
+  opts: { squadId?: string } = {},
+): Promise<{ url: string } | { error: string }> {
   if (!file.type.startsWith('image/')) return { error: 'That file isn’t an image.' }
   if (file.size > MAX_SOURCE_BYTES) return { error: 'That image is enormous — try one under 25MB.' }
 
@@ -25,6 +32,7 @@ export async function uploadAvatar(file: File): Promise<{ url: string } | { erro
 
   const form = new FormData()
   form.append('file', new File([resized], 'avatar.jpg', { type: 'image/jpeg' }))
+  if (opts.squadId) form.append('squad', opts.squadId)
 
   try {
     const res = await fetch('/api/avatar', { method: 'POST', body: form })

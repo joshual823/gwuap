@@ -4,6 +4,7 @@ import { fetchClips, embedFor, watchOn } from '@/lib/clips'
 import { createClient } from '@/lib/supabaseServer'
 import ClipComments from '@/components/ClipComments'
 import ShareRow from '@/components/ShareRow'
+import InlineClip from '@/components/InlineClip'
 import { SITE_URL } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'
@@ -65,16 +66,7 @@ export default async function ClipPage({ params }: { params: Promise<{ id: strin
         <>
           <h2 className="rec-h2" style={{ marginTop: 26 }}>More highlights</h2>
           <div className="clip-grid">
-            {rest.map(c => (
-              <Link key={c.id} href={`/clips/${c.id}`} className="clip-card clip-tile">
-                <span className="clip-thumb">
-                  {c.thumbnail ? <img src={c.thumbnail} alt="" loading="lazy" /> : <span className="clip-thumb-blank" />}
-                  <span className="clip-play">▶</span>
-                </span>
-                <span className="clip-league">{c.league}</span>
-                <span className="clip-title">{c.title}</span>
-              </Link>
-            ))}
+            {rest.map(c => <InlineClip key={c.id} clip={c} className="clip-tile" />)}
           </div>
         </>
       )}

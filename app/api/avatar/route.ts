@@ -29,10 +29,13 @@ export async function POST(req: Request) {
   }
 
   let file: File | null = null
+  let squadId: string | null = null
   try {
     const form = await req.formData()
     const value = form.get('file')
     if (value instanceof File) file = value
+    const squad = form.get('squad')
+    if (typeof squad === 'string' && squad) squadId = squad
   } catch {
     return Response.json({ error: 'Could not read that upload.' }, { status: 400 })
   }
@@ -44,6 +47,20 @@ export async function POST(req: Request) {
     return Response.json({ error: 'That image is too large.' }, { status: 400 })
   }
 
+  const admin = createAdminClient()
+
+  // A squad picture is the owner's to set, and only the owner's. Checked
+  // here rather than left to a storage policy, because a policy can only
+  // refuse the write — it can't say which squad the caller meant.
+  if (squadId !== null) {
+    const { data: squad } = await admin
+      .from('squads').select('id, owner_id').eq('id', squadId).maybeSingle()
+    if (!squad) return Response.json({ error: 'No such squad.' }, { status: 404 })
+    if (squad.owner_id !== user.id) {
+      return Response.json({ error: 'Only the owner can change a squad picture.' }, { status: 403 })
+    }
+  }
+
   // The path is built from the session, never from the request body.
   //
   // One file per account rather than one per upload. A timestamped name
@@ -52,8 +69,11 @@ export async function POST(req: Request) {
   // it — the only limit was patience. Overwriting caps it at one file
   // per person; the version below is what stops the browser showing the
   // old picture from cache.
-  const path = `${user.id}/avatar.jpg`
-  const admin = createAdminClient()
+  // A squad's file is named for the squad, still under a folder the
+  // session owns, so one account can't fill the bucket by uploading on
+  // behalf of squads it doesn't own — the check above already refused
+  // that, and this makes it true of the path as well.
+  const path = squadId ? `${user.id}/squad-${squadId}.jpg` : `${user.id}/avatar.jpg`
   const { error } = await admin.storage
     .from('avatars')
     .upload(path, file, { upsert: true, contentType: 'image/jpeg' })

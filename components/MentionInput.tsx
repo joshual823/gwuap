@@ -61,14 +61,40 @@ export default function MentionInput({
           insert: `@${u.username}`, label: `@${u.username}`, detail: u.display_name ?? '',
         })))
       } else {
-        // Curated tickers across every league, then anything posted before.
+        // Teams with a game on now or coming up, first. A cashtag typed
+        // into a room is nearly always about a fixture, and a curated
+        // list can't tell July from ten minutes before first pitch.
+        const base: Suggestion[] = []
+        const seen = new Set<string>()
+        // A bare "$" offers nothing, as before. With every tennis draw in
+        // the window there are hundreds of competitors playing today, and
+        // the six soonest are not a useful answer to a question nobody
+        // has finished asking.
+        try {
+          if (q.length < 1) throw new Error('nothing typed yet')
+          const res = await fetch(`/api/playing?q=${encodeURIComponent(q)}`)
+          if (res.ok) {
+            const { teams } = await res.json()
+            for (const t of (teams ?? []) as { code: string; detail: string }[]) {
+              if (seen.has(t.code)) continue
+              seen.add(t.code)
+              base.push({ insert: `$${t.code}`, label: `$${t.code}`, detail: t.detail })
+            }
+          }
+        } catch {
+          // The list below still works. A dead scoreboard shouldn't take
+          // the autocomplete with it.
+        }
+        if (cancelled) return
+
+        // Then the curated list, for anyone not playing today.
         const curated = q
-          ? TICKERS.filter(t => t.code.startsWith(q.toUpperCase())).slice(0, 5)
+          ? TICKERS.filter(t => t.code.startsWith(q.toUpperCase()) && !seen.has(t.code)).slice(0, 5)
           : []
-        const seen = new Set(curated.map(t => t.code))
-        const base: Suggestion[] = curated.map(t => ({
-          insert: `$${t.code}`, label: `$${t.code}`, detail: t.name,
-        }))
+        for (const t of curated) {
+          seen.add(t.code)
+          base.push({ insert: `$${t.code}`, label: `$${t.code}`, detail: t.name })
+        }
         if (q.length >= 2) {
           const supabase = createClient()
           const { data } = await supabase
