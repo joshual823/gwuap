@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 type Gif = { id: string; preview: string; url: string; description: string }
 
 /**
- * Tenor's library, in a panel.
+ * GIPHY's library, in a panel.
  *
  * Nothing is uploaded and nothing is stored: picking one posts a link to
- * Tenor's copy. The search goes through our own route so the key stays
- * on the server, and Tenor's strictest content filter is applied there.
+ * GIPHY's copy. The search goes through our own route so the key stays
+ * on the server, and the content rating is applied there where the
+ * caller can't change it.
  *
  * With no key set the panel says so instead of sitting empty, because an
  * empty grid looks like a broken feature rather than an unconfigured one.
@@ -51,7 +52,7 @@ export default function GifPicker({ onPick, onClose }: {
 
       {!configured ? (
         <p className="rec-note">
-          GIFs aren&apos;t switched on — TENOR_API_KEY isn&apos;t set.
+          GIFs aren&apos;t switched on — GIPHY_API_KEY isn&apos;t set.
         </p>
       ) : loading && gifs.length === 0 ? (
         <p className="rec-note">Looking…</p>
@@ -68,7 +69,7 @@ export default function GifPicker({ onPick, onClose }: {
           ))}
         </div>
       )}
-      <p className="gif-credit">GIFs via Tenor</p>
+      <p className="gif-credit">Powered by GIPHY</p>
     </div>
   )
 }

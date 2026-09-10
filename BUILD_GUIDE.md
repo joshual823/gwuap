@@ -1809,11 +1809,20 @@ matching `USERNAME_RE`, and escaping in `lib/digest.ts` and
 
 **Built eleventh: pictures and GIFs in squad rooms (048).**
 
-GIFs come from **Tenor**, proxied through `/api/gifs` so the key stays on
-the server, with `contentfilter=high`. Inert without `TENOR_API_KEY` —
-the picker says it isn't switched on rather than sitting empty, because
-an empty grid reads as broken rather than unconfigured. **Get the key
-from the Google Cloud console** (same place as `YOUTUBE_API_KEY`).
+GIFs come from **GIPHY**, proxied through `/api/gifs` so the key stays on
+the server, with `rating=pg` applied there where a caller can't change
+it. Inert without `GIPHY_API_KEY` — the picker says it isn't switched on
+rather than sitting empty, because an empty grid reads as broken rather
+than unconfigured. Key from **developers.giphy.com**, free tier, and
+their terms require the "Powered by GIPHY" mark stays visible.
+
+**This was built against Tenor first, and that was a mistake worth
+recording. Tenor stopped accepting new API clients in January 2026** and
+carries a service-discontinuation notice — the integration was written
+before anybody checked whether a key could still be had. **Check that an
+API is open before building on it.** Migration 048's column comment still
+says "Tenor" and means GIPHY; correct it in the next migration that runs
+for another reason rather than asking for a run just for a comment.
 
 Uploads go through `/api/squad-image`, which checks membership before
 writing — a private room whose pictures aren't private is worse than a
