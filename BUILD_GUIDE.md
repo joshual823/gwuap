@@ -1905,6 +1905,44 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### Showing the leaderboard instead of describing it (10 Sep 2026)
+
+`/squads` now leads with the thing rather than a sentence about it: a
+three-row leaderboard, built from the same `rec-table` and
+`squad-board-row` classes the real one uses, so it's the component with
+sample rows in it rather than a picture that will drift out of date.
+
+**It's labelled EXAMPLE and the top row is `@you`.** This site's only
+claim is that its numbers are real. A convincing fake leaderboard that
+could be mistaken for a live one would cost more than it buys.
+
+**No profit column, and that's the whole point of the entry.** The real
+leaderboard has one and keeps it. On this page it would read
+`@you +$248` to somebody who arrived from an ad, which is an implied
+earnings claim — the one thing the ad doctrine rules out flat: *no
+guarantees, no win rates, no implied edge, no money anyone could make*.
+The record is the product; the dollar figure is the part that sounds like
+a promise. The preview shows record and win rate and stops there.
+
+Also on the page: step three now says **Post picks**, because a visitor
+could otherwise reach the button without learning what you actually do
+here; the step numbers are filled brand chips rather than tinted
+circles, since the steps are what a skimmer reads; and one line says a
+group can come over from Discord or a group chat.
+
+**That line says "bring", never "import".** There is no Discord
+integration and no Polymarket one. An ad promising an import that doesn't
+exist is the $300-contest mistake wearing a different hat — and the true
+version carries the same benefit anyway, because what the reader wants to
+know is that moving their group is easy, not that an API exists.
+
+**Naming Polymarket was considered and dropped.** Printing another
+company's brand on our page implies a relationship, which is the exact
+reasoning that took DraftKings off the front page on the same day. Discord
+and iMessage survive as generic descriptions of where a group already
+talks; a prediction market named on a page under a gambling flag is a
+different kind of risk again.
+
 ### "Table" is a word this audience doesn't use (10 Sep 2026)
 
 The squad leaderboard was called **the table** everywhere — in the copy,

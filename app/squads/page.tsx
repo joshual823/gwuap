@@ -141,11 +141,61 @@ function SquadsIntro() {
       </p>
       <p className="squads-micro">Free · we never ask for a card</p>
 
+      {/* The payoff, before the instructions. Telling somebody a
+          leaderboard keeps itself is a sentence; showing them one is the
+          product. Built from the same `rec-table` / `squad-board-row`
+          classes the real leaderboard uses, so it isn't an artist's
+          impression — it's the component, with sample rows in it.
+
+          Labelled EXAMPLE and the first row is @you. This site's whole
+          claim is that its numbers are real, so a fake leaderboard that
+          could be mistaken for a live one would cost more than it buys. */}
+      <figure className="squads-preview">
+        <figcaption>
+          Your squad&apos;s leaderboard <span className="squads-tag">example</span>
+        </figcaption>
+        <div className="rec-table">
+          {/* Record and win rate, and deliberately no profit column.
+              The real leaderboard has one and keeps it. Here it would
+              read "@you  +$248" to a stranger who arrived from an ad,
+              which is an implied earnings claim — the one thing the ad
+              doctrine rules out flat ("no win rates, no implied edge, no
+              money anyone could make"). The record is the product; the
+              dollar figure is the part that sounds like a promise. */}
+          {[
+            { rank: 1, who: 'you', wl: '12-7', pct: '63%' },
+            { rank: 2, who: 'dave', wl: '9-10', pct: '47%' },
+            { rank: 3, who: 'marcus', wl: '4-11', pct: '27%' },
+          ].map(r => (
+            <div className="rec-row squad-board-row" key={r.who}>
+              <span className="lb-rank">{r.rank}</span>
+              <span className="rec-label squad-board-who">
+                <Avatar url={null} size={22} name={r.who} />@{r.who}
+              </span>
+              <span className="rec-wl mono">{r.wl}</span>
+              <span className="rec-pct mono">{r.pct}</span>
+            </div>
+          ))}
+        </div>
+      </figure>
+
       <ol className="squads-steps">
         <li><span className="squads-num">1</span> Start a squad</li>
         <li><span className="squads-num">2</span> Invite your group</li>
-        <li><span className="squads-num">3</span> Every pick graded on your leaderboard</li>
+        <li><span className="squads-num">3</span> Post picks &mdash; the final score grades them</li>
       </ol>
+
+      {/* "Bring your group" and not "import your Discord".
+          There is no Discord integration and no Polymarket one, and this
+          site's entire pitch is that it doesn't overstate itself — an ad
+          promising an import that doesn't exist is the $300-contest
+          mistake wearing a different hat. What is true is that wherever
+          the group already talks, one link moves them, and that's the
+          benefit the reader actually wanted. */}
+      <p className="squads-bring">
+        Already have a group on Discord, iMessage or anywhere else?
+        One link brings them over.
+      </p>
 
       {/* The long answer, for whoever wants it. Closed by default: the
           people who need it will open it, and the people who don't were

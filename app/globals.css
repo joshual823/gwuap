@@ -1512,9 +1512,13 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   display: flex; flex-direction: column; gap: 12px; }
 .squads-steps li { display: flex; align-items: center; gap: 11px;
   font-size: 15px; color: var(--ink); line-height: 1.35; margin: 0; }
-.squads-num { flex: 0 0 auto; width: 23px; height: 23px; border-radius: 999px;
-  background: var(--tint-brand); color: var(--brand);
-  font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+/* Loud on purpose. A tinted circle with green-on-green numerals is a
+   decoration; a filled brand chip is a thing the eye lands on, and the
+   steps are what somebody skimming actually reads. */
+.squads-num { flex: 0 0 auto; width: 27px; height: 27px; border-radius: 999px;
+  background: var(--brand); color: var(--btn-ink);
+  font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 4px var(--tint-brand-soft); }
 
 .squads-more { border-top: 1px solid var(--line); padding-top: 14px; }
 .squads-more > summary { cursor: pointer; font-size: 14px; font-weight: 600;
@@ -1524,3 +1528,22 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-more[open] > summary { color: var(--ink); margin-bottom: 8px; }
 .squads-more[open] > summary::after { content: ' ↓'; }
 .squads-more > summary:hover { color: var(--ink); }
+
+/* The leaderboard preview. Reuses .rec-table and .squad-board-row, so
+   what a stranger sees here is the component they'll get, not a picture
+   of it — if the real one changes, this changes with it. */
+.squads-preview { margin: 0 0 24px; }
+.squads-preview figcaption { display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: var(--ink-faint);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.squads-tag { text-transform: uppercase; font-size: 9.5px; letter-spacing: 0.06em;
+  border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: var(--ink-faint); }
+/* Four columns, not five: the preview drops the profit column. */
+.squads-preview .rec-row { font-size: 13px; grid-template-columns: 20px 1fr auto 52px; }
+/* Nothing in here is a link, so the name column needs the body colour
+   back — .rec-label inherits a muted one meant for a row you can click. */
+.squads-preview .rec-label { color: var(--ink); }
+
+.squads-bring { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim);
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px 13px; margin: 0 0 22px; }
