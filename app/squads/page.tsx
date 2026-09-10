@@ -116,15 +116,23 @@ export default async function SquadsPage() {
  * no JavaScript and reads correctly to a screen reader.
  *
  * Every claim is still one the room actually keeps: members-only is
- * enforced by RLS, the grading is the site's, and the table is
+ * enforced by RLS, the grading is the site's, and the leaderboard is
  * `standings` over the members' settled picks.
+ *
+ * It says **leaderboard**, not "table". "The table" is a football-league
+ * word and this campaign runs at r/nfl, r/CFB, r/nba and r/mlb, where
+ * "leaderboard" is the word people already own. The page also has about
+ * two seconds to be understood, and a word the reader has to translate
+ * spends most of them. The squad page itself was renamed to match — a
+ * stranger who arrives on "leaderboard" and finds "The table" has to do
+ * the translation anyway, one screen later.
  */
 function SquadsIntro() {
   return (
     <div className="legal squads-intro">
       <h1 className="page-title">Squads</h1>
       <p className="squads-lead">
-        Your group chat, with a table that keeps itself.
+        Track your group&apos;s picks on a leaderboard that keeps itself.
       </p>
 
       <p className="squads-cta">
@@ -136,7 +144,7 @@ function SquadsIntro() {
       <ol className="squads-steps">
         <li><span className="squads-num">1</span> Start a squad</li>
         <li><span className="squads-num">2</span> Invite your group</li>
-        <li><span className="squads-num">3</span> The final score keeps the table</li>
+        <li><span className="squads-num">3</span> Every pick graded on your leaderboard</li>
       </ol>
 
       {/* The long answer, for whoever wants it. Closed by default: the

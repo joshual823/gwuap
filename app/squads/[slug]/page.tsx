@@ -142,7 +142,7 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
           group is actually right. Above the room on purpose — it's the
           reason to be in the squad rather than in a group chat. */}
       <section className="squad-board">
-        <h2 className="rec-h2">The table</h2>
+        <h2 className="rec-h2">Leaderboard</h2>
         <p className="rec-note">
           Graded from final scores. Under {MIN_GRADED_PICKS} settled picks is marked thin.
         </p>

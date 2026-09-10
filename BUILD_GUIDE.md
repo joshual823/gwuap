@@ -1905,6 +1905,24 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### "Table" is a word this audience doesn't use (10 Sep 2026)
+
+The squad leaderboard was called **the table** everywhere — in the copy,
+the heading and the comments. It's the right word for a football league
+and the wrong one here: the campaign runs at r/nfl, r/CFB, r/nba,
+r/mlb and the fantasy subs, where **leaderboard** is the word people
+already own. A landing page has about two seconds, and a word the reader
+has to translate spends most of them.
+
+So the lead now says *"Track your group's picks on a leaderboard that
+keeps itself"*, step three says *"Every pick graded on your
+leaderboard"*, and the heading on `/squads/[slug]` was renamed to match.
+Renaming only the landing page would have moved the translation one
+screen later instead of removing it.
+
+Nothing behind it changed — it's still `standings()` over the members'
+settled picks, and the room's record pills come from the same call.
+
 ### A green button with nothing written on it (10 Sep 2026)
 
 `.legal a { color: var(--brand) }` beat `.btn` on specificity and painted
