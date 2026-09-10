@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test:grade": "tsx lib/grade.test.ts",
-    "test": "tsx lib/grade.test.ts && tsx lib/preferences.test.ts && tsx lib/odds.test.ts && tsx lib/codes.test.ts && tsx lib/watch.test.ts && tsx lib/brand.test.ts && tsx lib/digest.test.ts && tsx lib/username.test.ts && tsx lib/grants.test.ts && tsx lib/feed.test.ts && tsx lib/record.test.ts && tsx lib/squad.test.ts && tsx lib/challenge.test.ts && tsx lib/clips.test.ts && tsx lib/time.test.ts && tsx lib/nudge.test.ts"
+    "test": "tsx lib/grade.test.ts && tsx lib/preferences.test.ts && tsx lib/odds.test.ts && tsx lib/codes.test.ts && tsx lib/watch.test.ts && tsx lib/brand.test.ts && tsx lib/digest.test.ts && tsx lib/username.test.ts && tsx lib/grants.test.ts && tsx lib/feed.test.ts && tsx lib/record.test.ts && tsx lib/squad.test.ts && tsx lib/challenge.test.ts && tsx lib/clips.test.ts && tsx lib/time.test.ts && tsx lib/nudge.test.ts && tsx lib/stickers.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

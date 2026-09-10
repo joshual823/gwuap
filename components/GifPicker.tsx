@@ -1,10 +1,23 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { STICKERS, stickerUrl } from '@/lib/stickers'
 
 type Gif = { id: string; preview: string; url: string; description: string }
 
 /**
- * GIPHY's library, in a panel.
+ * Reactions, and GIFs if a key ever appears.
+ *
+ * Two tabs, and the order matters: **Reactions is first and always
+ * works**. It's Google's openly-licensed animated emoji, served from
+ * their CDN — nothing to sign up for, nothing to store, no key to leak.
+ * That's there because both GIF services turned out to be a door that
+ * might not open: Tenor closed to new clients, and GIPHY's signup 404s.
+ *
+ * A feature that only works once somebody grants you a key is a feature
+ * that might never work, so the one that needs nothing is the default
+ * and the other is the upgrade.
+ *
+ * GIPHY's library, in the second tab.
  *
  * Nothing is uploaded and nothing is stored: picking one posts a link to
  * GIPHY's copy. The search goes through our own route so the key stays
@@ -18,6 +31,7 @@ export default function GifPicker({ onPick, onClose }: {
   onPick: (url: string, description: string) => void
   onClose: () => void
 }) {
+  const [tab, setTab] = useState<'reactions' | 'gifs'>('reactions')
   const [q, setQ] = useState('')
   const [gifs, setGifs] = useState<Gif[]>([])
   const [configured, setConfigured] = useState(true)
@@ -45,11 +59,36 @@ export default function GifPicker({ onPick, onClose }: {
   return (
     <div className="gif-panel">
       <div className="gif-head">
-        <input className="field" value={q} autoFocus placeholder="Search GIFs…"
-          onChange={e => setQ(e.target.value)} />
+        <div className="gif-tabs">
+          <button type="button" className={`gif-tab ${tab === 'reactions' ? 'active' : ''}`}
+            onClick={() => setTab('reactions')}>Reactions</button>
+          {/* Hidden entirely when there's no key. An empty tab is worse
+              than no tab — it looks like the thing is broken. */}
+          {configured && (
+            <button type="button" className={`gif-tab ${tab === 'gifs' ? 'active' : ''}`}
+              onClick={() => setTab('gifs')}>GIFs</button>
+          )}
+        </div>
         <button type="button" className="gif-close" onClick={onClose} aria-label="Close">✕</button>
       </div>
 
+      {tab === 'reactions' ? (
+        <>
+          <div className="gif-grid">
+            {STICKERS.map(s => (
+              <button key={s.code} type="button" className="gif-cell"
+                onClick={() => onPick(stickerUrl(s.code), s.label)}
+                title={s.label} aria-label={s.label}>
+                <img src={stickerUrl(s.code)} alt="" loading="lazy" />
+              </button>
+            ))}
+          </div>
+          <p className="gif-credit">Animated emoji by Google (Noto)</p>
+        </>
+      ) : (
+      <>
+      <input className="field" value={q} autoFocus placeholder="Search GIFs…"
+        style={{ marginTop: 8 }} onChange={e => setQ(e.target.value)} />
       {!configured ? (
         <p className="rec-note">
           GIFs aren&apos;t switched on — GIPHY_API_KEY isn&apos;t set.
@@ -70,6 +109,8 @@ export default function GifPicker({ onPick, onClose }: {
         </div>
       )}
       <p className="gif-credit">Powered by GIPHY</p>
+      </>
+      )}
     </div>
   )
 }

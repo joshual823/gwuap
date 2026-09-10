@@ -1816,13 +1816,27 @@ rather than sitting empty, because an empty grid reads as broken rather
 than unconfigured. Key from **developers.giphy.com**, free tier, and
 their terms require the "Powered by GIPHY" mark stays visible.
 
-**This was built against Tenor first, and that was a mistake worth
-recording. Tenor stopped accepting new API clients in January 2026** and
-carries a service-discontinuation notice — the integration was written
-before anybody checked whether a key could still be had. **Check that an
-API is open before building on it.** Migration 048's column comment still
-says "Tenor" and means GIPHY; correct it in the next migration that runs
-for another reason rather than asking for a run just for a comment.
+**The reactions tab is the default and needs no key at all.** Google's
+Noto animated emoji, openly licensed, served from Google's CDN — nothing
+to sign up for, nothing to store, no key to leak and no copyright
+question. `lib/stickers.ts`, and because `image_url` is just a URL it
+needed no migration.
+
+That exists because **both GIF services turned out to be a door that
+might not open**. Tenor stopped accepting new API clients in January
+2026 and carries a discontinuation notice; GIPHY's signup 404s. The first
+integration was written before anybody checked whether a key could be had
+at all.
+
+**Two lessons, and the second is the one worth keeping.** Check an API is
+open before building on it. And where a feature can be built without
+needing somebody's permission, build that version first and treat the
+key as the upgrade — a feature that only works once a key is granted is
+a feature that might never work.
+
+Migration 048's column comment still says "Tenor" and means GIPHY or a
+Noto url; correct it in the next migration that runs for another reason
+rather than asking for a run just for a comment.
 
 Uploads go through `/api/squad-image`, which checks membership before
 writing — a private room whose pictures aren't private is worse than a
