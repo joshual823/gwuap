@@ -87,7 +87,7 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
           </span>
         </div>
 
-        <h2>Free to post. Nothing to deposit.</h2>
+        <h2>Free to join. No card, ever.</h2>
         <p>
           Post a pick and the scoreboard settles it. Nobody grades their own,
           and nothing can be edited once a game starts — so a record here
@@ -95,7 +95,7 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
         </p>
 
         <ul className="welcome-points">
-          <li><strong>$0 to play.</strong> No deposit, no card, no stake.</li>
+          <li><strong>Costs nothing.</strong> We never ask for a card.</li>
           <li><strong>Open to everyone.</strong> Sign up and you&apos;re in.</li>
           <li><strong>No self-reporting.</strong> The scoreboard decides, not you.</li>
           {remaining !== null && remaining > 0 && (

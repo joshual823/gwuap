@@ -94,7 +94,7 @@ export default function AcceptChallenge({ challengeId, viewerId, isChallenger, c
       <div className="ch-cta">
         <p className="ch-cta-line">
           Take <strong>{offer}</strong> against @{challenger}. You&apos;ll need an
-          account — it&apos;s free, and there&apos;s nothing to deposit.
+          account — it&apos;s free and we never ask for a card.
         </p>
         <Link href={`/signup?next=/c/${code}`} className="btn">Sign up and take it</Link>
         <Link href={`/login?next=/c/${code}`} className="ch-cta-alt">Already have an account</Link>

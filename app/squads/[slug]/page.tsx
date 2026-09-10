@@ -55,7 +55,7 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
           <Link href={`/login?next=/squads/${squad.slug}`} className="btn secondary">Log in</Link>
         </p>
         <p className="rec-foot">
-          Free, nothing to deposit. Every pick on {SITE_NAME} is graded from the
+          Free, and we never ask for a card. Every pick on {SITE_NAME} is graded from the
           final score — nobody grades their own.
         </p>
       </div>

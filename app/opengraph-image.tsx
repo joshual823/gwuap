@@ -41,6 +41,14 @@ export default function OpengraphImage() {
         <div style={{ display: 'flex', fontSize: 30, marginTop: 26, color: '#8B98A5' }}>
           No self-reporting · No cropped screenshots · gwuap.co
         </div>
+        {/* "Free to join" and not "no deposit, nothing at stake" — those
+            are the exact words that got the first X campaign flagged as
+            gambling content, and a classifier reads them the same whether
+            they affirm or deny. This card is attached to the ad's link and
+            to every share of gwuap.co, so it's ad copy whether or not we
+            wrote it as ad copy. The landing page still says the longer
+            version in prose, where a person has the context to read it
+            right; an image stripped of context is where it looks worst. */}
         <div
           style={{
             display: 'flex', marginTop: 40, alignSelf: 'flex-start',
@@ -49,7 +57,7 @@ export default function OpengraphImage() {
             padding: '14px 26px', borderRadius: 999,
           }}
         >
-          Free. No deposit, nothing at stake but your record.
+          Free to join
         </div>
       </div>
     ),

@@ -2008,6 +2008,57 @@ would make closing-line value computable later, since the price and the
 timestamp are both already stored. The goal is to stop the page *reading*
 as a sportsbook, not to hide what it does.
 
+### The words the page still had (10 Sep 2026)
+
+Cleaning the front page didn't clean the visit. Three surfaces the same
+stranger meets were still running the flagged vocabulary, and one of them
+was worse than anything on the page itself:
+
+- **The welcome modal**, which opens to *logged-out* visitors fifteen
+  seconds in or 600px down, said **"$0 to play. No deposit, no card, no
+  stake."** — three flagged phrases at once, in a takeover over a page
+  that had just been cleaned. That is precisely the reviewer's session:
+  they open gwuap.co, read for fifteen seconds, and the site covers its
+  own explanation with the campaign's exact wording. It now reads "Free
+  to join. No card, ever." / "Costs nothing. We never ask for a card."
+- **The site's OG card** (`app/opengraph-image.tsx`) ended in a green
+  pill reading "Free. No deposit, nothing at stake but your record." That
+  card is attached to the ad's link and to every share of gwuap.co, so
+  it is ad copy whether or not it was written as ad copy — and the two
+  audited-clean creatives in `~/Desktop/gwuap-ads` had already settled on
+  **"Free to join"** for exactly this pill. It says that now.
+- **Two public link-landing pages** — a challenge invite (`/c/[code]`)
+  and a squad page — both said "nothing to deposit" to a cold visitor.
+
+**The rule this settles:** prose a person reads in context keeps the
+denial; a slogan stripped of context doesn't get to use the vocabulary.
+`/help` and `/privacy` still say "nothing is deposited, staked or paid
+out" and "nothing here is gambling — no deposits, no stakes, no payouts",
+because saying so is the entire job of those two pages and nobody reads
+them by accident. A pill in an image and a headline in a modal have no
+such context, and a classifier scores the words the same whether they
+affirm or deny.
+
+`WhatThisIs` was rewritten under the same rule a day after it was
+written. It kept the explicit denial — "We're not a sportsbook and don't
+take bets", which is the sentence the human reviewer needs — and dropped
+"nothing to deposit and no money on the line" for "we never ask for a
+card". That reads better to a person as well: it's concrete and
+checkable, where "nothing to deposit" borrows the sportsbook's own
+vocabulary to claim not to be one.
+
+Measured on a real logged-out page load: deposit, stake, wager, gambl,
+parlay and payout all **0** in visible text; "sportsbook" appears once,
+in our own denial.
+
+**One caveat on yesterday's "DraftKings 41 → 0".** That is true of what a
+person reads, which is what was claimed — but the served HTML still
+carries the string 82 times: 41 in the `title` attribute that names the
+book on hover, and 41 in the RSC payload behind it. The hover is
+deliberate and stays, because naming the book is the accuracy the stamp
+exists for. Recorded so the 0 isn't read as more than it is: a crude
+classifier reading raw HTML sees 82.
+
 ### X flagged the first campaign as gambling (9 Sep 2026)
 
 *"Your ad text reads as Gambling and Games Content."* Four signals: the
