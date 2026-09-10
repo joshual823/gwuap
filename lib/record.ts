@@ -1,4 +1,5 @@
 import { BET_TYPES, type BetType } from './odds'
+import { MIN_GRADED_PICKS } from './rules'
 
 /**
  * What a record actually looks like, broken down.
@@ -129,4 +130,53 @@ export function buildRecord(picks: Settled[]): Record {
     streak,
     bestStreak: best,
   }
+}
+
+/** One member's line on a squad leaderboard. */
+export type Standing = Split & {
+  userId: string
+  /** Too few settled picks to mean much yet — shown, but not trusted. */
+  provisional: boolean
+}
+
+/**
+ * A squad's table.
+ *
+ * The reason squads exist rather than a chat room: a Discord server has
+ * no idea who in it was actually right, and this does. So every member
+ * appears, including the ones who haven't posted — a standings table
+ * that hides the people at the bottom isn't standings.
+ *
+ * Ranked on win rate, but only among people who have settled anything.
+ * The site leaderboard needs five graded picks to appear at all; that's
+ * the right bar for a public board and the wrong one for a group of six,
+ * where it would show nobody. So a thin record is ranked and flagged
+ * instead of hidden — 1-0 is displayed as 1-0, marked provisional, and
+ * doesn't get to look like a season.
+ */
+export function standings(
+  picks: (Settled & { author_id: string })[],
+  memberIds: string[],
+): Standing[] {
+  const byAuthor = new Map<string, Settled[]>()
+  for (const p of picks) {
+    const list = byAuthor.get(p.author_id) ?? []
+    list.push(p)
+    byAuthor.set(p.author_id, list)
+  }
+
+  const rows: Standing[] = memberIds.map(id => {
+    const split = summarise(id, id, byAuthor.get(id) ?? [])
+    return { ...split, userId: id, provisional: split.decided < MIN_GRADED_PICKS }
+  })
+
+  return rows.sort((a, b) => {
+    // Anybody with a settled pick outranks anybody without one: an empty
+    // record isn't a good one.
+    if ((a.decided === 0) !== (b.decided === 0)) return a.decided === 0 ? 1 : -1
+    if (a.winPct !== b.winPct) return (b.winPct ?? 0) - (a.winPct ?? 0)
+    // Same rate, more picks: the longer record is the better evidence.
+    if (a.decided !== b.decided) return b.decided - a.decided
+    return b.profit - a.profit
+  })
 }

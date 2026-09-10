@@ -7,6 +7,9 @@ import SquadMembership from './SquadMembership'
 import SquadInvite from './SquadInvite'
 import SquadPicture from './SquadPicture'
 import { SITE_URL, SITE_NAME } from '@/lib/brand'
+import { standings, type Settled } from '@/lib/record'
+import { MIN_GRADED_PICKS } from '@/lib/rules'
+import { formatSignedUsd, profitForStatus } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +72,26 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
   const isMember = rows.some(m => m.user_id === user.id)
   const isOwner = squad.owner_id === user.id
 
+  // The table. Its own query, and only for this squad's members — the
+  // point of a squad board is that it's this group, not the site.
+  const memberIds = rows.map(m => m.user_id as string)
+  const { data: settled } = memberIds.length > 0
+    ? await supabase
+        .from('posts')
+        .select('author_id, status, profit, odds, stake, game_league, bet_type, odds_source, graded_at, created_at')
+        .in('author_id', memberIds)
+        .eq('post_kind', 'pick')
+        .in('status', ['win', 'loss', 'push', 'void'])
+    : { data: [] }
+
+  const picks = ((settled ?? []) as any[]).map(p => ({
+    ...p,
+    profit: p.profit ?? profitForStatus(p.status, p.odds, p.stake) ?? 0,
+  })) as (Settled & { author_id: string })[]
+
+  const table = standings(picks, memberIds)
+  const nameOf = new Map(rows.map(m => [m.user_id as string, m.profile]))
+
   return (
     <div style={{ marginTop: 24 }}>
       <p className="rec-back"><Link href="/squads" className="help-link">← Squads</Link></p>
@@ -98,6 +121,41 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
           </Link>
         ))}
       </div>
+
+      {/* What a Discord server structurally cannot tell you: who in this
+          group is actually right. Above the room on purpose — it's the
+          reason to be in the squad rather than in a group chat. */}
+      <section className="squad-board">
+        <h2 className="rec-h2">The table</h2>
+        <p className="rec-note">
+          Every member, graded from final scores. Nobody grades their own, and a
+          record under {MIN_GRADED_PICKS} settled picks is marked as thin rather than hidden.
+        </p>
+        <div className="rec-table">
+          {table.map((row, i) => {
+            const who = nameOf.get(row.userId)
+            return (
+              <div className="rec-row squad-board-row" key={row.userId}>
+                <span className="lb-rank">{row.decided > 0 ? i + 1 : '—'}</span>
+                <Link href={`/profile/${who?.username}`} className="rec-label squad-board-who">
+                  <Avatar url={who?.avatar_url} size={22} name={who?.username} />
+                  @{who?.username}
+                  {row.provisional && row.decided > 0 && <span className="squad-thin">thin</span>}
+                </Link>
+                <span className="rec-wl mono">
+                  {row.decided === 0 ? '—' : `${row.wins}-${row.losses}${row.pushes > 0 ? `-${row.pushes}` : ''}`}
+                </span>
+                <span className="rec-pct mono">
+                  {row.winPct === null ? '—' : `${row.winPct}%`}
+                </span>
+                <span className={`rec-profit mono ${row.profit >= 0 ? 'pos' : 'neg'}`}>
+                  {row.profit === 0 ? '—' : formatSignedUsd(row.profit)}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       <SquadChat squadId={squad.id} viewerId={user.id} isMember={isMember} />
 

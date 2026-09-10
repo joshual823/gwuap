@@ -1,4 +1,4 @@
-import { buildRecord, type Settled } from './record'
+import { buildRecord, standings, type Settled } from './record'
 
 let pass = 0, fail = 0
 function check(label: string, got: unknown, want: unknown) {
@@ -118,6 +118,46 @@ console.log('\ngraded_at is preferred over created_at for ordering')
   ])
   check('falls back to created_at when never stamped', r.form[0], 'win')
 }
+
+console.log('a squad table ranks everyone, including the empty records')
+{
+  const p2 = (author: string, o: Partial<Settled> = {}) => ({ ...pick(o), author_id: author })
+  const rows = standings(
+    [
+      p2('good', { status: 'win' }), p2('good', { status: 'win' }), p2('good', { status: 'loss', profit: -10 }),
+      p2('bad', { status: 'loss', profit: -10 }), p2('bad', { status: 'loss', profit: -10 }),
+    ],
+    ['bad', 'good', 'silent'],
+  )
+  check('everyone appears', rows.map(r => r.userId).sort(), ['bad', 'good', 'silent'])
+  check('the better record leads', rows[0].userId, 'good')
+  check('the worse one is second', rows[1].userId, 'bad')
+  // An empty record is not a good record, however it sorts numerically.
+  check('somebody who has posted nothing is last', rows[2].userId, 'silent')
+  check('and makes no claim', rows[2].winPct, null)
+  check('thin records are flagged', rows[0].provisional, true)
+}
+
+console.log('\nties break on evidence, then on profit')
+{
+  const p2 = (author: string, o: Partial<Settled> = {}) => ({ ...pick(o), author_id: author })
+  const rows = standings(
+    [
+      p2('few', { status: 'win' }),
+      ...Array(6).fill(0).map(() => p2('many', { status: 'win' })),
+    ],
+    ['few', 'many'],
+  )
+  check('same 100%, the longer record leads', rows[0].userId, 'many')
+  check('and is no longer provisional', rows[0].provisional, false)
+  check('the one-pick record still is', rows[1].provisional, true)
+}
+
+console.log('\nan empty squad is an empty table, not a crash')
+check('no members', standings([], []), [])
+check('members, no picks', standings([], ['a', 'b']).length, 2)
+check('picks from somebody who left are ignored',
+  standings([{ ...pick(), author_id: 'ghost' }], ['a']).length, 1)
 
 console.log(`\n${pass} passed, ${fail} failed`)
 if (fail > 0) process.exit(1)

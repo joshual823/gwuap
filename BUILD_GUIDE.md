@@ -1748,6 +1748,30 @@ the `$` autocomplete knows what's on.**
   every tennis draw in the window, the six soonest fixtures are not a
   useful answer to a question nobody has finished asking.
 
+**Built ninth: the squad table.** The reason a squad is worth having
+rather than a Discord server: a Discord server has no idea who in it was
+actually right, and this does.
+
+Every member appears, including the ones who've posted nothing — a
+standings table that hides the people at the bottom isn't standings.
+Ranked on win rate among those who've settled anything, ties broken by
+the longer record and then by profit, and anybody with no settled pick
+sorts last, because an empty record isn't a good one.
+
+The site leaderboard's five-pick minimum is right for a public board and
+wrong for a group of six, where it would show nobody. So a thin record is
+**ranked and flagged** rather than hidden: 1-0 shows as 1-0, marked
+"thin", and doesn't get to look like a season.
+
+**On competing with Discord.** The wedge isn't chat and shouldn't be
+sold as one — group chat is winner-take-all, and the switching cost isn't
+the software, it's that everybody's group is already somewhere else. The
+pitch is *settle your group's arguments*, which is a thing Discord
+structurally cannot do. Note also that an **empty squad is worse than an
+empty feed** — a chat room with nobody in it is visibly dead where a
+quiet timeline just looks new — so ads should keep pointing at what works
+for one person, and squads should grow through the invite links.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their
