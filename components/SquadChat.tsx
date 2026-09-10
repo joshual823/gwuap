@@ -11,6 +11,32 @@ import GifPicker from '@/components/GifPicker'
 import { fitResize, MAX_SOURCE_BYTES } from '@/lib/image'
 
 type Author = { id: string; username: string; avatar_url: string | null }
+
+/** One speaker's line from the squad table, as the room needs it. */
+export type ChatRecord = {
+  wins: number; losses: number
+  winPct: number | null
+  provisional: boolean
+}
+
+/**
+ * How a record colours a name.
+ *
+ * Only a record that has cleared the provisional bar gets a colour. 1-0
+ * is a real record and a terrible basis for calling somebody good, and a
+ * green ring on it would say otherwise — the table already makes that
+ * distinction and the room shouldn't contradict it.
+ *
+ * Everything else is deliberately quiet. The reference for this layout
+ * paints a saturated ring on every avatar and two enormous buy buttons
+ * under the thread, which reads as a trading floor. That's the read this
+ * site spent 10 Sep removing from the front page; a squad room is the
+ * last place to put it back.
+ */
+function tone(r: ChatRecord | undefined) {
+  if (!r || r.provisional || r.winPct == null) return ''
+  return r.winPct >= 0.5 ? ' up' : ' down'
+}
 type Msg = {
   id: string; body: string; created_at: string
   image_url: string | null
@@ -25,10 +51,12 @@ const MAX = 500
  * A non-member's select returns nothing and their insert is refused, so
  * the worst a broken UI can do is show an empty room — not leak one.
  */
-export default function SquadChat({ squadId, viewerId, isMember }: {
+export default function SquadChat({ squadId, viewerId, isMember, records = {} }: {
   squadId: string
   viewerId: string | null
   isMember: boolean
+  /** userId -> their line on the squad table. Absent for a new member. */
+  records?: Record<string, ChatRecord>
 }) {
   const [messages, setMessages] = useState<Msg[]>([])
   const [present, setPresent] = useState(1)
@@ -169,12 +197,24 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
         )}
         {messages.map(m => (
           <div className="gc-msg" key={m.id}>
-            <Link href={`/profile/${m.author?.username}`}>
-              <Avatar url={m.author?.avatar_url} size={26} name={m.author?.username} />
+            <Link href={`/profile/${m.author?.username}`}
+              className={`gc-ava${tone(records[m.author?.id ?? ''])}`}>
+              <Avatar url={m.author?.avatar_url} size={34} name={m.author?.username} />
             </Link>
             <div className="gc-body">
               <div className="gc-head">
                 <Link href={`/profile/${m.author?.username}`} className="uname">@{m.author?.username}</Link>
+                {/* Their record, from the same standings the table uses. */}
+                {(() => {
+                  const r = records[m.author?.id ?? '']
+                  if (!r || r.wins + r.losses === 0) return null
+                  return (
+                    <span className={`gc-rec mono${tone(r)}`}
+                      title={r.provisional ? 'Too few settled picks to mean much yet' : 'Record in this squad'}>
+                      {r.wins}&#8211;{r.losses}{r.provisional && <span className="gc-thin">thin</span>}
+                    </span>
+                  )
+                })()}
                 <span className="time">{timeAgo(m.created_at)}</span>
                 {/* Only your own line. Removing somebody else's is the
                     owner's call and RLS decides it, so a button here

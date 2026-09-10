@@ -90,6 +90,22 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
   })) as (Settled & { author_id: string })[]
 
   const table = standings(picks, memberIds)
+
+  /**
+   * The table again, keyed by user, for the room.
+   *
+   * A chat room can't normally tell you whether the loudest person in it
+   * is any good — that's the whole reason squads exist rather than a
+   * Discord. The table above answers it, but you have to stop reading the
+   * room and go look. Putting each speaker's record beside their name
+   * answers it while you read.
+   *
+   * It's the same numbers `standings` already computed for the table, so
+   * the two can't disagree, and it costs no extra query.
+   */
+  const chatRecords = Object.fromEntries(table.map(r => [r.userId, {
+    wins: r.wins, losses: r.losses, winPct: r.winPct, provisional: r.provisional,
+  }]))
   const nameOf = new Map(rows.map(m => [m.user_id as string, m.profile]))
 
   return (
@@ -156,7 +172,8 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
         </div>
       </section>
 
-      <SquadChat squadId={squad.id} viewerId={user.id} isMember={isMember} />
+      <SquadChat squadId={squad.id} viewerId={user.id} isMember={isMember}
+        records={chatRecords} />
 
       {/* Only members can invite, which the policy enforces too — a
           non-member pressing this would just be refused. */}

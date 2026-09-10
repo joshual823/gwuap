@@ -1905,6 +1905,47 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### The squad room, rebuilt against Polymarket's (10 Sep 2026)
+
+Polymarket's live match chat was handed over as the bar to clear. Three
+things were worth taking, one was worth refusing, and the most obvious
+one turned out not to be the answer at all.
+
+**It isn't the typeface.** The reference reads as a different font, and
+the instinct is to go shopping for one. We're on Inter for everything —
+`--font-display` and `--font-mono` are both aliased to it in
+`app/layout.tsx` — and so, near enough, is the reference. The difference
+was **size, weight, spacing and hierarchy**. The room was built with a
+comment thread's numbers: 26px avatar, 12px between messages, 14.5px text
+at 1.4 line-height. That reads as a list of records. A room people are
+meant to sit in wants air: 34px avatar, 18px apart, 15px at 1.5, and the
+timestamp pushed to the far end so the left edge of every row is name,
+record, message — the three things actually being read.
+
+**The idea worth stealing is the pill beside the username.** Polymarket
+puts the speaker's position there, which is why their chat reads as
+people with something at stake rather than anonymous noise. Gwuap's
+equivalent already existed on the same page and one component away: each
+member's **record from the squad table**. `standings()` is already
+computed for the table, so the room gets it as a keyed object with no
+extra query, and the two can never disagree.
+
+That is the answer to the thing a Discord structurally cannot do. The
+table answers "who in here is any good" only if you stop reading and go
+look; the pill answers it while you read.
+
+**Only a record past the provisional bar gets a colour.** 1-0 is a real
+record and a terrible reason to call somebody good. It shows as `1-0
+THIN`, uncoloured — the table already draws that line and the room must
+not contradict it.
+
+**What was deliberately not copied:** the saturated ring on every avatar,
+and the two enormous buy buttons under the thread. Those are a trading
+floor, which is exactly the read the front page shed on the morning of
+the same day. A squad room is the last place to put it back. The rings
+here are muted and only appear once earned, and there are no wager
+controls at all.
+
 ### /squads had no door for a stranger (10 Sep 2026)
 
 Planning a campaign for the squad rooms turned up the thing that would
