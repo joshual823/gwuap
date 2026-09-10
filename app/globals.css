@@ -484,7 +484,13 @@ a { color: inherit; text-decoration: none; }
 .legal ul { margin: 0 0 12px; padding-left: 18px; }
 .legal li { font-size: 14px; line-height: 1.6; color: var(--ink-dim); margin-bottom: 8px; }
 .legal strong { color: var(--ink); font-weight: 600; }
-.legal a { color: var(--brand); }
+/* Prose links are green; buttons are not links for this purpose.
+   Without the :not(), this rule beat .btn on specificity and painted a
+   button's label var(--brand) on a var(--brand) background — a green
+   pill with nothing written on it. It did that anywhere a .btn sat
+   inside .legal, which included the signup button on a shared squad's
+   page, the first thing a stranger following a squad link ever saw. */
+.legal a:not(.btn) { color: var(--brand); }
 .legal-foot { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 13px; }
 
 .bot-tag {
@@ -1490,3 +1496,31 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .what-is-lead { margin: 0; font-size: 15px; line-height: 1.45; color: var(--ink-dim); }
 .what-is-lead strong { color: var(--ink); font-weight: 700; }
 .what-is-sub { margin: 7px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-faint); }
+
+/* The logged-out /squads page — an ad's landing page.
+   Sized for two seconds of attention: one line, then the button, then
+   three steps you can count without reading. The prose that used to be
+   here lives in the <details> and is styled down, not up. */
+.squads-intro { max-width: 430px; }
+.squads-lead { font-size: 19px; line-height: 1.4; color: var(--ink); font-weight: 600;
+  letter-spacing: -0.01em; margin: -2px 0 20px; }
+.squads-cta { display: flex; gap: 10px; margin: 0 0 8px; }
+.squads-cta .btn { padding: 12px 22px; font-size: 15px; }
+.squads-micro { font-size: 12.5px; color: var(--ink-faint); margin: 0 0 26px; }
+
+.squads-steps { list-style: none; margin: 0 0 22px; padding: 0;
+  display: flex; flex-direction: column; gap: 12px; }
+.squads-steps li { display: flex; align-items: center; gap: 11px;
+  font-size: 15px; color: var(--ink); line-height: 1.35; margin: 0; }
+.squads-num { flex: 0 0 auto; width: 23px; height: 23px; border-radius: 999px;
+  background: var(--tint-brand); color: var(--brand);
+  font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+.squads-more { border-top: 1px solid var(--line); padding-top: 14px; }
+.squads-more > summary { cursor: pointer; font-size: 14px; font-weight: 600;
+  color: var(--ink-dim); list-style: none; padding: 2px 0; }
+.squads-more > summary::-webkit-details-marker { display: none; }
+.squads-more > summary::after { content: ' →'; color: var(--ink-faint); }
+.squads-more[open] > summary { color: var(--ink); margin-bottom: 8px; }
+.squads-more[open] > summary::after { content: ' ↓'; }
+.squads-more > summary:hover { color: var(--ink); }

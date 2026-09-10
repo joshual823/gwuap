@@ -1905,6 +1905,41 @@ to make.
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
 
+### A green button with nothing written on it (10 Sep 2026)
+
+`.legal a { color: var(--brand) }` beat `.btn` on specificity and painted
+every button label inside `.legal` green — on a green background. The
+result was a bright empty pill where "Start a squad" should be. It's now
+`.legal a:not(.btn)`.
+
+**It was not new.** The same rule had been blanking the "Sign up free"
+button on `/squads/[slug]` — the page a stranger lands on when somebody
+forwards a squad link to a group chat, which is the single most important
+button on the invite path. Nobody had seen it because nobody signed out
+to look. Two pages had the bug and only the new one got reported.
+
+The general lesson: **a container that styles bare links will style
+buttons that happen to be links.** Anywhere `.btn` sits inside a prose
+wrapper, check it logged out and in both themes.
+
+### Too much to read (10 Sep 2026)
+
+The first `/squads` intro answered "what is this" thoroughly and "how do
+I start" somewhere below the fold — a lead, a paragraph, three
+full-sentence bullets, then the buttons. Everything on it was true and
+the shape was still wrong: a stranger off an ad is deciding whether to
+care, not studying, and they give it about two seconds.
+
+Inverted now. One line says what it is, the button is directly under it,
+and three three-word steps say how it goes. **Nothing was deleted** — the
+detail moved into a `<details>` disclosure that the curious open and
+everybody else never sees. Native `<details>`, so it needs no JavaScript
+and reads correctly to a screen reader.
+
+Worth remembering when the next landing page gets written: the fix for
+"too much copy" is almost never shorter sentences. It's deciding what the
+page is *for* and demoting everything else behind one click.
+
 ### The squad room, rebuilt against Polymarket's (10 Sep 2026)
 
 Polymarket's live match chat was handed over as the bar to clear. Three

@@ -101,45 +101,63 @@ export default async function SquadsPage() {
 
 /**
  * What a squad is, for somebody who isn't signed in — an ad's landing
- * page as much as a page. Every claim on it is a thing the room actually
- * does: members-only is enforced by RLS, the grading is the site's, and
- * the table is `standings` over the members' settled picks.
+ * page as much as a page.
  *
- * "We never ask for a card" rather than "nothing to deposit": cold
- * landing pages get the plain wording, because the flagged vocabulary
- * scores the same whether it affirms or denies.
+ * The first version answered "what is this" thoroughly and "how do I
+ * start" somewhere below the fold: a lead, a paragraph, three
+ * full-sentence bullets, then the buttons. Everything on it was true and
+ * it was still the wrong shape, because a stranger off an ad is deciding
+ * whether to care, not studying. They give it a couple of seconds.
+ *
+ * So the order is inverted. One line says what it is, the button sits
+ * directly under it, and three three-word steps say how it goes. The
+ * detail didn't get deleted — it moved into a disclosure the curious can
+ * open and everybody else never sees. Native <details>, so it works with
+ * no JavaScript and reads correctly to a screen reader.
+ *
+ * Every claim is still one the room actually keeps: members-only is
+ * enforced by RLS, the grading is the site's, and the table is
+ * `standings` over the members' settled picks.
  */
 function SquadsIntro() {
   return (
-    <div className="legal">
+    <div className="legal squads-intro">
       <h1 className="page-title">Squads</h1>
-      <p className="legal-sub">Your group, in a room of its own.</p>
-
-      <p style={{ fontSize: 14, lineHeight: 1.6 }}>
-        Everyone in the group chat has an opinion every weekend and nobody
-        writes any of it down. A squad is that group with a room of its own
-        and a table that keeps itself.
+      <p className="squads-lead">
+        Your group chat, with a table that keeps itself.
       </p>
 
-      <ul className="welcome-points" style={{ marginTop: 18 }}>
-        <li><strong>Members only.</strong> What&apos;s said in the room stays in
-          the room — nobody outside it can read a word.</li>
-        <li><strong>The final score settles it.</strong> Everyone&apos;s picks
-          are graded from the scoreboard. Nobody grades their own, and nothing
-          can be edited once a game starts.</li>
-        <li><strong>The table sorts itself.</strong> No more arguing about who
-          called what in October.</li>
-      </ul>
-
-      <p style={{ display: 'flex', gap: 10, marginTop: 22 }}>
+      <p className="squads-cta">
         <Link href="/signup?next=/squads/new" className="btn">Start a squad</Link>
         <Link href="/login?next=/squads" className="btn secondary">Log in</Link>
       </p>
+      <p className="squads-micro">Free · we never ask for a card</p>
 
-      <p className="rec-foot">
-        Free to join and we never ask for a card. We&apos;re not a sportsbook
-        and don&apos;t take bets. <Link href="/help" className="help-link">How it works</Link>
-      </p>
+      <ol className="squads-steps">
+        <li><span className="squads-num">1</span> Start a squad</li>
+        <li><span className="squads-num">2</span> Invite your group</li>
+        <li><span className="squads-num">3</span> The final score keeps the table</li>
+      </ol>
+
+      {/* The long answer, for whoever wants it. Closed by default: the
+          people who need it will open it, and the people who don't were
+          never going to read it anyway. */}
+      <details className="squads-more">
+        <summary>What&apos;s a squad, exactly?</summary>
+        <p>
+          <strong>Members only.</strong> What&apos;s said in the room stays in
+          the room — nobody outside it can read a word.
+        </p>
+        <p>
+          <strong>Nobody grades their own.</strong> Everyone&apos;s picks are
+          settled from the final score, and nothing can be edited once a game
+          starts. That&apos;s what makes the table worth arguing about.
+        </p>
+        <p>
+          <strong>No money involved.</strong> We&apos;re not a sportsbook and
+          don&apos;t take bets. <Link href="/help" className="help-link">How it works</Link>
+        </p>
+      </details>
     </div>
   )
 }
