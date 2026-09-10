@@ -2062,6 +2062,26 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### "No active ad groups" usually means an ad is in review (10 Sep 2026)
+
+Minutes after publishing, `General — Sep 2026` read **"Not delivering —
+No active ad groups"** and its ad group read **"No active ads"**. Both
+look like the misconfiguration that wasted the first campaign, and
+neither is: the ad underneath said **"Pending approval"**. Reddit
+propagates a pending ad upward as *nothing is active here*, which is
+true and reads like a fault.
+
+Check the **Ads** tab before touching anything. The symptom appears three
+levels above its cause, which is the shape of failure this file exists to
+record — and the wrong reaction (rebuilding a campaign that was fine) is
+worse than waiting.
+
+**The squads ad passed review.** That's the first evidence since the X
+flag that the cleaned creative and the "Free to join" pill clear a
+platform check. If `gw-undefeated` is instead rejected, that's
+information too — it is the campaign carrying r/sportsbetting, the one
+community Reddit's own picker files under Gambling.
+
 ### Two campaigns live, first one archived (10 Sep 2026)
 
 **`Squads — Sep 2026` is running** — Standard (not Max), Traffic, US
