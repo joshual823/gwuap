@@ -2062,6 +2062,46 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### Reddit approved one ad and rejected the other (10 Sep 2026)
+
+`sq-sports-group-chat` cleared review and is delivering.
+**`gw-undefeated` was rejected.** Same account, same profile, same
+creative template, same "Free to join" pill — so the cause is one of the
+differences between them, and there are only two candidates:
+
+| | Squads (approved) | General (rejected) |
+|---|---|---|
+| Lands on | `/squads`, an explainer | `/feed`, live picks with odds and stakes |
+| Targeting | fantasy + team subs | **includes r/sportsbetting** |
+
+**Reddit does not show the rejection reason anywhere in Ads Manager.**
+The status cell, its hover, the ad's own Review page and the
+notifications panel were all checked and none of them carries it. It goes
+to the account owner by email; that email is the only hard evidence, and
+without it the two candidates can't be separated by reading the dashboard.
+
+**So the resubmit changes exactly one thing.** The new ad
+`gw-undefeated-squads-lp` is identical except that it lands on `/squads`
+instead of `/feed`. If it clears, the landing page was the problem — and
+that matters far beyond this ad, because it would mean `/feed` itself
+reads as a gambling page to a reviewer even after the 10 Sep cleanup.
+The top of that page was fixed; the scoreboard rail, the odds and the
+dollar stakes below it were not.
+
+**Editing a rejected ad does not put it back in review.** The edit saves,
+the toast says success, the destination really does change — and the
+status stays "Ad rejected" forever. A rejection sticks to the ad. Use
+**Duplicate**, which creates a new ad that enters review as "Processing".
+The original stays rejected as a record and can't serve.
+
+**First real numbers, squads campaign:** $23.01 spent, 2,291 impressions,
+14 clicks, **$1.64 CPC**, 0.611% CTR. Against the archived campaign's
+$0.90 CPC and 0.80% CTR — worse on both. Some of that is the price of
+manual targeting, but not all of it, and the comparison is confounded
+anyway: the old one was Max-targeted into a broad pool with a "no risk"
+creative. Watch it rather than act on it. **Signups in the database
+remain the number that decides anything.**
+
 ### "No active ad groups" usually means an ad is in review (10 Sep 2026)
 
 Minutes after publishing, `General — Sep 2026` read **"Not delivering —
