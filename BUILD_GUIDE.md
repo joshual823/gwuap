@@ -344,11 +344,13 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   silently. Turn it on when you post the link somewhere you can't text
   the person. Note this is separate from the notification digests, which
   do send, through Resend on a verified domain.
-- **Nothing has been advertised yet.** The Reddit conversion pixel is
-  wired and defaults to off; the privacy page was written specifically so
-  paid traffic could be taken honestly. Neither has been used. This is
-  the outstanding half of Session 11 and the only remaining blocker that
-  building cannot solve.
+- **Advertising has run, and this bullet used to deny it.** A Reddit
+  Traffic campaign spent $52 between 4 and 10 Sep 2026 — 7,245
+  impressions, 58 clicks — while this line said nothing had been
+  advertised. It is paused now. What it served and what it means is in
+  Advertising → "The Reddit campaign had been running for six days".
+  **The signups it produced have still not been counted**, which is the
+  actual outstanding item: the clicks are known and their result isn't.
 - **Leaked-password protection** is Pro-plan only; minimum length is 8
   instead.
 - **`vercel env pull` cannot retrieve `RESEND_API_KEY`, `CRON_SECRET` or
@@ -1902,6 +1904,62 @@ to make.
 
 **Log every attempt here: what ran, where, what it cost, what came back.**
 A creative that was made is not a creative that ran.
+
+### The Reddit campaign had been running for six days (10 Sep 2026)
+
+**It was live the whole time this file said nothing had been advertised.**
+Opening ads.reddit.com to set up the campaign the run sheet describes
+found that campaign already Active, and the dashboard's opening $0.00 is
+a loading state — the real numbers arrive a second later.
+
+| | |
+|---|---|
+| Spent | **$52.00**, 4-10 Sep |
+| Impressions | 7,245 |
+| Clicks | 58 |
+| CPC / CTR | $0.90 / 0.801% |
+| Signups it produced | **not yet measured — see below** |
+
+It spent 4-6 Sep, went quiet three days, and was spending again on the
+10th (~$16 that day) when it was switched off. **Campaign is now
+Inactive.** Nothing else about it was changed.
+
+**It was serving the retired creatives.** Delivery went almost entirely
+to the *first* asset set, not the audited v2 ones:
+
+| Asset | Impressions | Clicks |
+|---|---|---|
+| `05-norisk.png` | 4,553 | 43 |
+| `02-300.png` | 1,333 | 9 |
+| `03-settled.png` | 516 | 4 |
+| `04-receipts.png` | 494 | 0 |
+| `01-free.png` | 343 | 1 |
+
+`02-300.png` is the **$300 contest ad**, of which this file says "Never
+run these — they'd land people on a page with no prize on it, which is
+the worst possible first impression for a site whose entire pitch is that
+it doesn't lie to you." Nine people clicked it and got exactly that.
+`01-free.png` is on the do-not-use list for saying "no deposit", the
+wording that got the X account flagged. None of the clean v2 creatives
+(`10-receipts-clean`, `09-keep-score`) delivered a single impression.
+
+**What this costs is the record, not the $52.** Two documents said no ad
+had ever run while one was running, so nobody knew to look at what it was
+running or what it brought back. A channel that was tried and a channel
+that was never tried are the distinction this section exists to make, and
+for six days it made the wrong one.
+
+**Still to do, in this order:**
+
+1. **Count the real signups from the database for 4-10 Sep.** 58 clicks
+   at $0.90 is the ad platform's number; the database is the one to
+   trust, and the campaign carried UTM tags for exactly this. Until this
+   is counted we do not know whether $52 bought anything.
+2. Detach every asset in the first set from the ad group, so nothing can
+   serve the contest ad again if the campaign is ever switched back on.
+3. Rebuild per the run sheet — `10-receipts-clean-sq.png`, the Traffic
+   objective, the UTM URL, US-only, an end date — and leave the last
+   click to a person.
 
 ### The X pixel is live and verified (9 Sep 2026)
 
