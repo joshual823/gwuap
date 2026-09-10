@@ -336,7 +336,7 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
   who chose to be there rather than by the public timeline; the owner can
   already delete any message in their own room (042), so every room has
   somebody who can clear it without the one site admin; and a GIF isn't
-  uploaded at all, it's a link to Tenor, filtered by Tenor.
+  uploaded at all, it's a link to GIPHY, rated by GIPHY.
   **Bet-slip uploads on public posts stay off** — none of the above is
   true of the feed.
 - **Email confirmation is OFF.** gwuap.co has no sending reputation yet,
