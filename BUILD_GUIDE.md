@@ -2062,6 +2062,49 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### The rejection is a gambling-policy rejection (10 Sep 2026)
+
+The email arrived for both rejected ads and says the same thing:
+*"Reddit places restrictions on the promotion of certain gambling and
+gaming content."* It then lists **five canned reasons** — missing
+certification, restricted country, **prohibited targeting methods**,
+prohibited creative, prohibited country — without saying which applies.
+It's boilerplate; the diagnosis has to come from controlled tests.
+
+**The landing page is ruled out.** `gw-undefeated-squads-lp` pointed at
+`/squads` — the same page the *approved* squads ad lands on — and was
+rejected anyway. So `/feed` is not the problem, and the front page is not
+what a reviewer is objecting to.
+
+**That leaves the targeting**, which is also the one canned reason that
+matches: r/sportsbetting is the only community in the general ad group
+that Reddit's own picker files under Gambling, and the approved campaign
+has none. It has been removed, leaving six sports and fantasy subs.
+
+The test is now clean: `gw-undefeated-squads-lp` (rejected) and
+`gw-undefeated` (pending) are identical — same creative, same `/squads`
+landing page — except one carried r/sportsbetting and the other doesn't.
+The rejected duplicate is deliberately left in place as the control.
+
+**Correction to the previous entry.** Editing the *ad* does not put it
+back in review. Editing the **ad group** does — saving the targeting
+change flipped `gw-undefeated` from "Ad rejected" to "Pending approval"
+on its own, no duplicate needed. The rule is: a rejection sticks to an ad
+across ad-level edits, and clears when the ad group changes underneath it.
+
+**Do not pursue gambling certification.** The first canned reason invites
+it, and Reddit would presumably let a certified gambling advertiser
+target these communities. Gwuap is not a gambling product, does not take
+bets and holds no money — certifying as one to buy ads would file the
+site under the exact category the whole 10 Sep repositioning existed to
+escape, and it would be a false statement about what the product is.
+
+**If the clean test passes, the strategic conclusion is:** Reddit will
+not let this account address bettors *as bettors*. The audience is
+reachable only through sports and fantasy communities — which is what the
+squads campaign already does, and another argument for it being the
+better of the two ideas.
+
 ### Reddit approved one ad and rejected the other (10 Sep 2026)
 
 `sq-sports-group-chat` cleared review and is delivering.
