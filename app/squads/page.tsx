@@ -63,19 +63,10 @@ export default async function SquadsPage() {
         only members can read it.
       </p>
 
-      {/* Vent came out of the top bar to make room for Ranks. It belongs
-          here anyway: it's a room, and this is where the rooms are. It's
-          pinned rather than listed among the squads because it's the
-          site's own, always open, and nobody joins or leaves it. */}
-      <Link href="/vent" className="squad-card squad-pinned">
-        <div className="squad-card-top">
-          <span className="squad-name">🫂 The Vent room</span>
-          <span className="squad-badge">Open to all</span>
-        </div>
-        <p className="squad-desc">
-          Bad beats and worse decisions, moderated. Signed-in only, and nothing
-          in it is reported to an ad network.
-        </p>
+      {/* A line, not a banner. It's the site's own room and it's always
+          open — worth knowing about, not worth taking the page over. */}
+      <Link href="/vent" className="vent-line">
+        Join the Vent room to vent about the losses →
       </Link>
 
       {joined.length > 0 && (

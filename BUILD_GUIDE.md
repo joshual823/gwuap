@@ -329,9 +329,16 @@ cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
 
 ### Known gaps, deliberately
 
-- **Image moderation.** Avatars are allowed because they're one per user
-  and easy to clear. Bet-slip uploads and chat GIFs stay off until
-  there's a moderation story. Revisit before a wider public launch.
+- **Image moderation — partly resolved (048).** Avatars were always
+  allowed: one per user, easy to clear. **Squad rooms now take pictures
+  and GIFs**, because squads are the moderation story this was waiting
+  for: the room is members-only under RLS, so a picture is seen by people
+  who chose to be there rather than by the public timeline; the owner can
+  already delete any message in their own room (042), so every room has
+  somebody who can clear it without the one site admin; and a GIF isn't
+  uploaded at all, it's a link to Tenor, filtered by Tenor.
+  **Bet-slip uploads on public posts stay off** — none of the above is
+  true of the feed.
 - **Email confirmation is OFF.** gwuap.co has no sending reputation yet,
   so resets land in spam. A spam-foldered confirmation kills signups
   silently. Turn it on when you post the link somewhere you can't text
@@ -1799,6 +1806,21 @@ React escapes what it renders; **the emails are not, because they build
 HTML by joining strings**. Both halves are fixed: a check constraint
 matching `USERNAME_RE`, and escaping in `lib/digest.ts` and
 `lib/nudge.ts`. The tests for both now assert it.
+
+**Built eleventh: pictures and GIFs in squad rooms (048).**
+
+GIFs come from **Tenor**, proxied through `/api/gifs` so the key stays on
+the server, with `contentfilter=high`. Inert without `TENOR_API_KEY` —
+the picker says it isn't switched on rather than sitting empty, because
+an empty grid reads as broken rather than unconfigured. **Get the key
+from the Google Cloud console** (same place as `YOUTUBE_API_KEY`).
+
+Uploads go through `/api/squad-image`, which checks membership before
+writing — a private room whose pictures aren't private is worse than a
+room with no pictures. Resized in the browser with `fitResize`, which
+keeps the shape (`squareResize` centre-crops, right for an avatar and
+wrong for a screenshot somebody meant you to read) and re-encodes, which
+strips the EXIF a phone photo carries — including where it was taken.
 
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A

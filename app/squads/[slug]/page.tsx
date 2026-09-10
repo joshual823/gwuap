@@ -128,8 +128,7 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
       <section className="squad-board">
         <h2 className="rec-h2">The table</h2>
         <p className="rec-note">
-          Every member, graded from final scores. Nobody grades their own, and a
-          record under {MIN_GRADED_PICKS} settled picks is marked as thin rather than hidden.
+          Graded from final scores. Under {MIN_GRADED_PICKS} settled picks is marked thin.
         </p>
         <div className="rec-table">
           {table.map((row, i) => {

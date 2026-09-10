@@ -6,6 +6,9 @@
 
 export const AVATAR_SIZE = 512
 
+/** The long edge of a picture posted into a squad room. */
+export const CHAT_MAX_EDGE = 1280
+
 /** Refuse to even decode something absurd — that would just hang a phone. */
 export const MAX_SOURCE_BYTES = 25 * 1024 * 1024
 
@@ -60,5 +63,44 @@ export async function squareResize(file: File, size = AVATAR_SIZE): Promise<Blob
   const blob = await new Promise<Blob | null>(resolve =>
     canvas.toBlob(resolve, 'image/jpeg', 0.85))
   if (!blob) throw new Error('could not encode image')
+  return blob
+}
+
+/**
+ * Scale down to fit inside `maxEdge`, keeping the shape.
+ *
+ * Not `squareResize`: that centre-crops, which is right for an avatar
+ * and wrong for anything somebody meant you to read. A bet slip or a
+ * screenshot squashed into a square loses the half that mattered.
+ *
+ * Anything already smaller comes back re-encoded rather than untouched,
+ * which strips EXIF — including the GPS tag a phone photo carries by
+ * default, which nobody posting a screenshot into a group chat intends
+ * to share.
+ */
+export async function fitResize(file: File, maxEdge = CHAT_MAX_EDGE): Promise<Blob> {
+  const source = await decode(file)
+  const width = 'width' in source ? source.width : 0
+  const height = 'height' in source ? source.height : 0
+  if (!width || !height) throw new Error('unsupported image')
+
+  const scale = Math.min(1, maxEdge / Math.max(width, height))
+  const w = Math.max(1, Math.round(width * scale))
+  const h = Math.max(1, Math.round(height * scale))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('canvas unavailable')
+
+  ctx.fillStyle = BACKDROP
+  ctx.fillRect(0, 0, w, h)
+  ctx.drawImage(source as CanvasImageSource, 0, 0, w, h)
+  if ('close' in source) source.close()
+
+  const blob = await new Promise<Blob | null>(resolve =>
+    canvas.toBlob(resolve, 'image/jpeg', 0.82))
+  if (!blob) throw new Error('encode failed')
   return blob
 }

@@ -1258,9 +1258,6 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   border: none; background: none; padding: 0; cursor: pointer;
   font-size: 11.5px; color: var(--ink-faint); font-weight: 600;
 }
-/* The Vent room, pinned above the squads. Marked out so it doesn't read
-   as somebody's group. */
-.squad-pinned { border-color: var(--edge-brand); margin-bottom: 18px; }
 
 /* Challenges. Two sides of one market, so everything here is a pair —
    laid out as a pair rather than as a list of two things. */
@@ -1397,3 +1394,37 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
   color: var(--ink-faint); border: 1px solid var(--line); border-radius: 4px; padding: 1px 4px;
 }
+
+/* The Vent room, as one line above the squads. */
+.vent-line {
+  display: block; margin: 4px 0 18px; font-size: 13.5px; font-weight: 600;
+  color: var(--ink-dim);
+}
+.vent-line:hover { color: var(--brand); }
+
+/* Pictures and GIFs in a squad room. */
+.gc-image {
+  display: block; max-width: 100%; width: auto; max-height: 320px;
+  border-radius: 10px; border: 1px solid var(--line); margin-top: 6px;
+}
+.gif-panel {
+  margin-top: 10px; padding: 10px; border: 1px solid var(--line);
+  border-radius: 12px; background: var(--card);
+}
+.gif-head { display: flex; gap: 8px; align-items: center; }
+.gif-head .field { margin-bottom: 0; }
+.gif-close {
+  border: none; background: none; cursor: pointer; color: var(--ink-faint);
+  font-size: 15px; padding: 4px 6px;
+}
+.gif-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px; margin-top: 10px; max-height: 260px; overflow-y: auto;
+}
+.gif-cell {
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+  padding: 0; background: var(--card-2); cursor: pointer; aspect-ratio: 1;
+}
+.gif-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Tenor's terms want the attribution visible where their content is. */
+.gif-credit { margin: 8px 0 0; font-size: 10.5px; color: var(--ink-faint); }

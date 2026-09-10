@@ -7,9 +7,15 @@ import Avatar from '@/components/Avatar'
 import MentionInput from '@/components/MentionInput'
 import { REACTION_EMOJI } from '@/lib/reactions'
 import RichText from '@/components/RichText'
+import GifPicker from '@/components/GifPicker'
+import { fitResize, MAX_SOURCE_BYTES } from '@/lib/image'
 
 type Author = { id: string; username: string; avatar_url: string | null }
-type Msg = { id: string; body: string; created_at: string; author: Author | null }
+type Msg = {
+  id: string; body: string; created_at: string
+  image_url: string | null
+  author: Author | null
+}
 
 const MAX = 500
 
@@ -29,7 +35,10 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showGifs, setShowGifs] = useState(false)
+  const [attaching, setAttaching] = useState(false)
   const authors = useRef(new Map<string, Author | null>())
+  const fileInput = useRef<HTMLInputElement>(null)
   const bottom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -39,7 +48,7 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
 
     supabase
       .from('squad_messages')
-      .select('id, body, created_at, author:profiles!squad_messages_author_id_fkey ( id, username, avatar_url )')
+      .select('id, body, created_at, image_url, author:profiles!squad_messages_author_id_fkey ( id, username, avatar_url )')
       .eq('squad_id', squadId)
       .order('created_at', { ascending: true })
       .limit(200)
@@ -55,7 +64,9 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'squad_messages', filter: `squad_id=eq.${squadId}` },
         async payload => {
-          const row = payload.new as { id: string; body: string; created_at: string; author_id: string }
+          const row = payload.new as {
+            id: string; body: string; created_at: string; author_id: string; image_url: string | null
+          }
           let author = authors.current.get(row.author_id) ?? null
           if (!author) {
             const { data } = await supabase.from('profiles')
@@ -65,7 +76,10 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
           }
           setMessages(cur => cur.some(m => m.id === row.id)
             ? cur
-            : [...cur, { id: row.id, body: row.body, created_at: row.created_at, author }])
+            : [...cur, {
+                id: row.id, body: row.body, created_at: row.created_at,
+                image_url: row.image_url ?? null, author,
+              }])
         })
       .on('postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'squad_messages' },
@@ -80,17 +94,48 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
 
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }) }, [messages.length])
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault()
-    const text = body.trim()
-    if (!text || !viewerId) return
+  /** Text, a picture, or both — but never neither, which the table also refuses. */
+  async function post(text: string, imageUrl: string | null) {
+    if (!viewerId) return
+    if (!text.trim() && !imageUrl) return
     setSending(true); setError(null)
     const supabase = createClient()
     const { error: sendError } = await supabase
-      .from('squad_messages').insert({ squad_id: squadId, author_id: viewerId, body: text })
+      .from('squad_messages')
+      .insert({ squad_id: squadId, author_id: viewerId, body: text.trim(), image_url: imageUrl })
     setSending(false)
     if (sendError) { setError(sendError.message); return }
     setBody('')
+  }
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault()
+    await post(body, null)
+  }
+
+  async function attach(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !viewerId) return
+    setAttaching(true); setError(null)
+    try {
+      if (!file.type.startsWith('image/')) throw new Error('That file isn’t an image.')
+      if (file.size > MAX_SOURCE_BYTES) throw new Error('That image is enormous.')
+      // Shrunk in the browser, which also re-encodes it — and that strips
+      // the EXIF a phone photo carries, including where it was taken.
+      const resized = await fitResize(file)
+      const form = new FormData()
+      form.append('file', new File([resized], 'image.jpg', { type: 'image/jpeg' }))
+      form.append('squad', squadId)
+      const res = await fetch('/api/squad-image', { method: 'POST', body: form })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Upload failed.')
+      await post(body, json.url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not post that image.')
+    } finally {
+      setAttaching(false)
+      if (fileInput.current) fileInput.current.value = ''
+    }
   }
 
   async function remove(id: string) {
@@ -138,7 +183,13 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
                   <button type="button" className="gc-del" onClick={() => remove(m.id)}>Delete</button>
                 )}
               </div>
-              <RichText text={m.body} className="gc-text" />
+              {m.body && <RichText text={m.body} className="gc-text" />}
+              {m.image_url && (
+                /* Not next/image: these are a Tenor url or a Supabase
+                   object, and a GIF put through the optimiser stops
+                   moving. */
+                <img src={m.image_url} alt="" className="gc-image" loading="lazy" />
+              )}
             </div>
           </div>
         ))}
@@ -150,12 +201,19 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
           placeholder="Say something…" />
         <div className="comment-form-foot">
           <div className="gc-quick">
-            {REACTION_EMOJI.slice(0, 6).map(e => (
+            {REACTION_EMOJI.slice(0, 4).map(e => (
               <button key={e} type="button" className="gc-quick-btn"
                 aria-label={`Add ${e}`}
                 onClick={() => setBody(b => (b + e).slice(0, MAX))}>{e}</button>
             ))}
+            <button type="button" className="gc-quick-btn" title="Add a picture"
+              disabled={attaching} onClick={() => fileInput.current?.click()}>
+              {attaching ? '…' : '🖼'}
+            </button>
+            <button type="button" className="gc-quick-btn" title="Add a GIF"
+              onClick={() => setShowGifs(v => !v)}>GIF</button>
           </div>
+          <input ref={fileInput} type="file" accept="image/*" hidden onChange={attach} />
           <span className="comment-count-left">
             {MAX - body.length < 100 ? `${MAX - body.length} left` : ''}
           </span>
@@ -164,6 +222,12 @@ export default function SquadChat({ squadId, viewerId, isMember }: {
           </button>
         </div>
         {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
+        {showGifs && (
+          <GifPicker
+            onClose={() => setShowGifs(false)}
+            onPick={(url) => { setShowGifs(false); void post(body, url) }}
+          />
+        )}
       </form>
     </div>
   )

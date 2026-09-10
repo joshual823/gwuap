@@ -70,10 +70,6 @@ export default function SquadInvite({ squadId, squadName, userId, url }: {
           {busy ? '…' : 'Invite'}
         </button>
       </form>
-      <p className="rec-note">
-        They get a notification and join themselves — nobody is added to a squad
-        without saying yes.
-      </p>
       {note && <p className="squad-invite-ok">{note}</p>}
       {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
 
