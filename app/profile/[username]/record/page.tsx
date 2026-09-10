@@ -5,6 +5,8 @@ import { isValidUsername } from '@/lib/username'
 import { buildRecord, type Settled } from '@/lib/record'
 import { formatSignedUsd, profitForStatus } from '@/lib/odds'
 import { MIN_GRADED_PICKS } from '@/lib/rules'
+import ShareRow from '@/components/ShareRow'
+import { SITE_URL } from '@/lib/brand'
 
 export const dynamic = 'force-dynamic'
 
@@ -152,6 +154,22 @@ export default async function RecordPage({ params }: { params: Promise<{ usernam
             rows={r.byBetType}
             note="The split people are most often wrong about — being good at sides says nothing about totals."
           />
+
+          {/* The card lives here rather than in the profile header. It's
+              an action about the record, this is the record, and three
+              buttons across the top of a profile is what overlapped the
+              name in the first place. */}
+          <section className="rec-section">
+            <h2 className="rec-h2">Share it</h2>
+            <p className="rec-note">
+              A card of this week&apos;s settled picks, wins and losses both.
+            </p>
+            <p style={{ margin: '0 0 10px' }}>
+              <Link href={`/receipts/${profile.username}`} className="btn">See the card</Link>
+            </p>
+            <ShareRow url={`${SITE_URL}/receipts/${profile.username}`}
+              text={`My record on Gwuap — graded from the final score`} />
+          </section>
 
           <p className="rec-foot">
             Profit counts only picks priced from a book. Money you entered by

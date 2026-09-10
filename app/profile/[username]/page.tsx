@@ -145,14 +145,6 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
           )}
           {user?.id === profile.id && (
             <>
-              {/* The card is the thing a member with nobody to talk to
-                  yet can still get value out of — it goes to the group
-                  chat they're already in. Sits next to Edit profile
-                  rather than under the record, because it's an action
-                  about yourself and that's where those live. */}
-              <Link href={`/receipts/${profile.username}`} className="btn secondary">
-                Share record
-              </Link>
               <EditProfile profile={{ ...(profile as any), preferred_leagues: preferredLeagues,
                 email_notifications: emailNotifications }} />
               <AccountMenu />

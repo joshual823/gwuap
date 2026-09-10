@@ -164,9 +164,18 @@ a { color: inherit; text-decoration: none; }
 /* Profile header. The avatar was 48px next to 24px text and the account
    tools ran four deep down the right, so the page's subject was the
    smallest thing on it. */
-.profile-head { display: flex; align-items: center; gap: 14px; }
-.profile-id { flex: 1 1 auto; min-width: 0; }
-.profile-name { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1.15; }
+/* Wraps rather than overlapping. The tools were flex:0 0 auto against a
+   row that couldn't wrap, so a third button made them wider than the row
+   and the name and badge were painted underneath them. On a narrow
+   screen the tools now drop to their own line instead. */
+.profile-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.profile-id { flex: 1 1 150px; min-width: 0; }
+/* A long username ellipsizes instead of running under whatever is next
+   to it — the badge sits below, so nothing is lost by clipping here. */
+.profile-name {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 0; line-height: 1.15;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .profile-display { margin: 2px 0 0; font-size: 14px; color: var(--ink-dim); }
 
 /* Earned marks. Small enough to sit inside a line of text without
@@ -246,7 +255,7 @@ a { color: inherit; text-decoration: none; }
    rather than as a list. */
 .or-line { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--ink-faint); font-size: 12px; }
 .or-line::before, .or-line::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.profile-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.profile-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; margin-left: auto; }
 .profile-tools .btn { padding: 9px 16px; font-size: 13.5px; }
 
 .account-btn {
