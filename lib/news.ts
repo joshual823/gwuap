@@ -145,6 +145,42 @@ function tagContent(block: string, tag: string): string | null {
  * Headlines for a league. Returns [] rather than throwing — a news feed
  * being down should never take the page with it.
  */
+/**
+ * Headlines we don't publish but do have to stand behind.
+ *
+ * Sports outlets file a lot of "Team A vs. Team B odds, picks,
+ * prediction, betting preview" — which is their business and not ours.
+ * Syndicated into our rail, it becomes eleven words of gambling
+ * vocabulary on a page that isn't a gambling site, and a reader (or an
+ * ad reviewer) can't tell our copy from a feed we pulled in.
+ *
+ * `picks` is deliberately absent from this list. It's this site's own
+ * word for the thing it does, "NFL Week 1 picks: our experts face off"
+ * is an ordinary sports headline, and filtering it would cut the rail in
+ * half to no purpose.
+ *
+ * Measured against a live fetch when it was written: 2 headlines dropped
+ * out of 21, and they were the two that read as a betting preview.
+ */
+/**
+ * Whole words. The first version anchored only the start, which matched
+ * "Mookie Betts" and "the better team" — quietly deleting ordinary
+ * baseball news to remove a betting preview.
+ */
+const BETTING_WORDS = [
+  'bet', 'bets', 'betting', 'wager', 'wagers', 'wagering',
+  'sportsbook', 'sportsbooks', 'parlay', 'parlays',
+  'odds', 'moneyline', 'moneylines', 'oddsmaker', 'oddsmakers',
+]
+
+/** Stems, where every word built on them is one we mean. */
+const BETTING_STEMS = ['gambl', 'handicapp']
+
+export function readsAsBetting(title: string): boolean {
+  return BETTING_WORDS.some(word => new RegExp(`\\b${word}\\b`, 'i').test(title))
+    || BETTING_STEMS.some(stem => new RegExp(`\\b${stem}`, 'i').test(title))
+}
+
 export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]> {
   // Every source, merged — not the first one that answers. CBS was
   // effectively the only source anyone ever saw, because it rarely
@@ -166,6 +202,8 @@ export async function fetchNews(league: string, limit = 15): Promise<NewsItem[]>
     for (const batch of batches) {
       const item = batch[round]
       if (!item) continue
+      // Somebody else's betting preview isn't news we want to carry.
+      if (readsAsBetting(item.title)) continue
       added = true
       const key = titleKey(item.title)
       if (seenLink.has(item.link) || (key && seenTitle.has(key))) continue

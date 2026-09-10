@@ -1985,9 +1985,28 @@ would showed why:
   sportsbook, doesn't take bets. That's for the stranger arriving from an
   ad as much as for the reviewer — both were being asked to infer it.
 
-Odds themselves stay. They're facts about a pick and removing them would
-gut the product; the goal is to stop the page *reading* as a sportsbook,
-not to hide what it does.
+**Syndicated headlines are filtered too** (`readsAsBetting` in
+`lib/news.ts`). Outlets file a lot of "Team A vs. Team B odds, picks,
+prediction, betting preview" — their business, not ours, and once it's in
+our rail a reader can't tell our copy from a feed we pulled in. Two of 21
+dropped when it was written. The filter lives in `fetchNews`, so it
+covers the rail, the news page and the come-back emails at once.
+
+`picks` is deliberately **not** in that list: it's this site's own word,
+"NFL Week 1 picks: our experts face off" is an ordinary headline, and
+filtering it would halve the rail for nothing.
+
+Matching is on **whole words**. The first version anchored only the start
+and matched "Mookie Betts" and "the better team" — quietly deleting
+ordinary baseball news to remove a betting preview. `gambl` and
+`handicapp` stay stems, because everything built on them is meant.
+
+**Odds themselves stay, and that's a product decision rather than a
+concession.** They're what lets somebody show they got in at a good
+number, and what makes a record traceable over time — the same data that
+would make closing-line value computable later, since the price and the
+timestamp are both already stored. The goal is to stop the page *reading*
+as a sportsbook, not to hide what it does.
 
 ### X flagged the first campaign as gambling (9 Sep 2026)
 
