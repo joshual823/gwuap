@@ -104,5 +104,21 @@ console.log('\nevery notification type the database allows has a sentence')
   }
 }
 
+console.log('\nwhat came out of the database is escaped on the way into HTML')
+{
+  // Usernames had no format constraint in the database until 047, and an
+  // email is built by joining strings rather than rendered by React.
+  const nasty = renderDigest(
+    [notif({ type: 'follow', post_id: null, actor: { username: '<script>x</script>' } })],
+    new Map(),
+  )
+  check('no raw tag in the body', nasty.html.includes('<script>'), false)
+  check('escaped instead', nasty.html.includes('&lt;script&gt;'), true)
+  const tagged = renderDigest(
+    [notif()], picks(pick({ tag: '$<b>A' })),
+  )
+  check('a pick summary is escaped too', tagged.html.includes('$<b>A'), false)
+}
+
 console.log(`\n${pass} passed, ${fail} failed`)
 if (fail > 0) process.exit(1)

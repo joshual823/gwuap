@@ -2,6 +2,9 @@ import { createAdminClient } from '@/lib/supabaseServer'
 import { sendEmail, emailShell } from '@/lib/email'
 import { SITE_NAME, SITE_URL } from '@/lib/brand'
 import { renderDigest, type Notif, type Pick } from '@/lib/digest'
+import { renderNudge, nudgeDue, MAX_NUDGES } from '@/lib/nudge'
+import { fetchNewsMixed } from '@/lib/news'
+import { fetchClips } from '@/lib/clips'
 
 export const dynamic = 'force-dynamic'
 
@@ -183,8 +186,84 @@ export async function GET(req: Request) {
     await pause()
   }
 
+  // ---- come back, for people who've drifted off ----------------
+  //
+  // Day 3, day 10, day 30, then it stops. Not daily: somebody who
+  // hasn't been back in three days didn't stop for want of reminding,
+  // and a mail a day is how a young sending domain earns a spam
+  // reputation it can't undo. See lib/nudge.ts.
+  let nudged = 0
+  const { data: away } = await supabase
+    .from('profiles')
+    .select('id, username, last_seen_at, nudge_count, email_notifications')
+    .lt('nudge_count', MAX_NUDGES)
+    .not('last_seen_at', 'is', null)
+    .eq('is_bot', false)
+    .order('last_seen_at', { ascending: true })
+    .limit(50)
+
+  const candidates = (away ?? []).filter((p: any) => {
+    if (p.email_notifications === false) return false
+    const days = (Date.now() - Date.parse(p.last_seen_at)) / 86_400_000
+    return nudgeDue(days, p.nudge_count ?? 0)
+  })
+
+  if (candidates.length > 0) {
+    // Fetched once for everybody rather than per recipient — the news and
+    // the highlights are the same whoever is reading them.
+    const [headlines, clips] = await Promise.all([
+      fetchNewsMixed(['Top'], 3).catch(() => []),
+      fetchClips([], { limit: 3, perLeague: 1 }).catch(() => []),
+    ])
+
+    for (const p of candidates as any[]) {
+      const { data: found } = await supabase.auth.admin.getUserById(p.id)
+      const to = found?.user?.email
+      if (!to) { skipped++; continue }
+
+      // What they missed about themselves, which is the only part of
+      // this email that's actually about them.
+      const { count: graded } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('author_id', p.id)
+        .in('status', ['win', 'loss', 'push'])
+        .gte('graded_at', p.last_seen_at)
+
+      const { count: squads } = await supabase
+        .from('squad_members')
+        .select('squad_id', { count: 'exact', head: true })
+        .eq('user_id', p.id)
+
+      const mail = renderNudge({
+        username: p.username,
+        sent: p.nudge_count ?? 0,
+        headlines: headlines.slice(0, 3)
+          .map(h => ({ title: h.title, href: h.link, detail: h.source })),
+        clips: clips.map(c => ({ title: c.title, href: `${SITE_URL}/clips/${c.id}`, detail: c.league })),
+        gradedWhileAway: graded ?? 0,
+        inSquad: (squads ?? 0) > 0,
+      })
+
+      const result = await sendEmail({ to, subject: mail.subject, html: mail.html, text: mail.text })
+      if (result.ok) {
+        nudged++
+        // Stamped only once it has gone, same as the welcome: a count
+        // that runs ahead of the sending means somebody silently never
+        // hears from us again.
+        await supabase.from('profiles')
+          .update({ nudged_at: new Date().toISOString(), nudge_count: (p.nudge_count ?? 0) + 1 })
+          .eq('id', p.id)
+      } else {
+        failed++
+        if (!errors.includes(result.error)) errors.push(result.error)
+      }
+      await pause()
+    }
+  }
+
   return Response.json({
-    digests: sent, welcomed, skipped, failed,
+    digests: sent, welcomed, nudged, skipped, failed,
     considered: pending.length,
     // Named, so a failing run says why instead of just counting.
     errors: errors.slice(0, 3),

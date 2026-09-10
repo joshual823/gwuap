@@ -19,12 +19,18 @@ export const dynamic = 'force-dynamic'
  */
 
 /**
- * One pick, once every three hours.
+ * One pick a day, until there are people here.
  *
- * It was two per run on an hourly schedule, which is up to 48 picks a
- * day from one account — the feed read as the house talking to itself
- * with people's posts in the gaps. A pick every three hours is still a
- * timeline that's never empty and no longer the only thing in it.
+ * It started at two an hour — up to 48 a day from one account — then
+ * went to one every three hours. Even that is eight a day against
+ * nineteen human posts in three weeks, and lib/feed.ts now has to
+ * actively hold the account back so the timeline doesn't read as one
+ * bot talking to itself.
+ *
+ * A pick a day is enough to keep the feed from being empty and little
+ * enough that a handful of real people outnumber it immediately. Put it
+ * back up when that stops being true — the ratio, not the number, is
+ * what this is for.
  */
 const PICKS_PER_RUN = 1
 
@@ -35,7 +41,7 @@ const PICKS_PER_RUN = 1
  * retried, or pointed at by two schedulers at once. The gap holds
  * however often the endpoint is hit.
  */
-const MIN_GAP_HOURS = 3
+const MIN_GAP_HOURS = 24
 
 /** Only what a final score can settle, and only from a posted price. */
 function marketToPick(game: Game, market: Market) {

@@ -44,7 +44,7 @@ function gradedVerb(outcome: string | null): string {
 }
 
 export function line(n: Notif, pick?: Pick | null): string {
-  const who = n.actor?.username ? `@${n.actor.username}` : 'Someone'
+  const who = n.actor?.username ? `@${esc(n.actor.username)}` : 'Someone'
   switch (n.type) {
     case 'graded': {
       // Which pick, not just that one was graded. Somebody with four
@@ -52,7 +52,7 @@ export function line(n: Notif, pick?: Pick | null): string {
       // and the answer shouldn't require opening the site.
       const what = pickSummary(pick ?? {})
       return `Your pick ${gradedVerb(n.outcome)}.`
-        + (what ? `<span style="color:#7A838F"> ${what}</span>` : '')
+        + (what ? `<span style="color:#7A838F"> ${esc(what)}</span>` : '')
     }
     case 'reaction': return `${who} reacted to your post.`
     case 'comment':  return `${who} commented on your post.`
@@ -68,6 +68,17 @@ export function line(n: Notif, pick?: Pick | null): string {
 
 /** HTML stripped, for a subject line or a text/plain part. */
 const plain = (s: string) => s.replace(/<[^>]+>/g, '')
+
+/**
+ * Anything that came out of the database, on its way into an email.
+ *
+ * The app renders through React, which escapes for you. These emails are
+ * built by joining strings, so they don't get that for free — and a
+ * username had no format constraint in the database until 047, which
+ * means this is defence rather than pedantry.
+ */
+const esc = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 export function subjectFor(items: Notif[], picks: Map<string, Pick>): string {
   if (items.length === 1) {
@@ -104,8 +115,10 @@ export function renderDigest(items: Notif[], picks: Map<string, Pick>): {
   // graded picks is four ways in rather than one button to a list.
   const body = items.slice(0, MAX_ROWS).map(i => {
     const pick = i.post_id ? picks.get(i.post_id) : null
+    // `line()` escapes what it interpolates; this branch skips it, so the
+    // summary has to be escaped here or it goes into the HTML raw.
     const summary = lone ? pickSummary(pick ?? {}) : null
-    const text = summary ?? line(i, pick)
+    const text = summary ? esc(summary) : line(i, pick)
     return i.post_id
       ? `<div style="margin:6px 0"><a href="${SITE_URL}/post/${i.post_id}"
            style="color:#ECEDEE;text-decoration:none">${text}</a></div>`
@@ -123,7 +136,9 @@ export function renderDigest(items: Notif[], picks: Map<string, Pick>): {
     subject,
     href,
     html: emailShell({
-      heading: subject,
+      // Escaped on the way into HTML. The subject line itself is a mail
+      // header and takes plain text, so it stays as it is.
+      heading: esc(subject),
       // One pick, one link: the button says so rather than "open Gwuap".
       cta: { label: single ? 'See the pick' : 'Open Gwuap', href },
       body: body + more,

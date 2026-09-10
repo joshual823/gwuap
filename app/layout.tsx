@@ -7,6 +7,9 @@ import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
 import RedditPixel from '@/components/RedditPixel'
 import Icon from '@/components/Icon'
+
+/** How stale last_seen_at has to be before it's worth a write. */
+const SEEN_STALE_MS = 6 * 60 * 60 * 1000
 import XPixel from '@/components/XPixel'
 import AppScroll from '@/components/AppScroll'
 
@@ -77,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let inbox = 0
   if (user) {
     const [{ data: profile }, { count }, { count: unreadMsgs }, { count: requests }] = await Promise.all([
-      supabase.from('profiles').select('username, is_admin').eq('id', user.id).single(),
+      supabase.from('profiles').select('username, is_admin, last_seen_at').eq('id', user.id).single(),
       supabase.from('notifications')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
@@ -95,6 +98,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     if (profile) {
       profileHref = `/profile/${profile.username}`
       isAdmin = !!profile.is_admin
+
+      // When somebody was last actually here, which is what the
+      // come-back email reads. Not last_sign_in_at: a session lasts
+      // weeks, so somebody who opens the site every morning can have
+      // signed in once, a month ago — and nudging the most active people
+      // on the site to come back would be worse than not nudging at all.
+      //
+      // Stamped at most every few hours rather than on every render, and
+      // never awaited: this is bookkeeping, and a page should not be
+      // slower because of it.
+      const seen = profile.last_seen_at ? Date.parse(profile.last_seen_at) : 0
+      if (Date.now() - seen > SEEN_STALE_MS) {
+        void supabase.from('profiles')
+          .update({ last_seen_at: new Date().toISOString() })
+          .eq('id', user.id)
+          .then(() => undefined)
+      }
     }
     unread = count ?? 0
     inbox = (unreadMsgs ?? 0) + (requests ?? 0)

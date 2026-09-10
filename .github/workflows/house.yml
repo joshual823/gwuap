@@ -1,11 +1,11 @@
-# The house account posts one pick, every three hours.
+# The house account posts one pick a day.
 #
 # Same shape as grade.yml, and the same reason: Vercel's Hobby plan
 # refuses any cron more often than daily, and a feed that gains one post
 # a day isn't a feed.
 #
-# The three-hour gap is enforced in the route, not here, and this
-# schedule only matches it. Two picks an hour is what made the timeline
+# The gap is enforced in the route, not here, and this schedule only
+# matches it. Two picks an hour is what made the timeline
 # read as the house talking to itself; a schedule can be edited in a
 # browser by anyone with repo access, so the route holds the line and a
 # run that arrives early is answered with how long is left. Safe to run
@@ -15,9 +15,9 @@ name: House picks
 
 on:
   schedule:
-    # :37, away from the top of the hour where every scheduled workflow
-    # on GitHub fires at once, and away from grade.yml at :17.
-    - cron: '37 */3 * * *'
+    # Late afternoon UTC: mid-morning in the US, so the day's fixtures
+    # are up and priced. :37 keeps it away from grade.yml at :17.
+    - cron: '37 16 * * *'
   workflow_dispatch:
 
 jobs:

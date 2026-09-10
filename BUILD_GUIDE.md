@@ -1772,6 +1772,34 @@ empty feed** — a chat room with nobody in it is visibly dead where a
 quiet timeline just looks new — so ads should keep pointing at what works
 for one person, and squads should grow through the invite links.
 
+**Built tenth: the house model drops to one pick a day, and come-back
+emails (migration 047).**
+
+- **One house pick a day**, down from one every three hours (and two an
+  hour before that). Eight a day against nineteen human posts in three
+  weeks meant `lib/feed.ts` had to actively hold the account back. Put it
+  up again when real people outnumber it — **the ratio is what the number
+  is for**, not the number.
+- **Come-back emails on day 3, day 10, day 30, then nothing.** Not daily:
+  somebody who hasn't been back in three days didn't stop for want of
+  reminding, and a mail a day is how a young sending domain earns a spam
+  reputation it can't undo. An account that ignored all three has
+  answered. Content-led — their own settled picks first, then headlines
+  and highlights, then a squad prompt. Never "we miss you".
+- **`last_seen_at`, not `last_sign_in_at`.** A session lasts weeks, so
+  somebody who opens the site every morning can have signed in once, a
+  month ago — emailing on that would nudge the *most* active people to
+  come back. Stamped by the layout when it's more than six hours stale.
+
+**047 also closed a real hole.** There has never been a database
+constraint on username format — the shape lived in `lib/username.ts`, the
+signup form and `/api/login`, and nowhere the data sits, while 033 grants
+`insert (username)` to any authenticated caller. The app is safe because
+React escapes what it renders; **the emails are not, because they build
+HTML by joining strings**. Both halves are fixed: a check constraint
+matching `USERNAME_RE`, and escaping in `lib/digest.ts` and
+`lib/nudge.ts`. The tests for both now assert it.
+
 **Still to do, in order:**
 1. A real personal record page — by league, by bet type, streaks. A
    tracker is useful at one user, and bettors genuinely don't know their
