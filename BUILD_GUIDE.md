@@ -2062,6 +2062,43 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### Two campaigns live, first one archived (10 Sep 2026)
+
+**`Squads — Sep 2026` is running** — Standard (not Max), Traffic, US
+only, automated targeting off, eight fantasy/team communities,
+`sq-sports-group-chat`, $20/day to 15 Sep, landing on `/squads`.
+
+**`General — Sep 2026` is built and unpublished** — same shape, $20/day,
+`gw-undefeated`, landing on `/feed`.
+
+**The first campaign is archived, not deleted.** Reddit's menu offers
+both, and the fine print under Totals reads *"excludes deleted
+entities"* — deleting would have taken the $52, the 7,248 impressions and
+the per-asset breakdown showing `02-300.png` at 1,333 impressions out of
+reporting. That breakdown is the evidence for what went wrong and this
+file cites it. Archive retires a campaign for good and keeps the record;
+delete destroys the thing that stops the mistake being repeated.
+
+**Reddit's own picker labels r/sportsbook as "Gambling"** — along with
+r/BettingPicks and r/sportsgambling. That's Reddit's taxonomy, not a
+judgement of ours, and it's the reason r/sportsbook was left out of the
+general campaign: concentrating against that tag on an account X already
+flagged risks an account-level problem, and that would take the live
+squads campaign down with it. r/sportsbetting stays — bettors are the
+audience — and r/sportsbook waits for a few clean days.
+
+**Two silent failures in Reddit's builder, both caught only on the review
+screen:**
+
+- **Bulk community entry dropped one line without a word.** Eight subs
+  pasted, seven arrived. Count the chips against what you pasted.
+- **The form scrolls under you between steps.** An ad name and headline
+  typed at remembered coordinates went nowhere, and a click meant for a
+  text field landed on a suggested-community chip and added
+  r/wallstreetbets to a sports campaign. Screenshot before every typed
+  field, and read the review screen before publishing rather than
+  trusting that what you entered is what's there.
+
 ### The Reddit campaign had been running for six days (10 Sep 2026)
 
 **It was live the whole time this file said nothing had been advertised.**
