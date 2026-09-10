@@ -135,8 +135,18 @@ export default function PostCard({ post }: { post: Post }) {
               title="These numbers were entered by the author, not taken from a book">
               {post.money_public ? 'self-reported' : 'private'}
             </span>}
+          {/* "Book price", not the book's name.
+              The point of this stamp is that the number came from a
+              posted market rather than being typed in — that's the trust
+              claim, and it holds either way. Printing the sportsbook's
+              brand made it 41 instances of "DraftKings" on the front
+              page, which reads as an affiliation that doesn't exist and
+              is what got an ad flagged as gambling content. Which book
+              it was stays on hover, where it's available to anyone who
+              wants it and isn't a billboard for a company we have no
+              arrangement with. */}
           {post.post_kind === 'pick' && post.odds_source === 'book' && post.odds_book &&
-            <span className="stamp booked" title={`Price taken from ${post.odds_book}`}>{post.odds_book}</span>}
+            <span className="stamp booked" title={`Price taken from ${post.odds_book}`}>book price</span>}
           {/* Everyone sees that a pick is held rather than quietly not
               counting. An invisible hold is indistinguishable from a
               rigged one, and the board is the whole product. */}

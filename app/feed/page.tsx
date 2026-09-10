@@ -11,6 +11,7 @@ import { cleanPreferences, railLeaguesFor, newsLeaguesFor } from '@/lib/preferen
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
 import WelcomeModal from '@/components/WelcomeModal'
+import WhatThisIs from '@/components/WhatThisIs'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 import NewsRail from '@/components/NewsRail'
 import FeedTabs from '@/components/FeedTabs'
@@ -220,6 +221,10 @@ export default async function FeedPage(props: {
   return (
     <div>
       {tabs}
+      {/* Above the scoreboard, and only for somebody who isn't signed in.
+          Members know what this is; a stranger and an ad reviewer both
+          arrive at a page whose first screen is otherwise point spreads. */}
+      {!user && <WhatThisIs />}
       <Scoreboard games={await fetchRailGames(16, railLeaguesFor(preferred))} />
 
       {/* Logged-out only, once per browser. Signed-in people have

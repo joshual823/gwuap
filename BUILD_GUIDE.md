@@ -1965,6 +1965,30 @@ each and git is the wrong place for them. It has its own README.
   emails use. A near-miss green between ad and page is the first thing
   that reads as a phishing attempt.
 
+### The landing page read as a sportsbook (10 Sep 2026)
+
+X escalated the flag to fraud and gambling and the campaign went to
+appeal, which means a human opens gwuap.co. Loading it the way a reviewer
+would showed why:
+
+- **"DraftKings" appeared 41 times on one page load.** The `booked` stamp
+  printed the sportsbook's name on every house-model pick. There is no
+  relationship with DraftKings — printing their brand implies one that
+  doesn't exist, so the stamp now reads **"book price"** with the book on
+  hover. That's *more* accurate, not less, and it keeps the trust claim
+  the stamp is actually for: the number came from a posted market rather
+  than being typed in.
+- **The first 700 characters were point spreads.** `LAR -3.5 o/u 48.5`
+  and so on, before a single word of what the site is. A logged-out
+  visitor now meets `components/WhatThisIs.tsx` above the scoreboard:
+  picks settled by the final score, free, nothing to deposit, not a
+  sportsbook, doesn't take bets. That's for the stranger arriving from an
+  ad as much as for the reviewer — both were being asked to infer it.
+
+Odds themselves stay. They're facts about a pick and removing them would
+gut the product; the goal is to stop the page *reading* as a sportsbook,
+not to hide what it does.
+
 ### X flagged the first campaign as gambling (9 Sep 2026)
 
 *"Your ad text reads as Gambling and Games Content."* Four signals: the

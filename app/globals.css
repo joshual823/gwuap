@@ -1442,3 +1442,14 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .gif-tab { border: none; background: none; cursor: pointer; padding: 5px 13px;
   border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-dim); }
 .gif-tab.active { background: var(--card); color: var(--ink); }
+
+/* What the site is, for anyone who hasn't signed in — above the scores,
+   because the scores are the part that reads as a sportsbook to somebody
+   who arrived without context. */
+.what-is {
+  margin: 14px 0 4px; padding: 14px 15px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.what-is-lead { margin: 0; font-size: 15px; line-height: 1.45; color: var(--ink-dim); }
+.what-is-lead strong { color: var(--ink); font-weight: 700; }
+.what-is-sub { margin: 7px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-faint); }
