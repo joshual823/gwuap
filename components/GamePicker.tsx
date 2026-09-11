@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { Market } from '@/lib/scores'
 import { wordsFor } from '@/lib/sportWords'
+import { byPreferredLeague } from '@/lib/leaguePrefs'
 
 export type Slim = {
   id: string; league: string; state: string; status: string; startsAt: string | null
@@ -22,7 +23,7 @@ export type Slim = {
  */
 export default function GamePicker({
   league, query, onSelect, onSelectGame, selectedGameId, showMarkets = true,
-  scope = 'league',
+  scope = 'league', preferLeagues = [],
 }: {
   league: string | null
   query: string
@@ -51,11 +52,14 @@ export default function GamePicker({
    * ended.
    */
   scope?: 'league' | 'take'
+  /** Leagues this person posts in, best first — orders the leagueless list. */
+  preferLeagues?: string[]
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
   const words = wordsFor(league)
+  const preferKey = preferLeagues.join(',')
 
   useEffect(() => {
     const takeScope = scope === 'take'
@@ -66,10 +70,19 @@ export default function GamePicker({
       : `/api/games?league=${encodeURIComponent(league as string)}`
     fetch(url)
       .then(r => r.json())
-      .then(d => { if (!cancelled) setGames(d.games ?? []) })
+      .then(d => {
+        if (cancelled) return
+        const list = (d.games ?? []) as Slim[]
+        // The API deals leagues round-robin so no sport buries the rest;
+        // this lifts the ones they actually post about to the front of
+        // that deal.
+        setGames(takeScope ? byPreferredLeague(list, preferLeagues) : list)
+      })
       .catch(() => { if (!cancelled) setGames([]) })
     return () => { cancelled = true }
-  }, [league, scope])
+    // preferLeagues is a fresh array each render; key on its contents so
+    // this doesn't refetch on every keystroke in the form above it.
+  }, [league, scope, preferKey])
 
   if (!games || games.length === 0) return null
 

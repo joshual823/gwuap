@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
 import { leagueForCode, type Ticker } from '@/lib/tickers'
+import { preferredLeagues } from '@/lib/leaguePrefs'
 import GamePicker, { type Slim } from '@/components/GamePicker'
 import { MAX_TICKER_LENGTH } from '@/lib/tickers'
 import { wordsFor } from '@/lib/sportWords'
@@ -76,8 +77,24 @@ export default function NewPickForm() {
   // price the author never chose, on every pick they posted.
   const [addMoney, setAddMoney] = useState(false)
 
+  const [preferLeagues, setPreferLeagues] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Whose sport goes to the top of an unscoped suggestion list. Loaded
+  // once the categories are known, because the ranking is by name.
+  useEffect(() => {
+    if (categories.length === 0) return
+    let cancelled = false
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || cancelled) return
+      preferredLeagues(user.id, categories)
+        .then(l => { if (!cancelled) setPreferLeagues(l) })
+        .catch(() => { /* ordering is a nicety; the list still works */ })
+    })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories.length])
 
   useEffect(() => {
     supabase.from('categories').select('id, name').then(({ data }) => {
@@ -565,25 +582,34 @@ export default function NewPickForm() {
             wedged between them, which pushed the opponent field so far
             down that people posted matchup bets on one team without
             realising the second field was there at all. */}
+        {/* A take names no league, so the noun can't follow one. It said
+            "Player" the moment somebody picked a tennis cashtag and
+            "Team" before that, which is a label that changes under you
+            while you type. Takes get the both-and version and it stays
+            put; picks still say the right word for their sport. */}
         <label className="form-label">
-          {showOpponent ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
+          {kind === 'take'
+            ? 'Player / Team'
+            : showOpponent ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
         </label>
         <CashtagInput
           value={tag} onChange={setPrimaryTag}
           league={kind === 'take' ? null : leagueName}
           categoryId={categoryId}
           onPick={onCashtagPicked}
+          preferLeagues={preferLeagues}
         />
 
         {showOpponent && (
           <>
             <label className="form-label">
-              Opponent{kind === 'take' ? ' (optional)' : ''}
+              {kind === 'take' ? 'Opponent (optional)' : 'Opponent'}
             </label>
             <CashtagInput
               value={tag2} onChange={setTag2}
               league={kind === 'take' ? null : leagueName}
               categoryId={categoryId}
+              preferLeagues={preferLeagues}
             />
             <p className="form-hint">
               {kind === 'take'
@@ -599,6 +625,7 @@ export default function NewPickForm() {
           <GamePicker
             league={kind === 'take' ? null : leagueName}
             scope={kind === 'take' ? 'take' : 'league'}
+            preferLeagues={preferLeagues}
             query={tag}
             /* A take names the fixture and stops there — no prices to
                open, so nothing to choose from and nothing to store. */

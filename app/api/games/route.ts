@@ -34,9 +34,7 @@ export async function GET(request: Request) {
   }
 
   const games = takeScope
-    ? (await Promise.all(
-        LEAGUES_WITH_SCORES.map(l => fetchGamesWindow(l, 1, 3).catch(() => [])),
-      )).flat()
+    ? await takeScopeGames()
     : await fetchGamesWindow(league as string, 1, 10)
 
   // Finished games are no use here: you can't post a pick on a result.
@@ -117,4 +115,30 @@ function roundRobinByLeague<T extends { league: string }>(items: T[]): T[] {
     }
   }
   return out
+}
+
+/**
+ * Every league's window, cached in the instance for a minute.
+ *
+ * `lib/scores` leans on Next's fetch cache, and **that cache silently
+ * refuses anything over 2MB** — which the tennis and college-football
+ * scoreboards both exceed. Those leagues therefore hit ESPN on every
+ * call, and the take scope asks for all eleven at once, so opening the
+ * post form meant a fan-out of uncached round-trips before the first
+ * suggestion appeared.
+ *
+ * The payload is identical for everyone (the personal ordering happens
+ * client-side), so one fetch can serve every visitor for a minute. Per
+ * instance rather than shared, which is the cheap 90% of the fix.
+ */
+let takeCache: { at: number; games: Awaited<ReturnType<typeof fetchGamesWindow>> } | null = null
+const TAKE_TTL_MS = 60_000
+
+async function takeScopeGames() {
+  if (takeCache && Date.now() - takeCache.at < TAKE_TTL_MS) return takeCache.games
+  const games = (await Promise.all(
+    LEAGUES_WITH_SCORES.map(l => fetchGamesWindow(l, 1, 3).catch(() => [])),
+  )).flat()
+  takeCache = { at: Date.now(), games }
+  return games
 }

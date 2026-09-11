@@ -2346,6 +2346,51 @@ straight, a tennis day's twenty-five finished matches sat above every
 other sport and the NFL fell off the bottom. Now the top ten spans six
 leagues.
 
+### Suggestions lead with your sport (11 Sep 2026)
+
+**There is no screen where anybody picks favourite leagues**, and adding
+one would be a settings page nobody fills in to answer a question the
+data already answers. `lib/leaguePrefs.ts` infers it instead, best guess
+first:
+
+1. **the league last posted in** — the strongest signal by far, because
+   people post about one sport for a season at a time
+2. the leagues they post in generally, most frequent first
+3. the leagues of the cashtags on their watchlist
+
+**It orders, it never filters.** A wrong guess costs one extra scroll; a
+wrong guess that filtered would hide the thing they opened the form to
+post about, which is far worse than not guessing at all.
+
+Applied to the unscoped cashtag list and the leagueless fixture list —
+exactly the two places a take has no league to narrow by. Picks are
+untouched: they already have a league.
+
+### "Player" became "Player / Team"
+
+The side label read `words.side` for the chosen league, so on a take it
+said "Team" until somebody picked a tennis cashtag and then flipped to
+"Player" mid-typing. A take names no league, so the noun can't follow
+one — it says **Player / Team** and stays put. Picks still say the right
+word for their sport, which is the whole reason `sportWords` exists.
+
+### The take fixture list was hammering ESPN
+
+`lib/scores` relies on Next's fetch cache, and **that cache silently
+refuses any response over 2MB** — which the tennis and college-football
+scoreboards both exceed (2.3MB, 2.8MB, 2.1MB). Those leagues hit ESPN on
+every single call, and `scope=take` asks for all eleven leagues at once,
+so opening the post form fanned out a pile of uncached round-trips before
+the first suggestion appeared.
+
+The payload is identical for everyone — the personal ordering happens on
+the client — so the route now memoises it for 60 seconds. Measured:
+**0.89s cold, 0.015s warm.** Per instance rather than shared, which is
+the cheap 90% of the fix.
+
+Worth remembering generally: **a `next: { revalidate }` on a large
+upstream response is not a cache, it's a no-op with a log line.**
+
 ### Deleting a take offered to "Delete pick"
 
 `PostMenu` hard-coded "pick" in three places — the menu item, the

@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { searchTickers, searchAllTickers, isSupportedLeague, MAX_TICKER_LENGTH, type Ticker } from '@/lib/tickers'
+import { byPreferredLeague } from '@/lib/leaguePrefs'
 import { createClient } from '@/lib/supabaseClient'
 
 /**
@@ -24,7 +25,7 @@ import { createClient } from '@/lib/supabaseClient'
  * anybody being asked.
  */
 export default function CashtagInput({
-  value, onChange, league, categoryId, onPick,
+  value, onChange, league, categoryId, onPick, preferLeagues = [],
 }: {
   value: string
   onChange: (v: string) => void
@@ -34,6 +35,9 @@ export default function CashtagInput({
   /** Fires with the full ticker when a suggestion is taken, so a
    *  leagueless form can learn the league without asking for it. */
   onPick?: (t: Ticker) => void
+  /** Leagues this person posts in, best first. Orders an unscoped
+   *  search so their sport is at the top — never filters it. */
+  preferLeagues?: string[]
 }) {
   const [open, setOpen] = useState(false)
   // Cashtags other people have already used in this league. A fixed list
@@ -57,10 +61,11 @@ export default function CashtagInput({
   const curated = useMemo<Ticker[]>(() => {
     if (!stillTypingTicker) return []
     // No league chosen means a take: search the lot.
-    return isSupportedLeague(league)
-      ? searchTickers(league, ticker)
-      : searchAllTickers(ticker)
-  }, [league, ticker, stillTypingTicker])
+    if (isSupportedLeague(league)) return searchTickers(league, ticker)
+    // Unscoped: every league matches, so whose league comes first is the
+    // difference between one tap and a scroll through eight sports.
+    return byPreferredLeague(searchAllTickers(ticker, 24), preferLeagues).slice(0, 8)
+  }, [league, ticker, stillTypingTicker, preferLeagues])
 
   // Whoever is playing comes first — that code is the one the grader
   // will match against. Then the curated list, then anything learned.
