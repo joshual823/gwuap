@@ -2677,6 +2677,56 @@ for six days it made the wrong one.
    objective, the UTM URL, US-only, an end date — and leave the last
    click to a person.
 
+### The targeting test failed too — and Reddit's verdict (11 Sep 2026)
+
+**`gw-undefeated` was rejected again**, with r/sportsbetting removed. So
+the second controlled test failed as well, and both hypotheses are dead:
+
+| Variable changed | Result |
+|---|---|
+| Landing page `/feed` → `/squads` | **rejected** |
+| Targeting, r/sportsbetting removed | **rejected** |
+
+Neither the landing page nor the gambling-categorised community was the
+cause. The only difference left between the approved ad and the rejected
+one is **the creative and its headline**.
+
+Which points somewhere specific: `sq-sports-group-chat` says "THE SPORTS
+GROUP CHAT / Everyone called it. Nobody wrote it down." and passes.
+`gw-undefeated` says **"EVERYONE'S UNDEFEATED / Until somebody keeps
+score."** On a sports-betting-adjacent account, *undefeated* reads as a
+claim about a winning record — and claims about winnings are exactly
+what gambling ad policies restrict. Untested, but it is the last variable
+standing and it fits.
+
+### Reddit: pause. The numbers
+
+| Channel | Cost | Clicks | Signups |
+|---|---|---|---|
+| Reddit, squads campaign | **$34.22** | 25 | **0** |
+| Polymarket message | **$0** | — | **2** |
+
+Accounts went 6 → 8 on 11 Sep: `ijmors` and `gmt800goat`, 17:50 and
+17:51, one minute apart. **Both from Polymarket. Neither from Reddit.**
+
+Three further reasons, beyond the obvious one:
+
+- **The campaign has stalled anyway.** Spend has sat at $34.22 since 10
+  Sep with roughly ninety more impressions and no new clicks. It is not
+  spending its $20/day.
+- **Half the experiment never ran.** `General — Sep 2026` reads "No
+  active ad groups" because both its ads are rejected, so the
+  general-vs-squads comparison was never made.
+- **The argument for continuing is answered for free.** The one thing
+  Reddit could still teach is whether the new `/squads` front door
+  converts — and the Polymarket message points at `/squads` too, so that
+  gets tested either way at no cost.
+
+**One thing to be fair about: the front door has never been tested.** All
+25 clicks landed before it shipped. Reddit's 0-from-25 is a verdict on
+the *old* page, not the new one — so this is a pause, not a conclusion
+that the channel can't work.
+
 ### Two rules about picks changed (11 Sep 2026)
 
 **MIGRATION 050 MUST RUN BEFORE THIS DEPLOYS.** The record page and the
