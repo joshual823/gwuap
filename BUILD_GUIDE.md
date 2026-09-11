@@ -2144,10 +2144,26 @@ Note the load-time check in `Clarity.tsx` is still the one that can't
 rot: if Clarity ever drops the `stop` command the call becomes a silent
 no-op on their queue, and only the hard-load guard would still hold.
 
-**Still no session recorded** after a genuine 30-second human visit, so
-this change is not yet proven to be the fix. Clarity's first-data
-processing can lag; re-check before concluding, and if it stays empty the
-next move is a fresh project and a new `NEXT_PUBLIC_CLARITY_ID`.
+**The old project was abandoned.** A genuine 30-second human visit
+produced no session, still nothing 20+ minutes later. Thirty seconds
+completes hydration many times over, so the old `afterInteractive` timing
+cannot explain it — and the domain, IP blocking and consent settings had
+all been eliminated by then. That left the project itself.
+
+**New Clarity project: `ygpqdl6jr9`** (the dead one was `yc1lfspsay`).
+`NEXT_PUBLIC_CLARITY_ID` in Vercel Production was removed and re-added
+with the new value, verified by pulling it back:
+`NEXT_PUBLIC_CLARITY_ID="ygpqdl6jr9"`. **It takes effect on the next
+deploy** — `NEXT_PUBLIC_` values are baked at build time, so pushing the
+commits is what makes it live.
+
+**Two things changed at once and that was deliberate.** The new project
+ID and the `beforeInteractive` move ship together, so if recordings start
+we won't know which fixed it. The campaign ends 15 Sep and recordings of
+the remaining traffic are worth more than clean attribution of a bug we
+may never see again — and the loading change is correct on its own
+merits regardless. Recorded here so nobody later reads a working Clarity
+as proof the old project was broken.
 
 ### Where the clicks go, and Clarity has never worked (11 Sep 2026)
 
