@@ -2433,8 +2433,44 @@ Two things worth carrying here:
 - **The handle is the strongest signal and the hardest to fix.** An ad
   from `@Gamblenchill` pointing at a site whose whole pitch is
   trustworthiness is working against itself twice — once at review, once
-  with the stranger reading it. A Gwuap-branded X account is the real fix
-  and hasn't been done.
+  with the stranger reading it. A Gwuap-branded X account is the real fix.
+  **Update 11 Sep: it was done.** The ad account is `Bloccaa`
+  (`18ce55xag4u`) and the ad posts as **@gwuapco**. See the next section
+  for what happened anyway.
+
+### X declined the appeal (seen 11 Sep 2026)
+
+The appeal recorded as pending on 10 Sep has been **declined**. The
+campaign toggle still reads Active; the **delivery status is Halted**
+with *"Appeal declined"* under it. Started 9 Sep, and as of 11 Sep:
+**0 impressions, $0.00 spent, 0 clicks.** It has never delivered
+anything.
+
+**It was declined with the two obvious fixes already in place.** The
+account posts as **@gwuapco**, not @Gamblenchill, so the handle argument
+above was already answered. And the live post's copy is clean — *"Say
+what you think happens before the game starts. The final score settles
+it, nobody grades…"* — no word from the banned list. X still said no.
+
+**Two platforms now point at the same cause.** Reddit's rejection cited
+*prohibited targeting methods* and the only gambling-categorised
+community in the ad group; X halted a campaign whose creative and handle
+are clean. What both campaigns still share is **targeting built out of
+sportsbook vocabulary and book/prediction-market look-alikes**, plus
+whatever classification the account picked up on the first pass. The
+creative was never the thing.
+
+**Do not launch a new campaign on this X account to test the theory.** A
+declined appeal is not the same as a rejection: the next violation risks
+suspension, which costs the channel permanently rather than costing a
+week. Before anything else runs there, the old ad group's keyword and
+look-alike targeting needs reading and clearing, and X support is worth
+asking what specifically classifies the account — a declined appeal
+usually comes with a route to a human.
+
+**Meanwhile Reddit is the live channel** and the squads campaign is
+delivering, which is the first paid traffic this site has ever actually
+received.
 
 ### The pitch, and what it deliberately avoids
 
