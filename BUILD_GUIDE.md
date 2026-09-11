@@ -2171,6 +2171,34 @@ The 30-second human visit is the one point that doesn't fit, but an ad
 blocker or tracking protection blocking `clarity.ms` explains it equally
 well — Clarity is a common blocklist entry.
 
+**A clean phone visit produced nothing either, and that ends the
+investigation.** What has now been checked and eliminated:
+
+| Checked | Result |
+|---|---|
+| Tag present, loads | 200 from `clarity.ms/tag/…`, snippet in server HTML |
+| Two separate projects | `yc1lfspsay` and `ygpqdl6jr9` — identical behaviour |
+| Two environments | automation Chrome **and** a clean phone — both nothing |
+| Domain setting | corrected to `gwuap.co` |
+| IP blocking | empty |
+| Cookie consent gate | none; Cookies: On |
+| Load timing | moved to `beforeInteractive`, now in initial HTML |
+| CSP / response headers | only `frame-ancestors 'none'`; nothing blocks scripts or connections |
+
+Two projects and two environments failing identically, with nothing on
+our side blocking it, means this is not a configuration mistake anybody
+is going to find by clicking around. **The remaining move is Clarity
+support**, with those facts and both project IDs.
+
+**Stop here.** Clarity was only ever wanted to watch what the 22 paid
+visitors did. The Reddit pixel already reports **Page Visit** and
+**Sign Up** per ad, which is the funnel data the decision actually needs
+— 22 visits, 0 signups was established without Clarity and didn't depend
+on it. The hours spent here bought one real improvement (the tag now
+loads before hydration, which was a genuine bug for ad traffic) and one
+correction worth keeping (never diagnose an analytics tag from an
+automated browser).
+
 **Don't spend more time testing this by hand.** The squads campaign is
 delivering real Reddit users on real phones until 15 Sep. If Clarity
 works, their sessions will appear on their own; if none appear by the end
