@@ -2101,6 +2101,40 @@ convert. The campaign runs to 15 Sep, so there are a few days of traffic
 left to measure it against — a small sample, but the first one aimed at
 the right problem.
 
+### Clarity moved into the initial HTML (11 Sep 2026)
+
+It was `afterInteractive`, which injects the tag only once React has
+hydrated. Fine for someone browsing; **wrong for the traffic we pay
+for.** A visitor who lands from an ad and leaves in two seconds can be
+gone before hydration finishes, and Clarity never starts — so the one
+cohort worth recording is the cohort most likely to be missed. Microsoft's
+own instructions say put the snippet in `<head>` for exactly this reason.
+
+It now uses **`beforeInteractive`**, which the bundled Next docs describe
+as "injected into the initial HTML from the server, downloaded before any
+Next.js module". Measured: the snippet appears in `curl` output on every
+page now and appeared on none before.
+
+**That forced two structural changes.** `beforeInteractive` is injected
+server-side and must live in the root layout, so `Clarity.tsx` is no
+longer a client component — and the route exclusion could no longer use
+`usePathname()`. The excluded list is now compiled into the inline script,
+which checks `location.pathname` and returns before initialising.
+Verified in the browser: on `/reset` the guard is present and the
+`clarity.ms` tag is **not** inserted; on `/squads` it is.
+
+**A limit that predates this and still stands.** The check runs once, on
+load. Someone who opens `/feed` and then navigates to `/vent` client-side
+is still being recorded, because Clarity is already running and
+unmounting a `<Script>` doesn't unload it. The old `usePathname` version
+had the same hole — it only ever protected a hard load of `/vent`.
+Closing it properly needs a `clarity('stop')` call on route change.
+
+**Still no session recorded** after a genuine 30-second human visit, so
+this change is not yet proven to be the fix. Clarity's first-data
+processing can lag; re-check before concluding, and if it stays empty the
+next move is a fresh project and a new `NEXT_PUBLIC_CLARITY_ID`.
+
 ### Where the clicks go, and Clarity has never worked (11 Sep 2026)
 
 **The Reddit pixel settles the funnel question.** With Conversions
