@@ -8,9 +8,16 @@ import MentionInput from '@/components/MentionInput'
 import { REACTION_EMOJI } from '@/lib/reactions'
 import RichText from '@/components/RichText'
 import ChatActions from '@/components/ChatActions'
+import ChatPick from '@/components/ChatPick'
+import SharePickSheet from '@/components/SharePickSheet'
+import { CHAT_PICK_COLUMNS, type ChatPick as Pick } from '@/lib/chatPick'
 
 type Author = { id: string; username: string; avatar_url: string | null }
-type Msg = { id: string; body: string; created_at: string; author: Author | null }
+type Msg = {
+  id: string; body: string; created_at: string; author: Author | null
+  /** A pick shared into the room, read live so the card settles when it does. */
+  pick?: Pick | null
+}
 
 const MAX = 500
 
@@ -28,7 +35,9 @@ export default function GameChat({ gameKey, viewerId }: {
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showPicks, setShowPicks] = useState(false)
   const authors = useRef(new Map<string, Author | null>())
+  const picks = useRef(new Map<string, Pick | null>())
   const bottom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -37,14 +46,17 @@ export default function GameChat({ gameKey, viewerId }: {
 
     supabase
       .from('game_messages')
-      .select('id, body, created_at, author:profiles!game_messages_author_id_fkey ( id, username, avatar_url )')
+      .select(`id, body, created_at, author:profiles!game_messages_author_id_fkey ( id, username, avatar_url ), pick:posts!game_messages_post_id_fkey ( ${CHAT_PICK_COLUMNS} )`)
       .eq('game_key', gameKey)
       .order('created_at', { ascending: true })
       .limit(200)
       .then(({ data }) => {
         if (!active) return
         const rows = (data ?? []) as unknown as Msg[]
-        rows.forEach(m => m.author && authors.current.set(m.author.id, m.author))
+        rows.forEach(m => {
+          if (m.author) authors.current.set(m.author.id, m.author)
+          if (m.pick) picks.current.set(m.pick.id, m.pick)
+        })
         setMessages(rows)
       })
 
@@ -53,7 +65,9 @@ export default function GameChat({ gameKey, viewerId }: {
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'game_messages', filter: `game_key=eq.${gameKey}` },
         async payload => {
-          const row = payload.new as { id: string; body: string; created_at: string; author_id: string }
+          const row = payload.new as {
+            id: string; body: string; created_at: string; author_id: string; post_id: string | null
+          }
           let author = authors.current.get(row.author_id) ?? null
           if (!author) {
             const { data } = await supabase.from('profiles')
@@ -61,9 +75,21 @@ export default function GameChat({ gameKey, viewerId }: {
             author = (data as Author) ?? null
             if (author) authors.current.set(row.author_id, author)
           }
+          // Realtime hands over the row, not the join, so a shared pick
+          // has to be looked up — once per pick, not once per message.
+          let pick: Pick | null = null
+          if (row.post_id) {
+            pick = picks.current.get(row.post_id) ?? null
+            if (!pick) {
+              const { data } = await supabase.from('posts')
+                .select(CHAT_PICK_COLUMNS).eq('id', row.post_id).maybeSingle()
+              pick = (data as unknown as Pick) ?? null
+              if (pick) picks.current.set(row.post_id, pick)
+            }
+          }
           setMessages(cur => cur.some(m => m.id === row.id)
             ? cur
-            : [...cur, { id: row.id, body: row.body, created_at: row.created_at, author }])
+            : [...cur, { id: row.id, body: row.body, created_at: row.created_at, author, pick }])
         })
       .on('postgres_changes',
         { event: 'DELETE', schema: 'public', table: 'game_messages' },
@@ -78,17 +104,24 @@ export default function GameChat({ gameKey, viewerId }: {
 
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }) }, [messages.length])
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault()
-    const text = body.trim()
-    if (!text || !viewerId) return
+  /** Words, a shared pick, or both — but never neither. */
+  async function post(text: string, postId: string | null) {
+    if (!viewerId) return
+    const said = text.trim()
+    if (!said && !postId) return
     setSending(true); setError(null)
     const supabase = createClient()
     const { error: sendError } = await supabase
-      .from('game_messages').insert({ game_key: gameKey, author_id: viewerId, body: text })
+      .from('game_messages')
+      .insert({ game_key: gameKey, author_id: viewerId, body: said, post_id: postId })
     setSending(false)
     if (sendError) { setError(sendError.message); return }
     setBody('')
+  }
+
+  async function send(e: React.FormEvent) {
+    e.preventDefault()
+    await post(body, null)
   }
 
   return (
@@ -122,7 +155,8 @@ export default function GameChat({ gameKey, viewerId }: {
                   <ChatActions messageId={m.id} authorId={m.author.id} viewerId={viewerId} />
                 )}
               </div>
-              <RichText text={m.body} className="gc-text" />
+              {m.body && <RichText text={m.body} className="gc-text" />}
+              {m.pick && <ChatPick pick={m.pick} />}
             </div>
           </div>
         ))}
@@ -132,15 +166,23 @@ export default function GameChat({ gameKey, viewerId }: {
       {viewerId ? (
         <form onSubmit={send} className="gc-form">
           <MentionInput rows={2} maxLength={MAX} value={body} onChange={setBody}
-            placeholder="Say something…" />
+            placeholder="Say something… $ for a team, @ for a person" />
           <div className="comment-form-foot">
             {/* One tap for the things people actually send in a game thread. */}
             <div className="gc-quick">
-              {REACTION_EMOJI.slice(0, 6).map(e => (
+              {REACTION_EMOJI.slice(0, 4).map(e => (
                 <button key={e} type="button" className="gc-quick-btn"
                   aria-label={`Add ${e}`}
                   onClick={() => setBody(b => (b + e).slice(0, MAX))}>{e}</button>
               ))}
+              {/* Wider than the emoji, and labelled, because this is the
+                  one button in the row that puts your own record in front
+                  of the room — it shouldn't read as another sticker. */}
+              <button type="button" className="gc-quick-btn gc-share-pick"
+                title="Share one of your picks"
+                onClick={() => setShowPicks(v => !v)}>
+                + Pick
+              </button>
             </div>
             <span className="comment-count-left">
               {MAX - body.length < 100 ? `${MAX - body.length} left` : ''}
@@ -150,6 +192,13 @@ export default function GameChat({ gameKey, viewerId }: {
             </button>
           </div>
           {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
+          {showPicks && (
+            <SharePickSheet
+              viewerId={viewerId}
+              onClose={() => setShowPicks(false)}
+              onPick={(pick) => { setShowPicks(false); void post(body, pick.id) }}
+            />
+          )}
         </form>
       ) : (
         <p className="comment-signin">

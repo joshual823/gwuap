@@ -8,6 +8,9 @@ import MentionInput from '@/components/MentionInput'
 import { REACTION_EMOJI } from '@/lib/reactions'
 import RichText from '@/components/RichText'
 import GifPicker from '@/components/GifPicker'
+import ChatPick from '@/components/ChatPick'
+import SharePickSheet from '@/components/SharePickSheet'
+import { CHAT_PICK_COLUMNS, type ChatPick as Pick } from '@/lib/chatPick'
 import { fitResize, MAX_SOURCE_BYTES } from '@/lib/image'
 
 type Author = { id: string; username: string; avatar_url: string | null }
@@ -41,6 +44,8 @@ type Msg = {
   id: string; body: string; created_at: string
   image_url: string | null
   author: Author | null
+  /** A pick shared into the room, read live so the card settles when it does. */
+  pick?: Pick | null
 }
 
 const MAX = 500
@@ -64,9 +69,11 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showGifs, setShowGifs] = useState(false)
+  const [showPicks, setShowPicks] = useState(false)
   const [attaching, setAttaching] = useState(false)
   const authors = useRef(new Map<string, Author | null>())
   const fileInput = useRef<HTMLInputElement>(null)
+  const picks = useRef(new Map<string, Pick | null>())
   const bottom = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -76,14 +83,17 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
 
     supabase
       .from('squad_messages')
-      .select('id, body, created_at, image_url, author:profiles!squad_messages_author_id_fkey ( id, username, avatar_url )')
+      .select(`id, body, created_at, image_url, author:profiles!squad_messages_author_id_fkey ( id, username, avatar_url ), pick:posts!squad_messages_post_id_fkey ( ${CHAT_PICK_COLUMNS} )`)
       .eq('squad_id', squadId)
       .order('created_at', { ascending: true })
       .limit(200)
       .then(({ data }) => {
         if (!active) return
         const rows = (data ?? []) as unknown as Msg[]
-        rows.forEach(m => m.author && authors.current.set(m.author.id, m.author))
+        rows.forEach(m => {
+          if (m.author) authors.current.set(m.author.id, m.author)
+          if (m.pick) picks.current.set(m.pick.id, m.pick)
+        })
         setMessages(rows)
       })
 
@@ -93,7 +103,8 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
         { event: 'INSERT', schema: 'public', table: 'squad_messages', filter: `squad_id=eq.${squadId}` },
         async payload => {
           const row = payload.new as {
-            id: string; body: string; created_at: string; author_id: string; image_url: string | null
+            id: string; body: string; created_at: string; author_id: string
+            image_url: string | null; post_id: string | null
           }
           let author = authors.current.get(row.author_id) ?? null
           if (!author) {
@@ -102,11 +113,23 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
             author = (data as Author) ?? null
             if (author) authors.current.set(row.author_id, author)
           }
+          // Realtime hands over the row, not the join, so a shared pick
+          // has to be looked up — once per pick, not once per message.
+          let pick: Pick | null = null
+          if (row.post_id) {
+            pick = picks.current.get(row.post_id) ?? null
+            if (!pick) {
+              const { data } = await supabase.from('posts')
+                .select(CHAT_PICK_COLUMNS).eq('id', row.post_id).maybeSingle()
+              pick = (data as unknown as Pick) ?? null
+              if (pick) picks.current.set(row.post_id, pick)
+            }
+          }
           setMessages(cur => cur.some(m => m.id === row.id)
             ? cur
             : [...cur, {
                 id: row.id, body: row.body, created_at: row.created_at,
-                image_url: row.image_url ?? null, author,
+                image_url: row.image_url ?? null, author, pick,
               }])
         })
       .on('postgres_changes',
@@ -122,15 +145,18 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
 
   useEffect(() => { bottom.current?.scrollIntoView({ block: 'nearest' }) }, [messages.length])
 
-  /** Text, a picture, or both — but never neither, which the table also refuses. */
-  async function post(text: string, imageUrl: string | null) {
+  /** Text, a picture, a shared pick, or any mix — but never none of them. */
+  async function post(text: string, imageUrl: string | null, postId: string | null = null) {
     if (!viewerId) return
-    if (!text.trim() && !imageUrl) return
+    if (!text.trim() && !imageUrl && !postId) return
     setSending(true); setError(null)
     const supabase = createClient()
     const { error: sendError } = await supabase
       .from('squad_messages')
-      .insert({ squad_id: squadId, author_id: viewerId, body: text.trim(), image_url: imageUrl })
+      .insert({
+        squad_id: squadId, author_id: viewerId, body: text.trim(),
+        image_url: imageUrl, post_id: postId,
+      })
     setSending(false)
     if (sendError) { setError(sendError.message); return }
     setBody('')
@@ -230,6 +256,7 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
                 )}
               </div>
               {m.body && <RichText text={m.body} className="gc-text" />}
+              {m.pick && <ChatPick pick={m.pick} />}
               {m.image_url && (
                 /* Not next/image: these are a Tenor url or a Supabase
                    object, and a GIF put through the optimiser stops
@@ -244,7 +271,7 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
 
       <form onSubmit={send} className="gc-form">
         <MentionInput rows={2} maxLength={MAX} value={body} onChange={setBody}
-          placeholder="Say something…" />
+          placeholder="Say something… $ for a team, @ for a person" />
         <div className="comment-form-foot">
           <div className="gc-quick">
             {REACTION_EMOJI.slice(0, 4).map(e => (
@@ -258,6 +285,14 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
             </button>
             <button type="button" className="gc-quick-btn" title="Add a GIF"
               onClick={() => setShowGifs(v => !v)}>GIF</button>
+            {/* Wider than the emoji, and labelled, because this is the
+                one button in the row that puts your own record in front
+                of the room — it shouldn't read as another sticker. */}
+            <button type="button" className="gc-quick-btn gc-share-pick"
+              title="Share one of your picks"
+              onClick={() => { setShowPicks(v => !v); setShowGifs(false) }}>
+              + Pick
+            </button>
           </div>
           <input ref={fileInput} type="file" accept="image/*" hidden onChange={attach} />
           <span className="comment-count-left">
@@ -268,6 +303,13 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
           </button>
         </div>
         {error && <p style={{ color: 'var(--bear)', fontSize: 13 }}>{error}</p>}
+        {showPicks && viewerId && (
+          <SharePickSheet
+            viewerId={viewerId}
+            onClose={() => setShowPicks(false)}
+            onPick={(pick) => { setShowPicks(false); void post(body, null, pick.id) }}
+          />
+        )}
         {showGifs && (
           <GifPicker
             onClose={() => setShowGifs(false)}

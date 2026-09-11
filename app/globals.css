@@ -1604,3 +1604,58 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .push-card .btn { padding: 9px 16px; font-size: 13.5px; }
 .push-on { font-size: 13px; color: var(--ink-dim); margin: 0; }
 .push-error { color: var(--bear); font-size: 12.5px; margin: 8px 0 0; }
+
+/* ---------------------------------------------------------------
+   Autocomplete in a room, and picks shared into one
+   --------------------------------------------------------------- */
+
+/* The composer sits at the bottom of the room, and on a phone the
+   keyboard takes everything below it. A list that drops down from the
+   caret opens into the part of the page nobody can see — which is why
+   typing "$" in a room looked like it did nothing at all. Open upward
+   here, the way every chat app does it. */
+.gc-form .mention-list { top: auto; bottom: 100%; margin: 0 0 6px; max-height: 40vh; }
+
+/* The one button in the quick row that isn't a sticker. Labelled and
+   wider, because it puts your own record in front of the room. */
+.gc-share-pick { font-family: var(--font-mono), sans-serif; font-size: 12px; font-weight: 700;
+  padding: 4px 9px; color: var(--brand); background: var(--tint-brand);
+  white-space: nowrap; margin-left: 4px; }
+.gc-share-pick:hover { background: var(--tint-brand); filter: brightness(1.08); }
+
+/* A pick inside a message. Deliberately quieter than a feed card: the
+   room is a conversation and this is one line of it. */
+.chat-pick { margin-top: 7px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 9px 11px; background: var(--card-2); max-width: 340px; }
+.chat-pick-top { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.chat-pick-tag { font-family: var(--font-mono), sans-serif; font-weight: 800; font-size: 13px;
+  color: var(--brand); text-decoration: none; }
+.chat-pick-tag:hover { text-decoration: underline; }
+.chat-pick-side { font-size: 12.5px; font-weight: 700; color: var(--ink); }
+.chat-pick-line { font-size: 12.5px; color: var(--ink); }
+.chat-pick-bet { font-size: 11.5px; color: var(--ink-dim); }
+.chat-pick-odds { font-size: 12.5px; color: var(--ink-dim); }
+.chat-pick-say { margin: 6px 0 0; font-size: 13px; line-height: 1.45; color: var(--ink-dim); }
+.chat-pick-open { display: inline-block; margin-top: 7px; font-size: 12px; font-weight: 700;
+  color: var(--ink-faint); text-decoration: none; }
+.chat-pick-open:hover { color: var(--brand); }
+
+/* Choosing which one to share. Sits above the composer for the same
+   reason the autocomplete does. */
+.share-pick { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); z-index: 45;
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 12px 28px var(--shadow); padding: 8px; max-height: 46vh; overflow-y: auto; }
+.gc-form { position: relative; }
+.share-pick-head { display: flex; align-items: center; justify-content: space-between;
+  padding: 2px 6px 8px; font-size: 13px; }
+.share-pick-x { background: none; border: none; font-size: 20px; line-height: 1;
+  color: var(--ink-faint); cursor: pointer; padding: 0 4px; }
+.share-pick-note { margin: 0; padding: 4px 6px 8px; font-size: 13px; color: var(--ink-dim); }
+.share-pick-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.share-pick-row { width: 100%; display: flex; align-items: center; gap: 9px; text-align: left;
+  background: none; border: none; padding: 8px 9px; border-radius: 9px; cursor: pointer; }
+.share-pick-row:hover { background: var(--card); }
+.share-pick-tag { font-family: var(--font-mono), sans-serif; font-weight: 800; font-size: 12.5px;
+  color: var(--brand); flex: 0 0 auto; }
+.share-pick-what { font-size: 12.5px; color: var(--ink-dim); flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

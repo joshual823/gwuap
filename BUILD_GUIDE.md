@@ -3261,7 +3261,84 @@ it's the least copyable thing about the site.
   from an ad is precisely the case it's off for — decide deliberately
   which risk you prefer before the first click lands.
 
+### The rooms got a share button, and an autocomplete that was always there (11 Sep 2026)
+
+**MIGRATION 052 MUST RUN BEFORE THIS DEPLOYS** — `post_id` on
+`squad_messages` and `game_messages`. Both rooms select a join through
+that foreign key; without the column the message query fails and the
+room renders empty.
+
+#### The `$` autocomplete was never broken. It was off-screen.
+
+Reported as *"when I type the cashtag, I don't see any suggestions pop
+up"*. `MentionInput` has completed `@` and `$` since Session 10, and the
+data behind it is fine — `/api/playing?q=L` returns `$LAA LIVE · LAA @
+WSH`, `$LAD LIVE · LAD @ MIA` on demand. Nothing was wrong with the
+matching, the fetch, or the trigger regex.
+
+`.mention-list` is `position: absolute; top: 100%` — it drops **downward**
+from the textarea. That is right under a comment box in the middle of a
+page and wrong in a chat room, where the composer is the last thing on
+the page and, on a phone, the keyboard owns everything below it. The
+list was rendering into the part of the screen that doesn't exist.
+
+```css
+.gc-form .mention-list { top: auto; bottom: 100%; margin: 0 0 6px; max-height: 40vh; }
+```
+
+Scoped to the composer, so comment boxes keep opening downward.
+
+**The lesson, and it is the same one as the iPhone status bar two hours
+earlier:** a feature can be complete, tested, and invisible. Both bugs
+were a thing rendered where the person couldn't see it, and both were
+only findable by looking at the real surface — a room on a phone, not a
+component in isolation. "It doesn't work" from a user is worth taking
+literally: nothing popped up, and nothing popping up is compatible with
+the code being perfect.
+
+Discoverability was the other half. Nothing told anyone `$` did anything,
+so the placeholder now does: *"Say something… $ for a team, @ for a
+person"*. A bare `$` still offers nothing on purpose — with every tennis
+draw in the window, the six soonest matches are not a useful answer to a
+question nobody has finished asking.
+
+#### `+ Pick` — sharing your own pick into a room
+
+A member could always paste a link. Nobody does, and a bare
+`/post/<uuid>` in a group chat tells you nothing about what was bet —
+you have to leave the room to find out, which is the thing a group chat
+is supposed to save you from.
+
+| | |
+|---|---|
+| `lib/chatPick.ts` | the nine columns a room needs, and the select list for them |
+| `components/ChatPick.tsx` | the card: cashtag, side, line, price, how it settled |
+| `components/SharePickSheet.tsx` | your last 20 posts, above the composer |
+| migration 052 | `post_id` on both message tables |
+
+Four decisions worth keeping:
+
+- **A column, not a URL in the body.** The card reads the post, so a pick
+  shared while pending flips to *win* or *loss* in the room the moment
+  grading settles it. A snapshot would have gone stale in the scroll.
+- **`on delete set null`, not cascade.** Deleting a pick shouldn't reach
+  into three rooms and remove what people said about it. The message
+  survives; the card goes.
+- **Your own posts only.** "Share a pick" in a group chat means the one
+  you made. A picker that offered the whole site would be a search box,
+  and passing along somebody else's is what repost is for.
+- **Much quieter than `PostCard`.** No reactions, no repost, no comment
+  count, no share row. A full feed card per message turns the room into
+  a second feed running down the middle of the conversation; this is one
+  line of one, with the post one tap away.
+
+018 wrote `game_messages.body` as `between 1 and 500`, which is the
+length cap and the not-empty rule in a single check. 052 splits them, so
+a shared pick can carry no words without losing the cap. Both tables keep
+a says-something constraint: never all fields empty.
+
 ---
+
 
 ## Reference: what we've already decided
 
