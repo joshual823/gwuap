@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { timeAgo } from '@/lib/time'
 import { pickSummary } from '@/lib/odds'
 import MarkAllRead from './MarkAllRead'
+import EnablePush from '@/components/EnablePush'
 
 export const dynamic = 'force-dynamic'
 
@@ -80,6 +81,12 @@ export default async function NotificationsPage() {
     <div style={{ marginTop: 24 }}>
       <MarkAllRead userId={user.id} unreadCount={unread} />
       <h1 className="display" style={{ fontSize: 22, marginBottom: 4 }}>Notifications</h1>
+
+      {/* The one screen where somebody is already thinking about being
+          told things, so it's where the ask belongs. Renders nothing at
+          all where push can't work, rather than offering a button that
+          throws. */}
+      <EnablePush />
       <p style={{ color: 'var(--ink-dim)', fontSize: 13, marginBottom: 12 }}>
         Reactions, comments, replies and new followers.
       </p>

@@ -1594,3 +1594,13 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
    claim as one made before kick-off. */
 .late-section { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 26px; }
 .late-section .rec-h2 { color: var(--ink-dim); }
+
+/* Turning on push. Sits at the top of the notifications page — the one
+   screen where somebody is already thinking about being told things. */
+.push-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px; margin-bottom: 16px; }
+.push-card strong { display: block; font-size: 14.5px; margin-bottom: 4px; }
+.push-card p { font-size: 13px; color: var(--ink-dim); line-height: 1.5; margin: 0 0 10px; }
+.push-card .btn { padding: 9px 16px; font-size: 13.5px; }
+.push-on { font-size: 13px; color: var(--ink-dim); margin: 0; }
+.push-error { color: var(--bear); font-size: 12.5px; margin: 8px 0 0; }

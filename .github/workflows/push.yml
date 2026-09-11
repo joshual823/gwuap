@@ -1,0 +1,53 @@
+# Web push, every five minutes.
+#
+# Notification rows are written by database triggers, so nothing in the
+# app sees them appear — something has to come along and find the unsent
+# ones. /api/push/send does that, claiming rows by stamping pushed_at
+# before it sends, so running it twice over the same data pushes nothing
+# twice.
+#
+# Five minutes is GitHub's floor for a scheduled workflow, and the
+# schedule is best-effort — a busy queue can delay it. So this is a
+# scheduled push rather than an instant one, and it should be described
+# that way to people. Making it instant means pointing a Supabase
+# database webhook at the same endpoint; the route needs no changes for
+# that, only the Authorization header.
+name: Send push notifications
+
+on:
+  schedule:
+    # :03 past, then every five — off the top of the hour, where every
+    # scheduled workflow on GitHub fires at once and the queue backs up.
+    - cron: '3-59/5 * * * *'
+  workflow_dispatch:        # so you can trigger it by hand from the Actions tab
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deliver pending notifications
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set in this repository's secrets."
+            echo "Settings -> Secrets and variables -> Actions -> New repository secret"
+            exit 1
+          fi
+
+          code=$(curl -sS -o response.json -w '%{http_code}' --max-time 120 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://gwuap.co/api/push/send)
+
+          echo "HTTP $code"
+          cat response.json
+          echo
+
+          # 503 means the VAPID keys aren't set, which is a configuration
+          # problem and not a blip — worth failing loudly rather than
+          # letting a silent no-op look like "nobody subscribed yet".
+          if [ "$code" != "200" ]; then
+            reason=$(tr -d '\n' < response.json)
+            echo "::error::Push failed with HTTP $code — $reason"
+            exit 1
+          fi

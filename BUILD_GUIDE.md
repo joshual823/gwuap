@@ -2727,6 +2727,60 @@ Three further reasons, beyond the obvious one:
 the *old* page, not the new one — so this is a pause, not a conclusion
 that the channel can't work.
 
+### Push notifications (11 Sep 2026)
+
+**MIGRATION 051 MUST RUN BEFORE THIS DEPLOYS** — `notifications.pushed_at`.
+Without it `/api/push/send` errors on every run.
+
+The pieces:
+
+| | |
+|---|---|
+| `lib/push.ts` | pure payload builder, unit-tested without keys or a database |
+| `app/api/push/send/route.ts` | cron-driven sender, `CRON_SECRET`-guarded |
+| `components/EnablePush.tsx` | the subscribe button, on `/notifications` |
+| `.github/workflows/push.yml` | every five minutes |
+| `public/sw.js` | already had the `push` and `notificationclick` handlers |
+
+**Notification rows are written by database triggers**, so nothing in the
+app sees them appear and it cannot push at the moment one is created.
+Something has to come along and find the unsent ones — which is precisely
+what the email digest already does with `emailed_at`. Push uses the same
+shape with `pushed_at`, and **two columns rather than one shared flag**,
+because the channels are independent: push on and email off is a real
+setting, and one can fail while the other succeeds.
+
+**Claimed before sending, never after.** A crash between claiming and
+sending loses one notification. The other order risks sending the same
+one repeatedly — and a phone that buzzes four times for one reply gets
+its notifications turned off for good, a setting that never comes back.
+
+**One push per person per run, not one per event.** Three reactions and a
+reply is one buzz, naming the newest and counting the rest. The digest
+made this call for email; it matters more here for the same reason.
+
+**It is a *scheduled* push, not an instant one.** Five minutes is
+GitHub's floor for a scheduled workflow and even that is best-effort.
+Making it instant means pointing a **Supabase database webhook** at
+`/api/push/send` with the `Authorization` header — the route needs no
+changes for that.
+
+**Dead subscriptions are marked, not deleted.** A 404 or 410 from the
+push service means the browser threw the subscription away; `failed_at`
+records it, so one bad run can't empty the table and it stays visible how
+many installs have gone stale.
+
+**iOS has no PushManager in a normal Safari tab.** `EnablePush` detects
+that and says *install to the home screen first* rather than showing a
+button that throws — the same split the install banner makes, and the
+same trap: on iOS the feature simply does not exist until the app is
+installed.
+
+**Not verifiable locally.** `CRON_SECRET` is Sensitive in Vercel and
+can't be pulled, so the route returns 503 here and the send path has only
+been exercised by its types and the payload tests. First real proof is a
+phone.
+
 ### The installed app hid its own header under the status bar (11 Sep 2026)
 
 Added to an iPhone home screen, the wordmark, the founding badge, the
@@ -2888,10 +2942,8 @@ browser prompt, banner clears. Same lesson as Clarity: browser
 heuristics can't be tested from automation, so test your own code
 deterministically instead.
 
-**Push is not built yet, and it's the actual payoff.** The service worker
-already has `push` and `notificationclick` handlers. On iOS push only
-works once the app is on the home screen, which is why installability
-came first.
+**Push is built.** On iOS it only works once the app is on the home
+screen, which is why installability came first.
 
 **Migration 049 is written and NOT YET RUN.** `push_subscriptions`, plus
 a `profiles.push_enabled` switch. Run it in the Supabase SQL editor
