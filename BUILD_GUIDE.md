@@ -325,7 +325,8 @@ private without hiding the pick itself.
 
 **Chrome** — light/dark following the OS with a manual toggle, profile
 pictures resized in-browser, news carousel, search across people and
-cashtags, moderation tools, Vercel Analytics and Clarity heatmaps.
+cashtags, moderation tools, Vercel Analytics. **Clarity is installed but
+has never recorded anything — see the 11 Sep entry before trusting it.**
 
 ### Known gaps, deliberately
 
@@ -2061,6 +2062,55 @@ enforced by RLS, the grading is the site's own, and the table is
 **Deploy this before the squad campaign runs.** The ad points at
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
+
+### Where the clicks go, and Clarity has never worked (11 Sep 2026)
+
+**The Reddit pixel settles the funnel question.** With Conversions
+columns turned on for the squads ad:
+
+| | |
+|---|---|
+| Clicks | 25 |
+| **Page Visit (pixel)** | **22** |
+| **Sign Up (pixel)** | **0** |
+| Reach | 3,308 unique people |
+
+**22 of 25 clicks became real page loads.** Click quality is not the
+problem and neither is the ad — people genuinely arrive at `/squads`.
+The pixel's zero signups and the database's zero new accounts agree
+independently, which is as close to certain as this gets: **the page is
+where it fails.**
+
+**Clarity has never recorded a single session.** It has been installed
+nine days and its dashboard still says *"ALMOST THERE! Choose an
+installation method"*, with Recordings and Heatmaps greyed out. The tag
+is not missing — that was checked directly in the browser:
+
+- `https://www.clarity.ms/tag/yc1lfspsay` loads, **HTTP 200**
+- the id matches `NEXT_PUBLIC_CLARITY_ID`, set in Vercel Production
+- and then nothing happens: **`window.clarity` is an empty object** with
+  no methods and no queue, **no `_clck`/`_clsk` cookies are set**, and
+  **no upload request is ever made**
+
+So the script is fetched and inert. `curl` can't see any of this because
+`next/script` with `afterInteractive` injects the tag client-side — the
+page source looks tagless whether it works or not. **Only a real browser
+can tell you whether Clarity is running.**
+
+**Leading suspect: the project's registered domain is `gwuap.cp`** — a
+typo for `gwuap.co`, visible on the Clarity projects list. Not proven,
+because the Settings tab is gated until setup completes, but it is the
+one wrong thing on record and it costs nothing to fix.
+
+**What this costs us right now:** there are no recordings of the 22
+people who landed. The obvious next diagnostic — watch what they did —
+is unavailable for traffic already paid for. Fixing Clarity only helps
+the days remaining before 15 Sep.
+
+**The lesson worth keeping:** an analytics tag that is present in the
+code, set in the environment and returning 200 can still be recording
+nothing. "Installed" is not "working", and the only proof is a session
+appearing in the dashboard. Nobody checked for nine days.
 
 ### Audit, 11 Sep 2026: 83 paid clicks, 0 new accounts
 
