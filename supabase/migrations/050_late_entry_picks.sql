@@ -36,12 +36,20 @@ create index if not exists posts_author_not_late_idx
 -- ------------------------------------------------------------
 -- The leaderboard view has to learn the same rule.
 --
--- Everything below is migration 037's definition verbatim with ONE line
--- added — `and posts.late_entry = false`. Copied rather than edited in
--- place because a view is replaced wholesale: rebuilding it from memory
--- is how the other filters (bots, bans, bet types, the 30-day window)
--- get silently dropped. If this view is ever changed again, start from
--- the newest migration that defines it, not from this one.
+-- Everything below is migration **038**'s definition verbatim, with ONE
+-- line added: `and posts.late_entry = false`.
+--
+-- The first attempt at this rebuilt from 037 and Postgres refused it —
+-- "cannot drop columns from view". 038 had since appended `p.is_bot`,
+-- dropped the `p.is_bot = false` filter so the house model appears on
+-- the board, and 015 had set security_invoker. Rebuilding from 037 would
+-- have silently undone all three; the error was the only thing that
+-- caught it.
+--
+-- So: CREATE OR REPLACE VIEW may only append columns, never drop or
+-- reorder them. **Before touching this view, find the newest migration
+-- that defines it** — list every file mentioning `leaderboard` rather
+-- than grepping for the CREATE line, which is how 038 got missed.
 -- ------------------------------------------------------------
 
 create or replace view leaderboard as
@@ -73,13 +81,17 @@ select
            or posts.created_at < now() - interval '7 days'
       ), 0), 0
   ) as graded_pct,
-  p.badges
+  p.badges,
+  -- The contest page reads this to leave the house out.
+  p.is_bot
 from profiles p
 join posts on posts.author_id = p.id
 where posts.created_at > now() - interval '30 days'
   and p.is_banned = false
-  and p.is_bot = false
   and posts.post_kind = 'pick'
+  -- The one new line. A late entry is graded, but it is not a claim made
+  -- before the whistle and doesn't belong in a ranking against ones that
+  -- were.
   and posts.late_entry = false
   and posts.bet_type in (
     'moneyline', 'spread', 'total',
@@ -87,6 +99,10 @@ where posts.created_at > now() - interval '30 days'
     'first_half', 'first_half_ml'
   )
   and posts.game_id is not null
-group by p.id, p.username, p.avatar_url, p.badges
+group by p.id, p.username, p.avatar_url, p.badges, p.is_bot
 having count(*) filter (where posts.status in ('win','loss')) >= 5
 order by win_pct desc, graded_picks desc;
+
+-- Set by 015 and easy to lose in a rebuild: the view runs with the
+-- caller's permissions, not the definer's.
+alter view leaderboard set (security_invoker = on);

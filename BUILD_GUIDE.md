@@ -2728,11 +2728,33 @@ from `Blocked`. The grading job calls `isLateEntry` separately and writes
 the flag. Splitting the two is what lets a late pick count as a pick
 without the record quietly overstating itself.
 
-**The leaderboard view was rebuilt from migration 037's definition
-verbatim, plus one line.** A view is replaced wholesale, so retyping it
-from memory is how the bot, ban, bet-type and 30-day filters get silently
-dropped. If it changes again, start from the newest migration that
-defines it.
+#### "cannot drop columns from view", and why that error saved us
+
+The first version of 050 rebuilt the leaderboard from **037** and
+Postgres refused it: `ERROR: 42P16: cannot drop columns from view`.
+
+**`CREATE OR REPLACE VIEW` may only append columns — never drop or
+reorder them.** The live view had a thirteenth column, `is_bot`, added by
+**038**, which 037 knows nothing about.
+
+Rebuilding from the stale definition would have silently done three
+things, and only the first was visible:
+
+1. dropped the `is_bot` column
+2. **put back `and p.is_bot = false`**, taking the house model off the
+   leaderboard — the exact thing 038 existed to change
+3. dropped `security_invoker`, set by **015**, so the view would have run
+   with the definer's permissions instead of the caller's
+
+The error was the only thing that caught any of it. 050 is now built from
+038 verbatim plus one line, and re-sets `security_invoker` explicitly.
+
+**How 038 got missed:** grepping for `create or replace view leaderboard`
+matched 001, 007, 030 and 037 but not 038, whose CREATE line is phrased
+differently. **List every migration mentioning the view's name** — there
+are sixteen — **and read the newest, rather than grepping for the CREATE
+statement.** 038's own header warns about this precise failure, because
+037 had already made it once by dropping `p.badges`. That's twice now.
 
 **Already-voided late picks stay voided.** Regrading them would rewrite
 settled history under a rule that didn't exist when they were posted, and
