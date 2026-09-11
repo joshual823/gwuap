@@ -2151,19 +2151,36 @@ defines `window.clarity` as a *function* — a queue stub. Finding an empty
 stub with a no-op. Clarity decided not to record. That narrows it to
 project-side configuration, not the installation.
 
-**Remaining candidates, untested:**
+**Two candidates checked and eliminated:**
 
-- **Cookie consent.** Clarity can be configured to wait for a
-  `clarity("consent")` call before recording. The site never makes one.
-  This fits the symptom exactly. Two lines in `Clarity.tsx` would test
-  it — but it's a privacy posture decision, not a bug fix, and should be
-  taken deliberately rather than slipped in.
-- **IP blocking.** There's an IP blocking section in project settings; a
-  rule covering the office would suppress exactly these sessions.
-- **A stuck project.** The dashboard bounces every deep link back to
-  "Getting Started" because it has never ingested data. A fresh project
-  and a new `NEXT_PUBLIC_CLARITY_ID` would settle whether this one is
-  simply broken — one env var and a redeploy.
+- **IP blocking** — the section reads "You aren't blocking any IP
+  addresses". Not it.
+- **Cookie consent** — Advanced settings show **Cookies: On** and no
+  consent gate. Clarity isn't waiting for a `clarity("consent")` call, so
+  the two-line code change that was considered is unnecessary. Nothing to
+  decide here.
+
+**And a correction to the evidence above.** Advanced settings also show
+**Bot detection: On**, and *every* browser test recorded in this section
+was run in automation-driven Chrome — which is exactly what bot detection
+exists to filter. **The "tag loads and does nothing" finding is therefore
+unreliable**: an empty `window.clarity` and absent `_clck` cookies are
+what a correctly-working Clarity does when it decides the visitor is a
+bot. Don't diagnose Clarity from an automated browser.
+
+What survives that correction is narrower but still real: **the project
+has never ingested a session in nine days** and Recordings/Heatmaps are
+still greyed out, which bot detection doesn't explain. Though note the
+site had almost no human traffic before 10 Sep — the 22 ad visitors are
+close to the entire real-visitor history, so "nine days of nothing" is
+less damning than it sounds.
+
+**The decisive test is a human one.** Open gwuap.co in an ordinary
+browser window, browse for thirty seconds, wait, then check the
+dashboard. A session appearing means Clarity was always fine and the
+automation was the problem. Nothing appearing after a genuine human visit
+means it's broken, and a fresh project with a new
+`NEXT_PUBLIC_CLARITY_ID` is the fix — one env var and a redeploy.
 
 **What this costs us right now:** there are no recordings of the 22
 people who landed. The obvious next diagnostic — watch what they did —
