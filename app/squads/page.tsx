@@ -135,11 +135,33 @@ function SquadsIntro() {
         Track your group&apos;s picks on a leaderboard that keeps itself.
       </p>
 
+      {/* The front door, rebuilt 11 Sep after the pixel showed 22 people
+          landing here and none signing up.
+
+          It used to offer exactly two things: "Start a squad", which
+          means naming one and recruiting your friends, and "Log in",
+          which is for people who already have an account. So a stranger
+          off an ad had one door that asked a lot and one that wasn't for
+          them. The ad was deliberately built so the invite was *not* the
+          ask — and then this page made it anyway, one screen later.
+
+          The ladder now escalates after they're in, not before:
+          signing up is one person's decision, and `next=/squads/new`
+          means the intent survives it, so they still land on squad
+          creation — having already committed something small.
+
+          "Look around first" is the door that didn't exist. Somebody
+          deciding whether this is worth an account could not, before
+          this, see the thing working without making one. /feed is real
+          picks being graded, which is the argument. */}
       <p className="squads-cta">
-        <Link href="/signup?next=/squads/new" className="btn">Start a squad</Link>
-        <Link href="/login?next=/squads" className="btn secondary">Log in</Link>
+        <Link href="/signup?next=/squads/new" className="btn">Sign up free</Link>
+        <Link href="/feed" className="btn secondary">Look around first</Link>
       </p>
-      <p className="squads-micro">Free · we never ask for a card</p>
+      <p className="squads-micro">
+        Free · we never ask for a card ·{' '}
+        <Link href="/login?next=/squads" className="help-link">Log in</Link>
+      </p>
 
       {/* The payoff, before the instructions. Telling somebody a
           leaderboard keeps itself is a sentence; showing them one is the

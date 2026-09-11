@@ -2063,6 +2063,44 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### The front door on /squads (11 Sep 2026)
+
+Twenty-two people landed and none signed up. The page offered exactly two
+doors: **"Start a squad"**, which means naming one and recruiting your
+friends, and **"Log in"**, which is for people who already have an
+account. A stranger off an ad had one door that asked a lot and one that
+wasn't for them.
+
+**We made the mistake we'd explicitly designed the ad to avoid.** The
+creative was built so the invite was *not* the ask — "sign up" is one
+person's decision, "bring your group chat" is a social risk on behalf of
+five other people. Then the landing page made that exact ask one screen
+later. Getting the ad right and the page wrong is worse than getting both
+wrong, because you pay for the click and lose it at the last step.
+
+The ladder now escalates *after* someone is in, not before:
+
+| | |
+|---|---|
+| Primary | **Sign up free** → `/signup?next=/squads/new` |
+| Secondary | **Look around first** → `/feed` |
+| Micro | Free · we never ask for a card · Log in |
+
+`next=/squads/new` keeps the intent through signup, so they still land on
+squad creation — having committed something small first.
+
+**"Look around first" is the door that didn't exist at all.** Somebody
+weighing whether this is worth an account had no way to see the thing
+work without making one. `/feed` is real picks being graded, which is the
+whole argument, and it carries the welcome modal for anyone who scrolls.
+A visit to `/feed` is a far better outcome than a bounce.
+
+**Judge it on signups, not on clicks.** The pixel already proves the
+clicks arrive; the only question this change answers is whether they
+convert. The campaign runs to 15 Sep, so there are a few days of traffic
+left to measure it against — a small sample, but the first one aimed at
+the right problem.
+
 ### Where the clicks go, and Clarity has never worked (11 Sep 2026)
 
 **The Reddit pixel settles the funnel question.** With Conversions
