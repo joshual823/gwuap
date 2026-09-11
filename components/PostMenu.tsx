@@ -11,14 +11,19 @@ import { createClient } from '@/lib/supabaseClient'
  * button had nothing to act on and never rendered.
  */
 export default function PostMenu({
-  postId, authorId, viewerId, locked = false,
+  postId, authorId, viewerId, locked = false, kind = 'pick',
 }: {
   postId: string
   authorId: string
   viewerId: string | null
   /** A pick past kick-off, or already graded. The row can't be deleted. */
   locked?: boolean
+  /** What the post is, so the menu doesn't call a take a pick. */
+  kind?: 'pick' | 'take'
 }) {
+  // Deleting a take offered to "Delete pick", which is the kind of small
+  // wrongness that makes somebody wonder what else is mislabelled.
+  const noun = kind === 'take' ? 'take' : 'pick'
   const supabase = createClient()
   const router = useRouter()
   const pathname = usePathname()
@@ -93,18 +98,18 @@ export default function PostMenu({
               </p>
             ) : (
               <button type="button" className="post-menu-item danger" onClick={() => setMode('confirmDelete')}>
-                Delete pick
+                Delete {noun}
               </button>
             )
           ) : (
             <button type="button" className="post-menu-item" onClick={() => setMode('report')}>
-              Report pick
+              Report {noun}
             </button>
           ))}
 
           {mode === 'confirmDelete' && (
             <>
-              <p className="post-menu-note">Delete this pick for good? Its comments go too.</p>
+              <p className="post-menu-note">Delete this {noun} for good? Its comments go too.</p>
               <button type="button" className="post-menu-item danger" onClick={remove} disabled={busy}>
                 {busy ? 'Deleting…' : 'Yes, delete'}
               </button>

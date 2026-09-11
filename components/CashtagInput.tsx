@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { searchTickers, isSupportedLeague, MAX_TICKER_LENGTH, type Ticker } from '@/lib/tickers'
+import { searchTickers, searchAllTickers, isSupportedLeague, MAX_TICKER_LENGTH, type Ticker } from '@/lib/tickers'
 import { createClient } from '@/lib/supabaseClient'
 
 /**
@@ -14,15 +14,26 @@ import { createClient } from '@/lib/supabaseClient'
  * Suggestions are filtered by the league already chosen on the form,
  * which is what keeps LAC from being ambiguous between the Clippers and
  * the Chargers.
+ *
+ * **A take has no league**, because asking for one before a thought is
+ * three taps of bureaucracy in front of a sentence. With `league` null
+ * the field searches every league at once and prints the league beside
+ * each suggestion, so LAC is disambiguated by reading rather than by
+ * filling in a dropdown first. `onPick` then reports which one was
+ * chosen, which is how the post still gets filed under a league without
+ * anybody being asked.
  */
 export default function CashtagInput({
-  value, onChange, league, categoryId,
+  value, onChange, league, categoryId, onPick,
 }: {
   value: string
   onChange: (v: string) => void
   league: string | null
   /** Scopes learned cashtags to the league, so $CHI in the NHL doesn't surface in the NBA. */
   categoryId?: number | ''
+  /** Fires with the full ticker when a suggestion is taken, so a
+   *  leagueless form can learn the league without asking for it. */
+  onPick?: (t: Ticker) => void
 }) {
   const [open, setOpen] = useState(false)
   // Cashtags other people have already used in this league. A fixed list
@@ -43,10 +54,13 @@ export default function CashtagInput({
   const rest = spaceAt === -1 ? '' : body.slice(spaceAt + 1)
   const stillTypingTicker = spaceAt === -1
 
-  const curated = useMemo<Ticker[]>(
-    () => (stillTypingTicker ? searchTickers(league, ticker) : []),
-    [league, ticker, stillTypingTicker],
-  )
+  const curated = useMemo<Ticker[]>(() => {
+    if (!stillTypingTicker) return []
+    // No league chosen means a take: search the lot.
+    return isSupportedLeague(league)
+      ? searchTickers(league, ticker)
+      : searchAllTickers(ticker)
+  }, [league, ticker, stillTypingTicker])
 
   // Whoever is playing comes first — that code is the one the grader
   // will match against. Then the curated list, then anything learned.
@@ -126,6 +140,7 @@ export default function CashtagInput({
   function choose(team: Ticker) {
     // Trailing space moves the user on to the line ("-4.5") and closes the list.
     onChange(rest ? `$${team.code} ${rest}` : `$${team.code} `)
+    onPick?.(team)
     setOpen(false)
   }
 
@@ -179,15 +194,19 @@ export default function CashtagInput({
             >
               <span className="cashtag-code">${t.code}</span>
               <span className="cashtag-name">{t.name}</span>
+              {/* Only when unscoped — inside a league it's noise, and
+                  across leagues it's the thing that tells two $LACs
+                  apart. */}
+              {!isSupportedLeague(league) && t.name !== 'used before' && (
+                <span className="cashtag-league">{t.league}</span>
+              )}
             </li>
           ))}
         </ul>
       )}
-      {!isSupportedLeague(league) && (
+      {league && !isSupportedLeague(league) && (
         <p className="cashtag-hint">
-          {league
-            ? `No set list for ${league} — type it once and it'll be suggested next time.`
-            : 'Choose a league to get team suggestions.'}
+          No set list for {league} — type it once and it&apos;ll be suggested next time.
         </p>
       )}
     </div>

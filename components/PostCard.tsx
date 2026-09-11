@@ -153,7 +153,7 @@ export default function PostCard({ post }: { post: Post }) {
           {post.post_kind === 'pick' && post.status === 'pending' && post.grade_note &&
             <span className="stamp review">under review</span>}
           <PostMenu postId={post.id} authorId={post.author.id} viewerId={post.viewer_id}
-            locked={lockedForDelete} />
+            locked={lockedForDelete} kind={post.post_kind} />
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', margin: '4px 0', flexWrap: 'wrap' }}>

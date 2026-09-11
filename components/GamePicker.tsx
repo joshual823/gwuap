@@ -22,6 +22,7 @@ export type Slim = {
  */
 export default function GamePicker({
   league, query, onSelect, onSelectGame, selectedGameId, showMarkets = true,
+  scope = 'league',
 }: {
   league: string | null
   query: string
@@ -42,6 +43,14 @@ export default function GamePicker({
    * there to name the two sides and nothing else.
    */
   showMarkets?: boolean
+  /**
+   * `'take'` drops the league requirement and asks for everything that's
+   * live or just finished, across every league. A take doesn't choose a
+   * league first, so there's nothing to scope by — and the fixture
+   * somebody most wants to talk about is usually one that has already
+   * ended.
+   */
+  scope?: 'league' | 'take'
 }) {
   const [games, setGames] = useState<Slim[] | null>(null)
   const [open, setOpen] = useState<string | null>(null)
@@ -49,14 +58,18 @@ export default function GamePicker({
   const words = wordsFor(league)
 
   useEffect(() => {
-    if (!league) { setGames(null); return }
+    const takeScope = scope === 'take'
+    if (!takeScope && !league) { setGames(null); return }
     let cancelled = false
-    fetch(`/api/games?league=${encodeURIComponent(league)}`)
+    const url = takeScope
+      ? '/api/games?scope=take'
+      : `/api/games?league=${encodeURIComponent(league as string)}`
+    fetch(url)
       .then(r => r.json())
       .then(d => { if (!cancelled) setGames(d.games ?? []) })
       .catch(() => { if (!cancelled) setGames([]) })
     return () => { cancelled = true }
-  }, [league])
+  }, [league, scope])
 
   if (!games || games.length === 0) return null
 

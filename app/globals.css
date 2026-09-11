@@ -1547,3 +1547,9 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-bring { font-size: 13.5px; line-height: 1.55; color: var(--ink-dim);
   background: var(--card); border: 1px solid var(--line); border-radius: 12px;
   padding: 11px 13px; margin: 0 0 22px; }
+
+/* The league on an unscoped cashtag suggestion. A take doesn't pick a
+   league first, so two $LACs can appear together and this is what tells
+   them apart — muted, because it's a disambiguator and not the answer. */
+.cashtag-league { margin-left: auto; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--ink-faint); flex: 0 0 auto; }

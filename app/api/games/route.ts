@@ -10,12 +10,34 @@ export const dynamic = 'force-dynamic'
  * the scores pages already show to anyone.
  */
 export async function GET(request: Request) {
-  const league = new URL(request.url).searchParams.get('league')
-  if (!league || !LEAGUES_WITH_SCORES.includes(league)) {
+  const params = new URL(request.url).searchParams
+  const league = params.get('league')
+
+  /**
+   * `scope=take` is the leagueless mode, for the take form.
+   *
+   * A take doesn't ask for a league, so there's nothing to scope the
+   * fixture list to and it has to come from everywhere at once. It also
+   * wants the games a league-scoped pick list deliberately throws away:
+   * **a game that finished an hour ago is the single most likely thing
+   * somebody has a take about**, and "you can't post a pick on a result"
+   * is true of picks and only picks.
+   *
+   * Every league is one cached fetch (`revalidate: 60` inside
+   * `lib/scores`), so this is a handful of cache reads rather than a
+   * handful of round-trips to ESPN.
+   */
+  const takeScope = params.get('scope') === 'take'
+
+  if (!takeScope && (!league || !LEAGUES_WITH_SCORES.includes(league))) {
     return Response.json({ games: [] })
   }
 
-  const games = await fetchGamesWindow(league, 1, 10)
+  const games = takeScope
+    ? (await Promise.all(
+        LEAGUES_WITH_SCORES.map(l => fetchGamesWindow(l, 1, 3).catch(() => [])),
+      )).flat()
+    : await fetchGamesWindow(league as string, 1, 10)
 
   // Finished games are no use here: you can't post a pick on a result.
   //
@@ -24,16 +46,46 @@ export async function GET(request: Request) {
   // the list — so the games someone is most likely to be posting about
   // were the ones they couldn't see. One sort here covers every league,
   // since every picker reads this endpoint.
-  const rank: Record<string, number> = { in: 0, pre: 1 }
+  const rank: Record<string, number> = takeScope
+    // Live first, then what just ended, then what's next. A take is
+    // usually about something that already happened.
+    ? { in: 0, post: 1, pre: 2 }
+    : { in: 0, pre: 1 }
   const startOf = (g: { startsAt: string | null }) => {
     const t = g.startsAt ? Date.parse(g.startsAt) : NaN
     return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER
   }
-  const open = games
-    .filter(g => g.state !== 'post')
-    .sort((a, b) =>
-      (rank[a.state] ?? 9) - (rank[b.state] ?? 9) || startOf(a) - startOf(b))
-    .slice(0, 40)
+
+  const DAY = 24 * 60 * 60 * 1000
+  const cutoff = Date.now() - DAY
+  const keep = (g: { state: string; startsAt: string | null }) => {
+    if (g.state !== 'post') return true
+    // Finished games only for takes, and only the last 24 hours —
+    // yesterday's result is a take, last week's is a history lesson.
+    if (!takeScope) return false
+    const t = g.startsAt ? Date.parse(g.startsAt) : NaN
+    return Number.isFinite(t) && t >= cutoff
+  }
+
+  const sorted = games
+    .filter(keep)
+    .sort((a, b) => {
+      const byRank = (rank[a.state] ?? 9) - (rank[b.state] ?? 9)
+      if (byRank !== 0) return byRank
+      // Within the finished group, most recent first.
+      return a.state === 'post' ? startOf(b) - startOf(a) : startOf(a) - startOf(b)
+    })
+
+  /**
+   * Across leagues, deal one at a time rather than in league order.
+   *
+   * Straight sorting put twenty-five finished tennis matches above every
+   * other sport, because a tennis day has far more fixtures than an NFL
+   * one — so the leagues most people post about fell off the bottom.
+   * Round-robin keeps the ranking (live before finished before upcoming)
+   * while making sure the top of the list has more than one sport in it.
+   */
+  const open = takeScope ? roundRobinByLeague(sorted).slice(0, 40) : sorted.slice(0, 40)
 
   return Response.json({
     games: open.map(g => ({
@@ -45,4 +97,24 @@ export async function GET(request: Request) {
       overUnder: g.overUnder ?? null,
     })),
   })
+}
+
+/** Deals from each league's queue in turn, preserving the order within each. */
+function roundRobinByLeague<T extends { league: string }>(items: T[]): T[] {
+  const queues = new Map<string, T[]>()
+  for (const item of items) {
+    const q = queues.get(item.league)
+    if (q) q.push(item)
+    else queues.set(item.league, [item])
+  }
+  const out: T[] = []
+  let dealt = true
+  while (dealt) {
+    dealt = false
+    for (const q of queues.values()) {
+      const next = q.shift()
+      if (next) { out.push(next); dealt = true }
+    }
+  }
+  return out
 }

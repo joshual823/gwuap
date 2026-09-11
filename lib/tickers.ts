@@ -400,6 +400,41 @@ export function searchTickers(league: string | null | undefined, query: string, 
 }
 
 /**
+ * Teams across every league matching `query`, best matches first.
+ *
+ * A take never asks for a league, so there's no pool to scope to — which
+ * means `$LAC` really is ambiguous between the Clippers and the Chargers.
+ * Both are returned and the caller shows the league beside each. Picking
+ * one silently would be choosing on the author's behalf, and the whole
+ * point of a cashtag is that it means exactly one thing.
+ */
+export function searchAllTickers(query: string, limit = 8): Ticker[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+
+  const byCode: Ticker[] = []
+  const byName: Ticker[] = []
+  for (const t of TICKERS) {
+    if (t.code.toLowerCase().startsWith(q)) { byCode.push(t); continue }
+    if (matchesWords(t, q)) byName.push(t)
+  }
+  return [...byCode, ...byName].slice(0, limit)
+}
+
+/**
+ * The league a bare code belongs to, or null when it isn't one of ours
+ * or belongs to more than one. Used to file a take under a league when
+ * the author typed a cashtag rather than picking a suggestion — a guess
+ * that refuses to guess when the answer is genuinely ambiguous.
+ */
+export function leagueForCode(code: string): League | null {
+  const c = code.replace(/^\$/, '').trim().toUpperCase()
+  if (!c) return null
+  const hits = TICKERS.filter(t => t.code === c)
+  return hits.length === 1 ? hits[0].league : null
+}
+
+/**
  * True if the query prefixes the full name/alias or any single word in
  * them. Word-prefix rather than plain substring, so typing "l" doesn't
  * match "AtLanta" — a one-letter substring match hits nearly everything.

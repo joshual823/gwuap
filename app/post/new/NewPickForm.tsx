@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
 import CashtagInput from '@/components/CashtagInput'
+import { leagueForCode, type Ticker } from '@/lib/tickers'
 import GamePicker, { type Slim } from '@/components/GamePicker'
 import { MAX_TICKER_LENGTH } from '@/lib/tickers'
 import { wordsFor } from '@/lib/sportWords'
@@ -171,6 +172,26 @@ export default function NewPickForm() {
   const justStarted = startedAt !== null && !tooLate && Date.now() >= startedAt
 
   const showPropHint = isPropBet(kind, betType)
+  /**
+   * Files a take under a league without ever asking for one.
+   *
+   * The league select was three taps of bureaucracy standing in front of
+   * a sentence, and a take is supposed to be the cheap thing to post —
+   * that's what the cashtag is for. The league is still recorded, it's
+   * just inferred: from the suggestion the author picked, from the
+   * fixture they tapped, or from the code itself when it's unambiguous.
+   * Anything left over files under "Other", which is what that category
+   * has always been for.
+   */
+  function fileUnderLeague(league: string | null | undefined) {
+    const match = categories.find(c => c.name === league)
+    setCategoryId(match ? match.id : (categories.find(c => c.name === 'Other')?.id ?? ''))
+  }
+
+  function onCashtagPicked(t: Ticker) {
+    if (kind === 'take') fileUnderLeague(t.league)
+  }
+
   const leagueName = categories.find(c => c.id === categoryId)?.name ?? null
   const words = wordsFor(leagueName)
 
@@ -284,6 +305,8 @@ export default function NewPickForm() {
   function fillSides(game: Slim) {
     setGameTotal(game.overUnder ?? null)
     setGameSides([game.away.code, game.home.code])
+    // Tapping a fixture is the other way a take learns its league.
+    if (kind === 'take') fileUnderLeague(game.league)
 
     const typed = tag.replace(/^\$/, '').trim().split(/\s+/)[0].toUpperCase()
     const home = game.home.code.toUpperCase()
@@ -363,7 +386,7 @@ export default function NewPickForm() {
     e.preventDefault()
     setError(null)
 
-    if (!categoryId) { setError('Pick a league.'); return }
+    if (kind === 'pick' && !categoryId) { setError('Pick a league.'); return }
     if (!tag.trim()) { setError('Add a cashtag — it’s how posts get grouped.'); return }
     if (!sentiment) { setError(kind === 'take' ? 'Backing, neutral, or fading?' : `Pick a side — ${directions[0].label} or ${directions[1].label}.`); return }
 
@@ -412,9 +435,16 @@ export default function NewPickForm() {
     if (kind === 'take') {
       if (!caption.trim()) { setError('Say something — a take needs words.'); return }
       setLoading(true)
+      const other = categories.find(c => c.name === 'Other')?.id ?? null
+      // Last resort: they typed a cashtag we've never seen and never
+      // tapped a suggestion or a fixture. leagueForCode still resolves
+      // most of those; anything else is honestly "Other".
+      const derived = categoryId
+        || (categories.find(c => c.name === leagueForCode(tag))?.id ?? null)
+        || other
       const { error: takeError } = await supabase.from('posts').insert({
         author_id: user.id,
-        category_id: categoryId,
+        category_id: derived,
         post_kind: 'take',
         tag: tag.trim(),
         // Optional, unlike a pick's: a take can be about one side or
@@ -516,11 +546,20 @@ export default function NewPickForm() {
           </>
         )}
 
-        <label className="form-label">League</label>
-        <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
-          <option value="">Choose a league…</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        {/* Picks only. A pick needs the league up front because the bet
+            types, the line and the grader all depend on it. A take needs
+            nothing but a cashtag and a sentence, and asking anyway was
+            the difference between posting a thought and filling in a
+            form — see `fileUnderLeague`. */}
+        {kind === 'pick' && (
+          <>
+            <label className="form-label">League</label>
+            <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
+              <option value="">Choose a league…</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </>
+        )}
 
         {/* The two teams sit together. The game suggestions used to be
             wedged between them, which pushed the opponent field so far
@@ -529,14 +568,23 @@ export default function NewPickForm() {
         <label className="form-label">
           {showOpponent ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
         </label>
-        <CashtagInput value={tag} onChange={setPrimaryTag} league={leagueName} categoryId={categoryId} />
+        <CashtagInput
+          value={tag} onChange={setPrimaryTag}
+          league={kind === 'take' ? null : leagueName}
+          categoryId={categoryId}
+          onPick={onCashtagPicked}
+        />
 
         {showOpponent && (
           <>
             <label className="form-label">
               Opponent{kind === 'take' ? ' (optional)' : ''}
             </label>
-            <CashtagInput value={tag2} onChange={setTag2} league={leagueName} categoryId={categoryId} />
+            <CashtagInput
+              value={tag2} onChange={setTag2}
+              league={kind === 'take' ? null : leagueName}
+              categoryId={categoryId}
+            />
             <p className="form-hint">
               {kind === 'take'
                 ? `Naming the other side posts the take on the ${words.event} rather than on one ${words.side}.`
@@ -549,7 +597,8 @@ export default function NewPickForm() {
             them in, so it belongs after the thing it fills. */}
         {!fromBook && (
           <GamePicker
-            league={leagueName}
+            league={kind === 'take' ? null : leagueName}
+            scope={kind === 'take' ? 'take' : 'league'}
             query={tag}
             /* A take names the fixture and stops there — no prices to
                open, so nothing to choose from and nothing to store. */

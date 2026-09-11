@@ -2305,6 +2305,55 @@ code, set in the environment and returning 200 can still be recording
 nothing. "Installed" is not "working", and the only proof is a session
 appearing in the dashboard. Nobody checked for nine days.
 
+### Takes lost the league picker (11 Sep 2026)
+
+A take is supposed to be the cheap thing to post — that's what the
+cashtag is for, and the whole StockTwits borrowing falls apart if there's
+a form in front of it. It asked for a league first anyway: three taps of
+bureaucracy standing in front of a sentence.
+
+**Posting a take is now: cashtag → backing/neutral/fading → say it.**
+
+| | |
+|---|---|
+| League select | **gone for takes** (picks still need it) |
+| Cashtag suggestions | every league at once, with the league shown beside each |
+| Fixture suggestions | live **and just-finished**, across all leagues, last 24h |
+| `category_id` | inferred, never asked |
+
+**The league is still recorded — it's just worked out rather than
+requested.** `fileUnderLeague` takes it from the suggestion the author
+picked, or the fixture they tapped, or `leagueForCode` when the typed
+code is unambiguous. Anything left files under "Other", which is what
+that category has always been for. So nothing downstream loses the
+league, and nobody is asked for it.
+
+**`$LAC` is genuinely ambiguous without a league**, and the fix is to
+show rather than resolve: unscoped suggestions print the league beside
+each row, so the Clippers and the Chargers are told apart by reading.
+Silently picking one would be choosing on the author's behalf, and a
+cashtag that means two things is worse than no cashtag.
+
+**Finished games are suggestions now, but only for takes.** The picks
+list drops them on the reasoning that "you can't post a pick on a
+result" — true of picks and only picks. **A game that ended an hour ago
+is the single most likely thing somebody has a take about.** `scope=take`
+on `/api/games` keeps `state === 'post'` within 24 hours; yesterday's
+result is a take, last week's is a history lesson.
+
+**Leagues are dealt round-robin, which was not cosmetic.** Sorted
+straight, a tennis day's twenty-five finished matches sat above every
+other sport and the NFL fell off the bottom. Now the top ten spans six
+leagues.
+
+### Deleting a take offered to "Delete pick"
+
+`PostMenu` hard-coded "pick" in three places — the menu item, the
+confirmation and the report action — so deleting a take asked about
+deleting a pick. It takes the post's kind now. Small, but it's the kind
+of wrongness that makes somebody wonder what else on the page is
+mislabelled, on a site whose entire pitch is that its words are exact.
+
 ### Audit, 11 Sep 2026: 83 paid clicks, 0 new accounts
 
 **The database is the whole story and it is brutal. Six accounts exist.
