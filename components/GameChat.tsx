@@ -95,7 +95,10 @@ export default function GameChat({ gameKey, viewerId }: {
     <div className="gc">
       <div className="gc-presence">
         <span className={`vent-dot ${present > 1 ? 'live' : ''}`} />
-        {present > 1 ? `${present} here` : "You're first in here"}
+        {/* Same reasoning as the squad room: alone isn't news, it's a
+            reason to leave. This room is about one game, so the prompt
+            asks about that rather than about nothing in particular. */}
+        {present > 1 ? `${present} here` : "Say what you're seeing"}
       </div>
 
       <div className="gc-stream">

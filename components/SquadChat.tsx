@@ -186,7 +186,13 @@ export default function SquadChat({ squadId, viewerId, isMember, records = {} }:
     <div className="gc">
       <div className="gc-presence">
         <span className={`vent-dot ${present > 1 ? 'live' : ''}`} />
-        {present > 1 ? `${present} here` : "You're first in here"}
+        {/* When somebody else is here, say so — that's the thing worth
+            knowing. When they're alone, don't report it. "You're first in
+            here" is a fact about the room being empty, delivered at the
+            exact moment we want them to type; it reads as "nothing is
+            happening" and gives them a reason to leave. A prompt costs
+            the same line and asks for the thing instead. */}
+        {present > 1 ? `${present} here` : "Say what's on your mind"}
       </div>
 
       <div className="gc-stream">
