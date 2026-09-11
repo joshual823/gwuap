@@ -2725,13 +2725,31 @@ heuristics can't be tested from automation, so test your own code
 deterministically instead.
 
 **Push is not built yet, and it's the actual payoff.** The service worker
-already has `push` and `notificationclick` handlers. What's still needed:
-VAPID keys in Vercel, a `push_subscriptions` table (**a migration, which
-must be run in the Supabase SQL editor first**), a subscribe prompt, and
-a send path hooked into the notification events that already exist —
-reactions, comments, replies, follows, graded picks. On iOS push only
+already has `push` and `notificationclick` handlers. On iOS push only
 works once the app is on the home screen, which is why installability
 came first.
+
+**Migration 049 is written and NOT YET RUN.** `push_subscriptions`, plus
+a `profiles.push_enabled` switch. Run it in the Supabase SQL editor
+before any push code ships — *the single most common failure in this
+project is a migration that didn't run, and the symptom is always a
+feature that quietly does nothing.*
+
+Two decisions baked into that table, worth not re-litigating later:
+
+- **One row per browser, not per person.** A push subscription belongs to
+  a browser install, so the same account on a phone and a laptop is two
+  endpoints and pushing to one isn't pushing to the other. The endpoint
+  URL is the primary key, so re-subscribing updates rather than piling up
+  duplicates that all deliver the same notification.
+- **Dead endpoints are marked, not deleted.** A 404/410 from the push
+  service sets `failed_at`. Deleting on the spot means one broken send
+  run can silently empty the table, and there'd be no way to see how many
+  installs have gone stale.
+
+Still needed after the migration: VAPID keys in Vercel, a subscribe
+prompt, and a send path on the notification events that already exist —
+reactions, comments, replies, follows, graded picks.
 
 ### Clarity out, PostHog in
 
