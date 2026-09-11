@@ -47,7 +47,6 @@ export type Blocked =
   | 'team-not-in-game'   // the tag names neither side
   | 'missing-line'       // a spread or total with no number
   | 'no-side'            // a direction that doesn't pick a side
-  | 'late-entry'         // posted more than five minutes into the game
   | 'line-not-from-book' // a number the book never published
 
 export type GradeResult =
@@ -57,12 +56,35 @@ export type GradeResult =
 /** Blocked states a person has to resolve; the rest resolve themselves. */
 export const NEEDS_REVIEW: Blocked[] = [
   'no-score', 'team-not-in-game', 'missing-line', 'no-side',
-  'late-entry', 'line-not-from-book',
+  'line-not-from-book',
 ]
 
 export function needsReview(reason: Blocked): boolean {
   return NEEDS_REVIEW.includes(reason)
 }
+
+/**
+ * How far a posted line may sit from the book's and still count.
+ *
+ * The check used to demand an exact match, which flagged honest picks as
+ * "under review". **Books genuinely disagree.** ESPN gives us one book's
+ * number; somebody betting at a different one sees a different spread,
+ * and a pick posted at -2.5 when our source says -3 was never dishonest,
+ * it was just priced somewhere else.
+ *
+ * Two points is wide enough to absorb that disagreement and narrow
+ * enough to still catch a number nobody published — which is what the
+ * check is actually for.
+ *
+ * **The cost, stated plainly:** a pick is graded against the line the
+ * author posted, not the book's, because a pick's terms are immutable
+ * and rewriting them would be worse. So this tolerance also lets a
+ * slightly easier number count as legitimate. That is the deliberate
+ * trade: flagging real picks was doing more damage than a two-point
+ * drift, because a board that refuses honest entries is a board nobody
+ * posts to.
+ */
+export const LINE_TOLERANCE = 2
 
 export const BLOCKED_LABELS: Record<Blocked, string> = {
   'not-final': 'Game has not finished',
@@ -71,8 +93,7 @@ export const BLOCKED_LABELS: Record<Blocked, string> = {
   'team-not-in-game': 'The cashtag does not name either side of this game',
   'missing-line': 'No spread or total was recorded on the pick',
   'no-side': 'The direction does not name a side of this pick',
-  'late-entry': 'Posted more than five minutes after this game started',
-  'line-not-from-book': 'The number on this pick is not one the book published for this game',
+  'line-not-from-book': `The number on this pick is more than ${LINE_TOLERANCE} from any line the book published for this game`,
 }
 
 /**
@@ -123,7 +144,6 @@ export function gradePick(pick: GradeInput, game: Game): GradeResult {
   // Posted after the first pitch. At worst that's a pick made with the
   // result already known, which grades as a guaranteed win — so it never
   // grades at all.
-  if (isLateEntry(pick, game)) return { blocked: 'late-entry' }
 
   // A number nobody was offering. Left free, "under 1,000,000" wins every
   // time and "over 1" wins the rest.
@@ -137,17 +157,26 @@ export function gradePick(pick: GradeInput, game: Game): GradeResult {
 }
 
 /**
- * How long after the first pitch a pick still counts.
+ * How long after the first pitch a pick still counts as an ordinary one.
  *
  * Not zero, because kick-off times drift by a minute or two and someone
  * who tapped Post as the whistle went shouldn't lose their pick to that.
- * Five minutes is short enough that nothing is decided inside it and
- * long enough to cover the drift.
+ * Fifteen minutes also covers the person who opened the form before
+ * kick-off and typed slowly, which five was catching.
+ *
+ * **Past it the pick is not refused — it's a late entry.** It grades
+ * like any other and is then kept apart: its own tab, out of the record
+ * and out of the leaderboard. Somebody posting at twenty minutes did
+ * call something and the scoreboard does settle it; it just isn't the
+ * same claim as a pick made before the whistle, and letting the two
+ * share a record would quietly inflate it. Voiding them, which is what
+ * this used to do, threw away a real result to avoid that.
  */
-export const LATE_ENTRY_GRACE_MS = 5 * 60 * 1000
+export const LATE_ENTRY_GRACE_MS = 15 * 60 * 1000
 
 /**
- * Was this posted late enough that the result was already forming?
+ * Was this posted late enough to count as a late entry rather than a
+ * pick? Not a refusal — see LATE_ENTRY_GRACE_MS.
  *
  * Against the scoreboard's kick-off, never the one stored on the pick.
  * game_starts_at is sent by the client, so a forged one would wave
@@ -227,7 +256,9 @@ export function lineIsFromBook(pick: GradeInput, game: Game): boolean {
     // No total was ever published for this game, so there was nothing to
     // derive from and nothing to check against.
     if (derived === null) return true
-    return Math.abs(derived - pick.line) < 1e-9
+    // Derived from a whole-game total, so it inherits that total's
+    // between-book disagreement and gets the same tolerance.
+    return Math.abs(derived - pick.line) <= LINE_TOLERANCE
   }
 
   if (pick.betType !== 'total' && pick.betType !== 'spread') return true
@@ -236,7 +267,7 @@ export function lineIsFromBook(pick: GradeInput, game: Game): boolean {
   // on a game ESPN never priced, so it falls through to be graded and
   // the number stands.
   if (allowed.length === 0) return true
-  return allowed.some(n => Math.abs(n - (pick.line as number)) < 1e-9)
+  return allowed.some(n => Math.abs(n - (pick.line as number)) <= LINE_TOLERANCE)
 }
 
 /**

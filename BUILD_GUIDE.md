@@ -2677,6 +2677,67 @@ for six days it made the wrong one.
    objective, the UTM URL, US-only, an end date — and leave the last
    click to a person.
 
+### Two rules about picks changed (11 Sep 2026)
+
+**MIGRATION 050 MUST RUN BEFORE THIS DEPLOYS.** The record page and the
+squad table both select `late_entry`; without the column the query fails
+and a profile with 53 settled picks renders *"Nothing settled yet"*.
+Verified locally — that is exactly what it does.
+
+#### The line only has to be near the book's
+
+`lineIsFromBook` demanded an exact match against a line ESPN gave us, and
+was flagging honest picks as "under review" — a real pick on the blocca
+account is what surfaced it. **Books genuinely disagree.** Our source is
+one book; somebody betting at another sees a different spread, and -2.5
+when we have -3 was never dishonest.
+
+`LINE_TOLERANCE = 2` now. Wide enough to absorb that disagreement, narrow
+enough to still catch a number nobody published — "under 1,000,000",
+which is what the check exists for.
+
+**The cost, stated rather than buried:** a pick grades against the line
+its author posted, not the book's, because a pick's terms are immutable
+and rewriting them would be worse. So the tolerance also lets a slightly
+easier number count. That's the deliberate trade — refusing real picks
+was doing more damage than a two-point drift, because a board that
+rejects honest entries is a board nobody posts to.
+
+#### Late entries are a category, not a void
+
+Grace goes from **5 minutes to 15** — five was catching people who opened
+the form before kick-off and typed slowly.
+
+Past that, a pick used to be **voided**: settled as neither win nor loss,
+touching nobody's record. That threw away a real result. Somebody posting
+at twenty minutes did call something and the scoreboard does settle it —
+it just isn't the same claim as a pick made before the whistle.
+
+So late picks now **grade like any other and are kept apart**:
+
+| | |
+|---|---|
+| Graded | yes, identically |
+| In the record | **no** |
+| On the leaderboard | **no** (the view filters it) |
+| On the squad table | **no** |
+| Where they show | their own section on `/profile/<user>/record` |
+
+`gradePick` no longer blocks on lateness at all — `'late-entry'` is gone
+from `Blocked`. The grading job calls `isLateEntry` separately and writes
+the flag. Splitting the two is what lets a late pick count as a pick
+without the record quietly overstating itself.
+
+**The leaderboard view was rebuilt from migration 037's definition
+verbatim, plus one line.** A view is replaced wholesale, so retyping it
+from memory is how the bot, ban, bet-type and 30-day filters get silently
+dropped. If it changes again, start from the newest migration that
+defines it.
+
+**Already-voided late picks stay voided.** Regrading them would rewrite
+settled history under a rule that didn't exist when they were posted, and
+this site's claim is that a posted record doesn't move under you.
+
 ### The site installs to a home screen now (11 Sep 2026)
 
 **Two people signed up from a Polymarket group and went straight back to

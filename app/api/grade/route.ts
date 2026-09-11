@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabaseServer'
 import { fetchBookLines, fetchGamesWindow, type Game } from '@/lib/scores'
-import { gradePick, needsReview, GRADEABLE_BET_TYPES, PERIOD_TOTAL_SHARE } from '@/lib/grade'
+import { gradePick, isLateEntry, needsReview, GRADEABLE_BET_TYPES, PERIOD_TOTAL_SHARE } from '@/lib/grade'
 import { profitForStatus, pricingNeedsReview } from '@/lib/odds'
 
 export const dynamic = 'force-dynamic'
@@ -105,7 +105,7 @@ async function run(request: Request) {
   // into this response, because the response is a log line nobody reads
   // and the admin queue is a page somebody does.
   let flagged = 0
-  let voided = 0
+  let lateEntries = 0
   const flag = async (id: string, reason: string) => {
     flagged++
     await supabase
@@ -152,29 +152,30 @@ async function run(request: Request) {
 
     if ('blocked' in result) {
       note(result.blocked)
-      // A pick posted after the game got going is settled, not stuck: it
-      // voids. Void counts as neither a win nor a loss anywhere, so the
-      // pick stands as an opinion and touches nobody's record — and it
-      // doesn't sit in the review queue asking a person to decide
-      // something already decided.
-      if (result.blocked === 'late-entry') {
-        await supabase
-          .from('posts')
-          .update({
-            status: 'void', profit: 0, graded_at: new Date().toISOString(),
-            graded_by: 'auto', grade_note: 'late-entry',
-          })
-          .eq('id', pick.id)
-          .eq('status', 'pending')
-        voided++
-        continue
-      }
       // A game that hasn't finished is the system working, so it isn't
       // worth a note on the row. Anything else will sit pending forever
       // unless a person looks at it, so it gets flagged for review.
       if (needsReview(result.blocked)) await flag(pick.id, result.blocked)
       continue
     }
+
+    /**
+     * Posted after the grace window. It grades exactly like any other
+     * pick — the scoreboard settles it either way — and is marked so the
+     * record and the leaderboard can leave it out.
+     *
+     * This used to void instead, which threw away a real result to
+     * protect the record. Marking it keeps both: the pick counts as a
+     * pick, and the record still means picks made before the whistle.
+     */
+    const late = isLateEntry({
+      betType: pick.bet_type,
+      sentiment: pick.sentiment,
+      ticker: pick.ticker,
+      line: pick.line == null ? null : Number(pick.line),
+      createdAt: pick.created_at,
+    }, game)
+    if (late) lateEntries++
 
     const outcome = result.outcome
     // Null when no money was staked, which is now the ordinary case.
@@ -194,7 +195,7 @@ async function run(request: Request) {
       .from('posts')
       .update({
         status: outcome, profit, graded_at: new Date().toISOString(),
-        graded_by: 'auto', grade_note: null,
+        graded_by: 'auto', grade_note: null, late_entry: late,
       })
       .eq('id', pick.id)
       .eq('status', 'pending')     // never regrade something already settled
@@ -218,7 +219,8 @@ async function run(request: Request) {
     checked: pending.length,
     graded: results.length,
     flaggedForReview: flagged,
-    voidedAsLate: voided,
+    // Graded normally, kept out of the record. Not voided any more.
+    lateEntries,
     byOutcome: results.reduce((m: Record<string, number>, r) => {
       m[r.status] = (m[r.status] ?? 0) + 1
       return m

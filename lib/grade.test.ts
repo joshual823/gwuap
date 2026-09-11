@@ -1,5 +1,5 @@
 import { gradePick, isGradeable, needsReview, BLOCKED_LABELS, bookLinesFor, isLateEntry,
-         periodTotalLine, LATE_ENTRY_GRACE_MS } from './grade'
+         periodTotalLine, LATE_ENTRY_GRACE_MS, LINE_TOLERANCE} from './grade'
 import type { Game } from './scores'
 
 function game(awayCode: string, awayScore: string | null, homeCode: string, homeScore: string | null,
@@ -182,16 +182,21 @@ console.log('\nA PICK MADE AFTER THE FIRST PITCH NEVER GRADES')
 // that field is sent by the client, so a forged one would wave through
 // the exact pick this exists to stop.
 const started: Game = { ...game('SF', '27', 'LAR', '20'), startsAt: '2026-09-04T17:00:00Z' }
-reason('posted an hour in',
-  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, started),
-  'late-entry')
+// Lateness no longer refuses a pick — it grades and is then marked, so
+// the record can leave it out. gradePick settles either way; isLateEntry
+// is the thing that separates them.
+check('posted an hour in still grades',
+  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, started), 'win')
+check('...and is flagged as a late entry',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T18:00:00Z'}, started), true)
 check('one second in still counts',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:00:01Z'}, started), 'win')
-check('four minutes in still counts',
-  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:04:00Z'}, started), 'win')
-reason('six minutes in does not',
-  gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:06:00Z'}, started),
-  'late-entry')
+check('four minutes in is not late',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:04:00Z'}, started), false)
+check('six minutes in is not late any more — the grace is fifteen',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:06:00Z'}, started), false)
+check('sixteen minutes in is late',
+  isLateEntry({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T17:16:00Z'}, started), true)
 check('posted an hour before is fine',
   gradePick({betType:'moneyline',sentiment:'backing',ticker:'$SF',line:null,createdAt:'2026-09-04T16:00:00Z'}, started), 'win')
 check('no kick-off recorded, nothing to compare',
@@ -209,7 +214,17 @@ console.log('\nTHE LINE HAS TO BE ONE THE BOOK PUBLISHED')
 const priced: Game = { ...game('SF', '27', 'LAR', '20'), overUnder: 44.5, spread: 'SF -3.5' }
 reason('total of 1',       gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:1}, priced), 'line-not-from-book')
 reason('total of 1000000', gradePick({betType:'total',sentiment:'under',ticker:'$SF',line:1000000}, priced), 'line-not-from-book')
-reason('a half-point off', gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:44}, priced), 'line-not-from-book')
+// Books disagree with each other, so the line only has to be *near* one
+// the book published — see LINE_TOLERANCE. These used to be refusals and
+// were flagging honest picks as "under review".
+check('half a point off still grades',
+  gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:44}, priced), 'win')
+check('exactly the tolerance still grades',
+  gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:44.5 - LINE_TOLERANCE}, priced), 'win')
+reason('past the tolerance is still refused',
+  gradePick({betType:'total',sentiment:'over', ticker:'$SF',line:44.5 - LINE_TOLERANCE - 0.5}, priced), 'line-not-from-book')
+check('a spread a point off still grades',
+  gradePick({betType:'spread',sentiment:'backing',ticker:'$SF',line:-2.5}, priced), 'win')
 check('the published total grades', gradePick({betType:'total',sentiment:'over',ticker:'$SF',line:44.5}, priced), 'win')
 // A spread is quoted from both ends, so both have to pass or half of all
 // honest picks fail.

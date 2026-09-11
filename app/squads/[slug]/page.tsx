@@ -78,7 +78,7 @@ export default async function SquadPage({ params }: { params: Promise<{ slug: st
   const { data: settled } = memberIds.length > 0
     ? await supabase
         .from('posts')
-        .select('author_id, status, profit, odds, stake, game_league, bet_type, odds_source, graded_at, created_at')
+        .select('author_id, status, profit, odds, stake, game_league, bet_type, odds_source, graded_at, created_at, late_entry')
         .in('author_id', memberIds)
         .eq('post_kind', 'pick')
         .in('status', ['win', 'loss', 'push', 'void'])

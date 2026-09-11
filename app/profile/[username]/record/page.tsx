@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabaseServer'
 import { isValidUsername } from '@/lib/username'
-import { buildRecord, type Settled } from '@/lib/record'
+import { buildRecord, splitLateEntries, type Settled } from '@/lib/record'
 import { formatSignedUsd, profitForStatus } from '@/lib/odds'
 import { MIN_GRADED_PICKS } from '@/lib/rules'
 import ShareRow from '@/components/ShareRow'
@@ -63,7 +63,7 @@ export default async function RecordPage({ params }: { params: Promise<{ usernam
 
   const { data } = await supabase
     .from('posts')
-    .select('status, profit, odds, stake, game_league, bet_type, odds_source, graded_at, created_at')
+    .select('status, profit, odds, stake, game_league, bet_type, odds_source, graded_at, created_at, late_entry')
     .eq('author_id', profile.id)
     .eq('post_kind', 'pick')
     .in('status', ['win', 'loss', 'push', 'void'])
@@ -79,9 +79,15 @@ export default async function RecordPage({ params }: { params: Promise<{ usernam
     odds_source: p.odds_source,
     graded_at: p.graded_at,
     created_at: p.created_at,
+    late_entry: p.late_entry ?? false,
   }))
 
-  const r = buildRecord(picks)
+  // Two records, never one. A late entry is a real graded pick and gets
+  // counted — just not next to picks made before the whistle, because a
+  // single number covering both would overstate what the record means.
+  const { onTime, late } = splitLateEntries(picks)
+  const r = buildRecord(onTime)
+  const lateRecord = late.length > 0 ? buildRecord(late.map(p => ({ ...p, late_entry: false }))) : null
   const shortOf = Math.max(0, MIN_GRADED_PICKS - r.decided)
 
   return (
@@ -97,7 +103,7 @@ export default async function RecordPage({ params }: { params: Promise<{ usernam
         never self-reported, and never edited after the fact.
       </p>
 
-      {r.decided === 0 ? (
+      {r.decided === 0 && lateRecord === null ? (
         <p className="rec-empty">
           Nothing settled yet. Post a pick on a game that hasn&apos;t started and
           it grades itself once the final score is in.
@@ -177,6 +183,40 @@ export default async function RecordPage({ params }: { params: Promise<{ usernam
             {shortOf > 0 && <> {shortOf} more settled {shortOf === 1 ? 'pick' : 'picks'} puts you on the leaderboard.</>}
           </p>
         </>
+      )}
+
+      {/* Its own section, below the record and visibly not part of it.
+          These are graded picks and they count as picks — they just
+          weren't made before the whistle, and a reader has to be able to
+          see which is which without being told. */}
+      {lateRecord && (
+        <section className="rec-section late-section">
+          <h2 className="rec-h2">Late entries</h2>
+          <p className="rec-note">
+            Posted more than fifteen minutes after the game started. Graded the
+            same way, kept out of the record above and off the leaderboard —
+            a pick made once the game is under way isn&apos;t the same claim as
+            one made before it.
+          </p>
+          <div className="stat-strip">
+            <div className="stat-block">
+              <span className="stat-figure">
+                {lateRecord.wins}-{lateRecord.losses}{lateRecord.pushes > 0 && `-${lateRecord.pushes}`}
+              </span>
+              <span className="stat-label">Late record</span>
+            </div>
+            <div className="stat-block">
+              <span className="stat-figure">
+                {lateRecord.winPct === null ? '—' : `${lateRecord.winPct}%`}
+              </span>
+              <span className="stat-label">Win rate</span>
+            </div>
+            <div className="stat-block">
+              <span className="stat-figure">{late.length}</span>
+              <span className="stat-label">{late.length === 1 ? 'Pick' : 'Picks'}</span>
+            </div>
+          </div>
+        </section>
       )}
     </div>
   )

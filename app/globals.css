@@ -1569,3 +1569,10 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .install-bar .btn { flex: 0 0 auto; padding: 8px 14px; font-size: 13px; }
 .install-x { flex: 0 0 auto; background: none; border: none; color: var(--ink-faint);
   font-size: 15px; cursor: pointer; padding: 4px 2px; line-height: 1; }
+
+/* Late entries sit below the record and must read as a separate thing.
+   A rule above and a muted heading do that without making them look
+   like a punishment — they're real graded picks, just not the same
+   claim as one made before kick-off. */
+.late-section { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 26px; }
+.late-section .rec-h2 { color: var(--ink-dim); }

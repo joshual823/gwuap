@@ -20,6 +20,15 @@ import { MIN_GRADED_PICKS } from './rules'
 
 export type Settled = {
   status: 'win' | 'loss' | 'push' | 'void'
+  /**
+   * Posted after the grace window following kick-off.
+   *
+   * Graded like any other pick, and kept out of the record: somebody who
+   * posts at twenty minutes did call something, but it isn't the same
+   * claim as a pick made before the whistle, and one record holding both
+   * would quietly overstate what it means. Split, never silently mixed.
+   */
+  late_entry?: boolean | null
   profit: number | null
   game_league: string | null
   bet_type: string | null
@@ -84,8 +93,22 @@ function newestFirst(rows: Settled[]): Settled[] {
     Date.parse(b.graded_at ?? b.created_at) - Date.parse(a.graded_at ?? a.created_at))
 }
 
+/** The two piles: picks that count toward the record, and late entries. */
+export function splitLateEntries<T extends Settled>(picks: T[]): { onTime: T[]; late: T[] } {
+  const onTime: T[] = []
+  const late: T[] = []
+  for (const p of picks) (p.late_entry ? late : onTime).push(p)
+  return { onTime, late }
+}
+
+/**
+ * The record. **Late entries are excluded**, and the caller is expected
+ * to have split them off — `buildRecord` filters defensively anyway,
+ * because a record that silently included them would be wrong in the one
+ * direction this site cannot afford to be wrong in.
+ */
 export function buildRecord(picks: Settled[]): Record {
-  const rows = newestFirst(picks)
+  const rows = newestFirst(picks.filter(p => !p.late_entry))
   const overall = summarise('all', 'Overall', rows)
 
   const group = (of: (r: Settled) => string | null, label: (k: string) => string): Split[] => {
@@ -159,7 +182,10 @@ export function standings(
   memberIds: string[],
 ): Standing[] {
   const byAuthor = new Map<string, Settled[]>()
-  for (const p of picks) {
+  // A leaderboard ranks claims made before the whistle. Late entries are
+  // real picks and belong on a profile, not in a ranking against people
+  // who posted early.
+  for (const p of picks.filter(p => !p.late_entry)) {
     const list = byAuthor.get(p.author_id) ?? []
     list.push(p)
     byAuthor.set(p.author_id, list)
