@@ -2727,6 +2727,37 @@ Three further reasons, beyond the obvious one:
 the *old* page, not the new one — so this is a pause, not a conclusion
 that the channel can't work.
 
+### The installed app hid its own header under the status bar (11 Sep 2026)
+
+Added to an iPhone home screen, the wordmark, the founding badge, the
+notification bell and the search icon all sat **underneath** the clock,
+the signal bars and the Dynamic Island. Visible, overlapped, and
+untappable — the bell couldn't be pressed at all.
+
+**Self-inflicted, by the manifest work earlier the same day.**
+`appleWebApp.statusBarStyle: 'black-translucent'` tells iOS to draw the
+page *behind* the status bar rather than below it, and `viewportFit:
+'cover'` lets it go edge to edge. That's the right choice for something
+that should feel like an app — **but it only works if the top of the page
+pads itself by `env(safe-area-inset-top)`**, and `.topbar-inner` had a
+flat `padding: 14px 16px 10px`.
+
+Fixed, with left/right insets too for landscape on a notched phone.
+`env()` resolves to **0 in an ordinary browser tab**, where the browser's
+own chrome already reserves that space, so this costs desktop and mobile
+web nothing. Measured: 14px with no inset, 73px with an iPhone's 59px
+status bar.
+
+The bottom tab bar was already handling `safe-area-inset-bottom`; only
+the top was missed.
+
+**The lesson is about testing, not CSS.** Everything about the PWA was
+verified in a browser, where the insets are all zero and the bug is
+invisible by construction. **A standalone install is a different
+rendering environment and has to be looked at on a phone.** The same
+blind spot produced the Clarity mess — an automated browser could not see
+what a real one would.
+
 ### Two rules about picks changed (11 Sep 2026)
 
 **MIGRATION 050 MUST RUN BEFORE THIS DEPLOYS.** The record page and the
