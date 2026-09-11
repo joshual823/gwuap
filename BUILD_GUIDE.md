@@ -2677,6 +2677,52 @@ for six days it made the wrong one.
    objective, the UTM URL, US-only, an end date — and leave the last
    click to a person.
 
+### Polymarket group chats: 160 people, 0 signups (11 Sep 2026)
+
+**The best-performing channel so far, and it still converted nobody.**
+Posted into the comments of several Polymarket game markets:
+
+> *"Does anyone else wanna join the polymarket squad for Sports betting.
+> Just like this message and I'll send an invite ASAP IM MAKING THE
+> BIGGEST POLYMARKET SQUAD. BE APART OF IT. TAKES 10 SECONDS"*
+
+**Two groups, 80 members each, in 24 hours. Free.** For contrast, $86 of
+Reddit ads bought one signup.
+
+**Then those 160 people were asked to join gwuap.co and ignored it.**
+
+| Channel | Cost | Reach | Signups |
+|---|---|---|---|
+| Reddit ads | $86.22 | 83 clicks | ~1 |
+| X ads | $0 | halted before delivering | 0 |
+| Polymarket groups | $0 | **160 members** | **0** |
+
+**Three channels, one answer: acquisition is not the problem.** This site
+can put people in front of itself for free. What it cannot yet do is give
+them a reason to make an account.
+
+**Why that particular ask failed, and it's instructive.** Those 160
+joined a *Polymarket* squad, for Polymarket reasons. Being asked to go
+set up an account somewhere else is a switch on what they signed up for —
+so "come use my website" reads as a favour being requested, not an offer
+being made. The audience was right and the message was wrong.
+
+**The reframe to test: don't ask people to try a product, ask them to
+settle an argument.** A group chat structurally cannot tell you who in it
+was right, and that is the only thing this site has that Polymarket's
+chat doesn't. So the pitch to an existing group is not "check out my
+site", it's *"who in here is actually good — let's find out"*, with the
+grading and the leaderboard as the mechanism.
+
+Messages drafted for both cases — recruiting new members with the filter
+built in, and re-approaching the 160 already gathered — are in
+`~/Desktop/gwuap-ads/README.md`.
+
+**If both fail, that is the most valuable result available.** It would
+mean the problem is neither the channel nor the framing, and the answer
+is in the product rather than the pitch. Worth knowing before any more
+money goes into ads.
+
 ### The X pixel is live and verified (9 Sep 2026)
 
 Pixel `rezpf`, signup event `tw-rezpf-rf4l3`, both as `NEXT_PUBLIC_`
