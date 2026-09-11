@@ -2123,12 +2123,26 @@ which checks `location.pathname` and returns before initialising.
 Verified in the browser: on `/reset` the guard is present and the
 `clarity.ms` tag is **not** inserted; on `/squads` it is.
 
-**A limit that predates this and still stands.** The check runs once, on
-load. Someone who opens `/feed` and then navigates to `/vent` client-side
-is still being recorded, because Clarity is already running and
-unmounting a `<Script>` doesn't unload it. The old `usePathname` version
-had the same hole — it only ever protected a hard load of `/vent`.
-Closing it properly needs a `clarity('stop')` call on route change.
+**The Vent hole is closed** (`components/ClarityGuard.tsx`). The
+load-time check only ever protected somebody who opened `/vent`
+directly: open `/feed` first and Clarity is already running, and moving
+to `/vent` client-side doesn't unload it. Unmounting a `<Script>` never
+did — **the old `usePathname` version had exactly this hole, it just
+looked like it didn't.**
+
+The fix had to be an instruction to Clarity rather than an absence of
+markup, so `ClarityGuard` calls `clarity('stop')` on entering an excluded
+route and `clarity('start')` on leaving — and only restarts if it was
+what stopped it, so leaving Vent can't resurrect a session the visitor
+disabled some other way. Both components share `CLARITY_EXCLUDED`.
+
+Verified by stubbing `window.clarity` and driving a soft navigation:
+`/squads` → `/reset` recorded `["stop"]`, and back again `["stop",
+"start"]`.
+
+Note the load-time check in `Clarity.tsx` is still the one that can't
+rot: if Clarity ever drops the `stop` command the call becomes a silent
+no-op on their queue, and only the hard-load guard would still hold.
 
 **Still no session recorded** after a genuine 30-second human visit, so
 this change is not yet proven to be the fix. Clarity's first-data

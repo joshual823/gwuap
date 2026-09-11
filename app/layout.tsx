@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import Clarity from '@/components/Clarity'
+import ClarityGuard from '@/components/ClarityGuard'
 import RedditPixel from '@/components/RedditPixel'
 import Icon from '@/components/Icon'
 
@@ -194,6 +195,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </div>
         <Analytics />
         <Clarity />
+        <ClarityGuard />
         <RedditPixel />
         <XPixel />
       </body>

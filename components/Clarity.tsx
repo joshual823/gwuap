@@ -27,15 +27,13 @@ import Script from 'next/script'
  * text" isn't good enough when the safer option is to not record the
  * page at all.
  *
- * **Known limit, unchanged by this rewrite:** the check runs once, on
- * load. Someone who opens /feed and then navigates to /vent client-side
- * is still being recorded, because Clarity is already running by then
- * and unmounting a <Script> doesn't unload it. That was true of the
- * `usePathname` version too. Stopping it properly needs a
- * `clarity('stop')` call on route change, which is worth doing and is
- * not this change.
+ * This check runs once, on load, which only protects somebody who opens
+ * an excluded page directly. `ClarityGuard` covers client-side
+ * navigation by calling `clarity('stop')`, and shares the list below.
  */
-const EXCLUDED = ['/vent', '/messages', '/reset']
+/** Shared with ClarityGuard, which enforces the same list across
+ *  client-side navigation. One list, two places it has to hold. */
+export const CLARITY_EXCLUDED = ['/vent', '/messages', '/reset']
 
 export default function Clarity() {
   const id = process.env.NEXT_PUBLIC_CLARITY_ID
@@ -44,7 +42,7 @@ export default function Clarity() {
   return (
     <Script id="clarity" strategy="beforeInteractive">
       {`(function(c,l,a,r,i,t,y){
-        var excluded = ${JSON.stringify(EXCLUDED)};
+        var excluded = ${JSON.stringify(CLARITY_EXCLUDED)};
         for (var n = 0; n < excluded.length; n++) {
           if (l.location.pathname.indexOf(excluded[n]) === 0) return;
         }
