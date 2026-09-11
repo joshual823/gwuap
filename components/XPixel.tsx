@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation'
  * Inert until NEXT_PUBLIC_X_PIXEL_ID is set, so nothing third-party
  * loads unless it's deliberately turned on.
  *
- * The same rooms Clarity and the Reddit pixel stay out of. A pixel
+ * The same rooms PostHog and the Reddit pixel stay out of. A pixel
  * reports which pages a visitor opened, and "/vent" in an ad network's
  * logs says something about a person that they came to that page
  * precisely to say in private.

@@ -10,7 +10,7 @@ import { trackPageVisit } from '@/lib/rdt'
  * Inert until NEXT_PUBLIC_REDDIT_PIXEL_ID is set, so nothing
  * third-party loads unless it's deliberately turned on.
  *
- * The same rooms Clarity stays out of. A pixel reports which pages a
+ * The same rooms PostHog stays out of. A pixel reports which pages a
  * visitor opened, and "/vent" in an ad network's logs says something
  * about a person that they came to that page precisely to say in
  * private.

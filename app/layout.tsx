@@ -1,11 +1,13 @@
+import { Suspense } from 'react'
 import './globals.css'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
-import Clarity from '@/components/Clarity'
-import ClarityGuard from '@/components/ClarityGuard'
+import PostHogTracker from '@/components/PostHog'
+import InstallPrompt from '@/components/InstallPrompt'
+import ServiceWorker from '@/components/ServiceWorker'
 import RedditPixel from '@/components/RedditPixel'
 import Icon from '@/components/Icon'
 
@@ -56,6 +58,21 @@ const SHARE_DESCRIPTION =
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
+  manifest: '/manifest.webmanifest',
+  /* iOS ignores the manifest's display mode and reads these instead —
+     without them "Add to Home Screen" opens a Safari tab with chrome,
+     which is the whole thing people are asking to get away from. */
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: 'black-translucent' as const,
+  },
+  /* Next emits the standardised `mobile-web-app-capable`. iOS has
+     honoured the older Apple-prefixed name for years and support for the
+     standard one is recent, so both go out — it costs one tag, and
+     getting it wrong means "Add to Home Screen" opens a Safari tab with
+     chrome, which is exactly what people said they wanted to escape. */
+  other: { 'apple-mobile-web-app-capable': 'yes' },
   title: `${SITE_NAME} — ${SITE_TAGLINE}`,
   description: SHARE_DESCRIPTION,
   openGraph: {
@@ -194,8 +211,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </nav>
         </div>
         <Analytics />
-        <Clarity />
-        <ClarityGuard />
+        {/* useSearchParams needs a boundary, and analytics must never be
+            the reason a page fails to render. */}
+        <Suspense fallback={null}><PostHogTracker /></Suspense>
+        <ServiceWorker />
+        <InstallPrompt />
         <RedditPixel />
         <XPixel />
       </body>

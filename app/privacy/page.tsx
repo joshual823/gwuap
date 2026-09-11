@@ -11,7 +11,7 @@ export const metadata = {
  *
  * Every third party listed here is one the site genuinely loads or
  * writes to, and the two rooms that stay out of analytics are named
- * because Clarity.tsx and RedditPixel.tsx really do exclude them. A
+ * because PostHog.tsx and RedditPixel.tsx really do exclude them. A
  * policy that describes a different site than the one running is worse
  * than none: it's a promise nobody checked.
  */
@@ -57,13 +57,13 @@ export default function PrivacyPage() {
         <li><strong>Supabase</strong> — database, sign-in and file storage.</li>
         <li><strong>Vercel</strong> — hosting and page analytics.</li>
         <li><strong>Resend</strong> — sends confirmation and password emails.</li>
-        <li><strong>Microsoft Clarity</strong> — how pages are used, so layout problems are visible.</li>
+        <li><strong>PostHog</strong> — how pages are used, so layout problems are visible.</li>
         <li><strong>Reddit</strong> — a pixel telling us which ads led to sign-ups.</li>
         <li><strong>X</strong> — the same thing, for ads run there.</li>
       </ul>
       <p>
         <strong>The Vent room, private messages and password resets are excluded
-        from Clarity and from both ad pixels.</strong> Those pages are not
+        from PostHog and from both ad pixels.</strong> Those pages are not
         recorded and not reported to anyone. Vent especially: people go there to
         say something in private, and handing an ad network the fact that
         somebody opened it would defeat the point of having the room.

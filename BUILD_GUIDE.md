@@ -2677,6 +2677,77 @@ for six days it made the wrong one.
    objective, the UTM URL, US-only, an end date — and leave the last
    click to a person.
 
+### The site installs to a home screen now (11 Sep 2026)
+
+**Two people signed up from a Polymarket group and went straight back to
+the group chat, saying they'd rather use an app with push
+notifications.** That's the first specific, fixable reason anyone has
+given for leaving — every other churn signal has been silence.
+
+So it's a PWA. `app/manifest.ts`, three icon sizes, a service worker, and
+an install banner. Added to a home screen it opens standalone: no
+address bar, its own entry in the app switcher, dark splash screen.
+
+**Deliberately not an App Store build.** A Capacitor wrapper would put
+this in front of App Review, and in one week this site has been
+classified as gambling by X's ad classifier and rejected under Reddit's
+gambling policy. Apple's guideline 5.3 is a third gatekeeper, with a
+licensed-operator bar and a review loop measured in days rather than
+minutes — and guideline 4.2 rejects thin website wrappers besides. A
+home screen icon is most of what an app gives this product. **Having no
+gatekeeper is a feature here, not a compromise.**
+
+**The service worker caches nothing, on purpose.** It exists because
+Chrome won't offer to install without one and push has nowhere to be
+delivered without one. Caching is the third thing it could do and
+mustn't: nearly every page is live scores, a running game chat or a feed
+that moves by the minute, and a stale cache there shows somebody a final
+score that isn't. Slightly slower beats quietly wrong.
+
+**Both iOS capable tags ship.** Next emits the standardised
+`mobile-web-app-capable`; iOS has honoured the Apple-prefixed name for
+years and only recently learned the standard one. Getting this wrong
+means "Add to Home Screen" opens a Safari tab *with* chrome — precisely
+the thing people said they wanted to escape.
+
+**Android and iOS install completely differently and the banner knows
+it.** Android fires `beforeinstallprompt` and the browser does the work.
+**iOS has no such event and never will** — Safari installs only from
+Share → Add to Home Screen, so iOS gets instructions rather than a
+button, and only in Safari, since no other iOS browser has the menu
+item. The classic PWA mistake is one beautiful Install button that
+silently does nothing on half the phones.
+
+**Verified by simulating `beforeinstallprompt`**, because it doesn't fire
+in an automated Chrome — banner appears, Install calls through to the
+browser prompt, banner clears. Same lesson as Clarity: browser
+heuristics can't be tested from automation, so test your own code
+deterministically instead.
+
+**Push is not built yet, and it's the actual payoff.** The service worker
+already has `push` and `notificationclick` handlers. What's still needed:
+VAPID keys in Vercel, a `push_subscriptions` table (**a migration, which
+must be run in the Supabase SQL editor first**), a subscribe prompt, and
+a send path hooked into the notification events that already exist —
+reactions, comments, replies, follows, graded picks. On iOS push only
+works once the app is on the home screen, which is why installability
+came first.
+
+### Clarity out, PostHog in
+
+Clarity was deleted after nine days of recording nothing across two
+projects, two devices and every configuration check available.
+`components/PostHog.tsx` replaces it — same `/vent`, `/messages`,
+`/reset` exclusions, same opt-out-on-navigation guard rather than an
+unmount, inputs masked in replays. **Inert until
+`NEXT_PUBLIC_POSTHOG_KEY` is set**, which needs a PostHog account. The
+privacy page names PostHog now, because a policy describing a different
+site than the one running is worse than none.
+
+The reason for PostHog over another replay tool is the funnel: the open
+question is where people go between landing and not signing up, and
+neither Clarity nor Vercel Analytics could answer it.
+
 ### Polymarket group chats: 160 people, 0 signups (11 Sep 2026)
 
 **The best-performing channel so far, and it still converted nobody.**
