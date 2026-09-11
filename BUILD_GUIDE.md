@@ -2157,6 +2157,27 @@ with the new value, verified by pulling it back:
 deploy** — `NEXT_PUBLIC_` values are baked at build time, so pushing the
 commits is what makes it live.
 
+**The new project behaves exactly like the old one.** Live site serves
+`clarity.ms/tag/ygpqdl6jr9`, and in the browser: `window.clarity` an
+empty object, no `_clck`/`_clsk`. Identical to `yc1lfspsay`.
+
+**Two independent projects failing the same way argues the project was
+never the problem** — and points back at the confound already recorded
+above: these checks run in an automation-driven Chrome with Clarity's bot
+detection on. **Stop using an automated browser to decide whether Clarity
+works.** It cannot answer the question.
+
+The 30-second human visit is the one point that doesn't fit, but an ad
+blocker or tracking protection blocking `clarity.ms` explains it equally
+well — Clarity is a common blocklist entry.
+
+**Don't spend more time testing this by hand.** The squads campaign is
+delivering real Reddit users on real phones until 15 Sep. If Clarity
+works, their sessions will appear on their own; if none appear by the end
+of the flight with traffic known to be landing (the pixel counts Page
+Visits independently), then it's genuinely broken and worth another look.
+Either way the front-door fix, not Clarity, is what moves signups.
+
 **Two things changed at once and that was deliberate.** The new project
 ID and the `beforeInteractive` move ship together, so if recordings start
 we won't know which fixed it. The campaign ends 15 Sep and recordings of
