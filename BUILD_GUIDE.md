@@ -2135,10 +2135,35 @@ So the script is fetched and inert. `curl` can't see any of this because
 page source looks tagless whether it works or not. **Only a real browser
 can tell you whether Clarity is running.**
 
-**Leading suspect: the project's registered domain is `gwuap.cp`** — a
-typo for `gwuap.co`, visible on the Clarity projects list. Not proven,
-because the Settings tab is gated until setup completes, but it is the
-one wrong thing on record and it costs nothing to fix.
+**The domain typo was fixed and was not the cause.** The project's
+Website URL did read `gwuap.cp`; it now reads `gwuap.co` and the change
+persisted through a reload. Clarity still records nothing: same empty
+`window.clarity`, still no `_clck`/`_clsk`, still no upload. Worth
+knowing so nobody spends the hour again.
+
+Note what *does* work on the same page load: `_rdt_uuid`, `_twpid` and
+`_twsid` are all set. Cookie-setting and third-party scripts are fine in
+general; **Clarity specifically declines to start.**
+
+**What an empty `window.clarity` actually tells you.** The inline snippet
+defines `window.clarity` as a *function* — a queue stub. Finding an empty
+*object* means the real tag downloaded, ran, and deliberately replaced the
+stub with a no-op. Clarity decided not to record. That narrows it to
+project-side configuration, not the installation.
+
+**Remaining candidates, untested:**
+
+- **Cookie consent.** Clarity can be configured to wait for a
+  `clarity("consent")` call before recording. The site never makes one.
+  This fits the symptom exactly. Two lines in `Clarity.tsx` would test
+  it — but it's a privacy posture decision, not a bug fix, and should be
+  taken deliberately rather than slipped in.
+- **IP blocking.** There's an IP blocking section in project settings; a
+  rule covering the office would suppress exactly these sessions.
+- **A stuck project.** The dashboard bounces every deep link back to
+  "Getting Started" because it has never ingested data. A fresh project
+  and a new `NEXT_PUBLIC_CLARITY_ID` would settle whether this one is
+  simply broken — one env var and a redeploy.
 
 **What this costs us right now:** there are no recordings of the 22
 people who landed. The obvious next diagnostic — watch what they did —
