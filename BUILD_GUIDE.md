@@ -2062,6 +2062,88 @@ enforced by RLS, the grading is the site's own, and the table is
 `gwuap.co/squads`, and until `main` is pushed that URL is still a login
 redirect in production.
 
+### Audit, 11 Sep 2026: 83 paid clicks, 0 new accounts
+
+**The database is the whole story and it is brutal. Six accounts exist.
+The newest was created 5 September.** Nothing has signed up since —
+including every click both Reddit campaigns have ever bought.
+
+| | |
+|---|---|
+| Accounts, all time | **6** (newest 5 Sep) |
+| Archived campaign | $52.00, 58 clicks → ~1 real signup |
+| Squads campaign | $34.22, **25 clicks → 0 signups** |
+| Paid to date | **$86.22 for 83 clicks and one account** |
+
+**This outranks every other finding on this page.** The community
+breakdown below is real and interesting and almost beside the point: it
+does not matter which subreddit is cheapest if none of them convert. The
+bottleneck is not the ad, the targeting or the creative. It is what
+happens after the click.
+
+**Be honest about the sample.** 0 from 25 is not damning on its own — at
+a plausible 2–4% rate you'd expect under one signup from 25 clicks. It's
+1 from 83 across both campaigns that's the signal, and 1.2% click-to-
+signup on cold traffic is poor but not freakish. The number to fear is
+the trend, not the single zero.
+
+**What can't be distinguished yet:** whether those 25 clicks became 25
+page loads. Reddit counts a tap; it doesn't know if the page rendered or
+the thumb moved on. Vercel Analytics, filtered to `utm_source=reddit`,
+separates "nobody arrived" from "everybody arrived and left" — and those
+two have completely different fixes. **Check that before changing
+anything else.**
+
+**One concrete suspect, and it's ours.** The ad was deliberately built so
+the invite was *not* the ask — "sign up" is one person's decision,
+"bring your group chat" is a social risk on behalf of five other people.
+Then the landing page's primary button says **"Start a squad"**, which
+means naming it and recruiting people. The page makes the exact big ask
+the ad was designed to avoid, and the only other door is "Log in", which
+is for people who already have an account. **A curious stranger has no
+low-commitment way in.**
+
+### Community performance (directional)
+
+| Community | Impr | Clicks | CTR | CPC |
+|---|---|---|---|---|
+| mlb | 708 | 6 | **0.847%** | $1.50 |
+| cfb | 1,355 | 11 | **0.812%** | $1.32 |
+| nfl | 1,996 | 11 | 0.551% | $1.41 |
+| nba | 1,777 | 9 | 0.506% | $1.56 |
+| dynastyff | 224 | 1 | 0.446% | $1.48 |
+| fantasyfootball | 822 | 2 | **0.243%** | **$1.65** |
+| fantasybaseball | 84 | 0 | 0% | — |
+| fantasybball | 69 | 0 | 0% | — |
+
+**Rows do not add up and aren't meant to** — 7,035 impressions against a
+3,743 total, because Reddit credits an impression to every community the
+user matches. Relative only.
+
+**The fantasy subs lose, and they were the premise.** The squad campaign
+was built on "fantasy league players already have a group, bring it
+here." r/fantasyfootball converts at a third of r/CFB's rate and costs
+the most per click; the fantasy basketball and baseball subs produced 153
+impressions and no clicks at all. The plain team subs win.
+
+The likely reason is worth sitting with: **fantasy players already have
+this product.** Sleeper, ESPN and Yahoo give a league a private chat and
+a table that keeps itself. To them the squad pitch describes software
+they already use. r/CFB and r/mlb argue all season with nothing keeping
+score anywhere.
+
+**Don't act on it yet.** 11 clicks against 2 is suggestive, not
+decision-grade, and churning targeting at $34 spent throws away the read
+you paid for. Let the flight finish on 15 Sep.
+
+### General campaign is burning its window
+
+`General — Sep 2026` has never delivered an impression: one ad rejected,
+one pending more than twelve hours. Its end date is 15 Sep, so it is
+spending its entire flight in a review queue. Either extend the end date
+or write the flight off — but decide, rather than letting it expire by
+default.
+
 ### The rejection is a gambling-policy rejection (10 Sep 2026)
 
 The email arrived for both rejected ads and says the same thing:
