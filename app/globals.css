@@ -1683,17 +1683,20 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-proof-recent li { display: inline-flex; align-items: center; gap: 7px;
   font-size: 13px; color: var(--ink-dim); }
 
-/* Squads are the upgrade now, not the entry fee — so the section reads
-   as a second act rather than the headline. */
-.squads-later { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
-.squads-later-head { font-family: var(--font-display), sans-serif; font-size: 19px;
-  font-weight: 800; margin: 0 0 8px; color: var(--ink); }
-.squads-later > p { font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 14px; }
 
 /* The positioning line, said identically on the feed, the signup form
    and the squads landing. Quiet by design: it's there to be recognised
    after the fifth time, not to shout on the first. */
-.what-is-pitch, .signup-pitch, .squads-pitch {
+.what-is-pitch, .signup-pitch {
   font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 12px;
 }
-.squads-pitch { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* The squads landing, restructured 13 Sep: name and category first, then
+   the ask, then one idea per block. */
+.squads-h1 { font-size: 25px; line-height: 1.25; margin-bottom: 8px; }
+.squads-founding { margin: 12px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+.squads-founding strong { color: var(--brand); }
+.squads-block { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); }
+.squads-h2 { font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 800;
+  margin: 0 0 10px; color: var(--ink); }
+.squads-block > p { font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 14px; }

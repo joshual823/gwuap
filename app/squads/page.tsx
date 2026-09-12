@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
-import { SITE_PITCH } from '@/lib/brand'
+import { FOUNDING_LIMIT } from '@/lib/badges'
 import FeedTabs from '@/components/FeedTabs'
 import Avatar from '@/components/Avatar'
 
@@ -129,114 +129,115 @@ export default async function SquadsPage() {
  * the translation anyway, one screen later.
  */
 async function SquadsIntro() {
+  const supabase = await createClient()
+
   // Real numbers, not a claim. The old page's only demonstration was a
   // leaderboard labelled "example" — honest, and therefore an admission
-  // that nothing on the page was real. Meanwhile ninety-odd genuinely
-  // graded picks were sitting in the database unshown.
-  const supabase = await createClient()
-  const { data: settled } = await supabase
-    .from('posts')
-    .select('ticker, status, created_at')
-    .eq('post_kind', 'pick')
-    .in('status', ['win', 'loss', 'push'])
-    .order('created_at', { ascending: false })
-    .limit(500)
+  // that nothing on the page was real, while ninety genuinely graded
+  // picks sat in the database unshown.
+  const [{ data: settled }, { count: accounts }] = await Promise.all([
+    supabase.from('posts')
+      .select('ticker, status, created_at')
+      .eq('post_kind', 'pick')
+      .in('status', ['win', 'loss', 'push'])
+      .order('created_at', { ascending: false })
+      .limit(500),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+  ])
 
   const rows = settled ?? []
   const won = rows.filter(r => r.status === 'win').length
   const lost = rows.filter(r => r.status === 'loss').length
   const pushed = rows.filter(r => r.status === 'push').length
   const recent = rows.slice(0, 3)
+  const placesLeft = accounts == null ? null : FOUNDING_LIMIT - accounts
 
   return (
     <div className="legal squads-intro">
-      <h1 className="page-title">Keep a record that isn&apos;t yours to edit</h1>
+      {/* What this is, before any claim about it.
+          This sat below the call to action until 13 Sep, on the reasoning
+          that a brand line at the top is clutter. Josh looked at the
+          built page and said it read as confusing, and he's right: the
+          headline was "Keep a record that isn't yours to edit", which is
+          an argument for a product the reader hasn't been told the shape
+          of yet. Name and category first, then the pitch. */}
+      <h1 className="page-title squads-h1">
+        Gwuap — the social media website for sports fans
+      </h1>
       <p className="squads-lead">
-        Post a pick. The final score settles it. Nobody grades their own.
+        Track your picks, chat with sports fans, and start your own personal squad.
       </p>
 
-      {/* Rebuilt 13 Sep, after PostHog showed two visitors read the whole
-          page — this, the popup, the help page — and leave.
-
-          That rules out the obvious explanations. They weren't confused
-          and they didn't bounce; they understood it and declined. What
-          they'd understood was the ask, which was: sign up, then go
-          recruit your friends onto a site they've never heard of, and
-          *then* it's good. The three steps literally read "start a squad
-          / invite your group / post picks", and the sign-up button
-          pointed at `/squads/new` — an empty room with an invite link and
-          nobody to send it to. One squad exists in the entire database.
-          Reading carefully was what exposed that, which is why the
-          carefullest readers left.
-
-          So the ask changed rather than the wording. Posting a pick works
-          with nobody else present, takes a minute, and is the actual
-          product. The squad is what you grow into once you have a record
-          worth putting on a table — it is no longer the entry fee. */}
+      {/* "Join the new wave" over "Post your first pick".
+          The concrete version names a task, and this page's whole problem
+          was that the ask felt like work. This one sells being early,
+          which is the honest advantage of a site with eight accounts —
+          and it's backed below by the founding count rather than left as
+          atmosphere, because a claim to momentum with nothing behind it
+          is exactly the overstatement this site doesn't do. */}
       <p className="squads-cta">
-        <Link href="/signup?next=/post/new" className="btn">Post your first pick</Link>
+        <Link href="/signup?next=/post/new" className="btn">Join the new wave</Link>
         <Link href="/feed" className="btn secondary">Look around first</Link>
       </p>
       <p className="squads-micro">
         Free · we never ask for a card ·{' '}
         <Link href="/login?next=/feed" className="help-link">Log in</Link>
       </p>
-
-      {/* The positioning line, once, below the fold-breaking CTA rather
-          than above it. This page was just rebuilt because it asked too
-          much of a reader before earning it; a brand paragraph at the top
-          would put the clutter straight back. Here it catches someone who
-          has already decided to keep reading. */}
-      <p className="squads-pitch">{SITE_PITCH}</p>
-
-      {/* The proof, and it is deliberately not flattering. A near-even
-          record is the strongest thing this page can say: it shows the
-          grader isn't on the site's side. A page selling an edge would
-          bury the losses; this one is selling that the number can't be
-          fiddled, and 43-42 makes that case better than 43-2 ever could. */}
-      {rows.length > 0 && (
-        <figure className="squads-proof">
-          <p className="squads-proof-head">
-            <strong>{rows.length}</strong> picks graded from the final score
-          </p>
-          <p className="squads-proof-tally">
-            <span className="sp-win">{won} won</span>
-            <span className="sp-loss">{lost} lost</span>
-            {pushed > 0 && <span className="sp-push">{pushed} pushed</span>}
-          </p>
-          <p className="squads-proof-note">
-            Not one of them edited after kickoff. That&apos;s the whole point —
-            we show the losses because a record you can edit isn&apos;t a record.
-          </p>
-          {recent.length > 0 && (
-            <ul className="squads-proof-recent">
-              {recent.map((r, i) => (
-                <li key={i}>
-                  <span className="mono">{r.ticker}</span>
-                  <span className={`stamp ${r.status}`}>{r.status}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </figure>
+      {placesLeft !== null && placesLeft > 0 && (
+        <p className="squads-founding">
+          <strong>{placesLeft} of {FOUNDING_LIMIT} founding places left.</strong>{' '}
+          The first {FOUNDING_LIMIT} accounts keep the badge for good.
+        </p>
       )}
 
-      <ol className="squads-steps">
-        <li><span className="squads-num">1</span> Post a pick — takes a minute</li>
-        <li><span className="squads-num">2</span> The final score grades it, not you</li>
-        <li><span className="squads-num">3</span> Bring your group when you want a table</li>
-      </ol>
+      <section className="squads-block">
+        <h2 className="squads-h2">Track your picks</h2>
+        <p>
+          Every pick you post is graded a win, a loss or a push from the final
+          score, and counted towards your record automatically. You never grade
+          your own, and nothing can be edited once a game starts.
+        </p>
 
-      {/* Squads, demoted to what they actually are for a stranger: the
-          thing worth having *later*. Same example leaderboard as before,
-          still labelled, but no longer the first thing asked of someone
-          who arrived alone thirty seconds ago. */}
-      <section className="squads-later">
-        <h2 className="squads-later-head">Then bring your group</h2>
+        {/* The proof, and it is deliberately not flattering. A near-even
+            record is the strongest thing this page can say: it shows the
+            grader isn't on the site's side. A page selling an edge would
+            bury the losses; this one is selling that the number can't be
+            fiddled, and 43-42 makes that case better than 43-2 ever could. */}
+        {rows.length > 0 && (
+          <figure className="squads-proof">
+            <p className="squads-proof-head">
+              <strong>{rows.length}</strong> picks graded so far
+            </p>
+            <p className="squads-proof-tally">
+              <span className="sp-win">{won} won</span>
+              <span className="sp-loss">{lost} lost</span>
+              {pushed > 0 && <span className="sp-push">{pushed} pushed</span>}
+            </p>
+            <p className="squads-proof-note">
+              We show the losses because a record you can edit isn&apos;t a record.
+            </p>
+            {recent.length > 0 && (
+              <ul className="squads-proof-recent">
+                {recent.map((r, i) => (
+                  <li key={i}>
+                    <span className="mono">{r.ticker}</span>
+                    <span className={`stamp ${r.status}`}>{r.status}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </figure>
+        )}
+      </section>
+
+      {/* Squads: what you grow into once you have a record worth putting
+          on a table, rather than the entry fee. */}
+      <section className="squads-block">
+        <h2 className="squads-h2">Then bring your group</h2>
         <p>
           A squad is a private room with a leaderboard that keeps itself.
-          Everyone&apos;s picks are graded the same way, so the table settles
-          the argument instead of starting it.
+          Everyone&apos;s picks are graded the same way, so the table settles the
+          argument instead of starting it.
         </p>
 
         <figure className="squads-preview">

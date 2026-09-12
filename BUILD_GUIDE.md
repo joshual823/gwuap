@@ -3782,11 +3782,47 @@ what this *is* to somebody who has never heard of it; the differentiator
 still leads on the pages themselves, where there is room to make the
 case.
 
-**Not put at the top of `/squads`.** That page was rebuilt hours earlier
-precisely because it asked too much of a reader before earning it, and a
-brand paragraph above the call to action would put the clutter straight
-back. It sits below the CTA, where it catches someone who has already
-decided to keep reading.
+**Reversed within the hour on `/squads`.** It was placed below the CTA
+on the reasoning that a brand line at the top is clutter. Josh looked at
+the built page and said it read as confusing, and he was right: the
+headline was *"Keep a record that isn't yours to edit"* — an argument
+for a product the reader has not yet been told the shape of. Name and
+category go first, then the pitch, then the ask. The abstract reasoning
+about clutter lost to somebody actually reading the page.
+
+### The squads page, third pass — Josh's structure (13 Sep 2026)
+
+Two rebuilds in one day, the second from Josh reading the first. His
+structure, near enough verbatim:
+
+| | |
+|---|---|
+| Top | `Gwuap — the social media website for sports fans` |
+| Lead | Track your picks, chat with sports fans, start your own personal squad |
+| Buttons | **Join the new wave** · Look around first |
+| Then | **Track your picks** — how grading works, with the real tally under it |
+| Then | **Then bring your group** — squads, with the example leaderboard |
+
+**"Join the new wave" replaced "Post your first pick", and it's the
+right call.** The concrete version names a task, and this page's whole
+problem was that the ask felt like work. Josh's instinct was to sell
+being *early* instead — which is the honest advantage of a site with
+eight accounts, where a bigger site has none.
+
+**It is backed by a real number rather than left as atmosphere.** A claim
+to momentum with nothing behind it is exactly the overstatement this site
+doesn't do, and there was already a true version sitting unused on this
+page: `FOUNDING_LIMIT` is 200 and 8 accounts exist, so **192 founding
+places left** now sits under the button. That turns "new wave" from a
+mood into a fact a reader can check.
+
+Two corrections to the dictated copy, both for accuracy rather than
+style:
+
+- *"all picks posted is rated as a win or loss"* → **win, loss or push.**
+  The same page displays six pushes in the tally directly below; saying
+  only win-or-loss twelve lines above it would contradict our own number.
+- *"Signup"* → *"Sign up"*, as with the pitch line.
 
 ---
 
