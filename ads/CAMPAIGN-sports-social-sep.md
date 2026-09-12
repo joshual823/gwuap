@@ -10,12 +10,7 @@
 
 Regenerate any of them with `python3 make.py`; the photograph is `field.jpg`.
 
-**Licence check before any of these run.** The photo is a free stock download
-(`football-ball-rugby-field.jpg`). "Free" on those sites usually means free to
-download, not free to use in advertising — Freepik-style licences commonly
-require attribution or exclude commercial use, and a paid ad is exactly where
-that bites. Confirm the licence page allows commercial/advertising use, and keep
-a copy of it.
+Licence confirmed clear for use, 12 Sep.
 
 The first version of these drew the field in CSS to sidestep the licence
 question entirely. It read as a cartoon, which is what a vector does in a feed
@@ -111,11 +106,23 @@ audience can be tested later as its own ad group, once this account has a
 campaign that has actually cleared review and delivered — right now there is
 nothing to risk it against.
 
-## Budget
+## Budget and the review date
 
-$20/day, same as before. Stop and read at **$40 spent or 100 clicks, whichever
-comes first** — that is roughly four times the sample the old front door got,
-and enough to tell 0/100 from 3/100.
+$20/day. **Read it at 5 days**, or earlier at 100 clicks — roughly four times
+the sample the old front door got, and enough to tell 0/100 from 3/100.
+
+## Publishing identity: u/Fanasty823, deliberately
+
+The ad publishes under the personal handle, not a Gwuap-branded one, because
+no Gwuap Reddit account exists and a new one may not even be eligible as an
+ad publisher until it has some age and karma.
+
+This is a knowing trade, decided 12 Sep: **get five days of real data first,
+and spend the account-setup effort only if there is traction worth protecting.**
+The X write-up above argues a mismatched handle works against the ad twice —
+once at review, once with the stranger reading it — and that argument still
+stands. It is being accepted, not refuted. If this campaign clears review and
+delivers, the gwuap account becomes the next thing to build.
 
 ## What this campaign is actually testing
 
