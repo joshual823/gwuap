@@ -1,0 +1,33 @@
+<!-- The coin, as vector so it stays crisp at 16px in a browser tab.
+     Same light source as the uploaded avatar: highlight above, weight
+     below, and the G pressed into the surface rather than laid on it. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="body" cx="50%" cy="-8%" r="120%">
+      <stop offset="0%" stop-color="#9BFFA6"/>
+      <stop offset="26%" stop-color="#35E24A"/>
+      <stop offset="52%" stop-color="#00C805"/>
+      <stop offset="76%" stop-color="#009B0A"/>
+      <stop offset="100%" stop-color="#04630C"/>
+    </radialGradient>
+    <radialGradient id="spec" cx="50%" cy="0%" r="78%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.60"/>
+      <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bounce" cx="50%" cy="100%" r="60%">
+      <stop offset="0%" stop-color="#C9FFD1" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#C9FFD1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="32" fill="url(#body)"/>
+  <ellipse cx="32" cy="11" rx="26" ry="15" fill="url(#spec)"/>
+  <ellipse cx="32" cy="60" rx="20" ry="9" fill="url(#bounce)"/>
+
+  <!-- Lit lower edge first, then the letter over it: the two together
+       are what read as depth rather than a dark shape on green. -->
+  <path d="M44.5 22.6c-2.6-3.3-6.6-5.4-11.2-5.4-8.1 0-14.4 6.4-14.4 15.9S25.2 49 33.3 49c7.2 0 12.6-4.6 12.6-11.8v-2.6H32.4v6.1h6.9c-.5 2.4-2.6 4.1-5.9 4.1-4.4 0-7.4-3.5-7.4-9.7s3-9.7 7.2-9.7c2.5 0 4.5 1.1 5.9 3l5.4-5.8Z"
+        fill="#BEFFC6" opacity="0.45"/>
+  <path d="M44.5 21.5c-2.6-3.3-6.6-5.4-11.2-5.4-8.1 0-14.4 6.4-14.4 15.9S25.2 47.9 33.3 47.9c7.2 0 12.6-4.6 12.6-11.8v-2.6H32.4v6.1h6.9c-.5 2.4-2.6 4.1-5.9 4.1-4.4 0-7.4-3.5-7.4-9.7s3-9.7 7.2-9.7c2.5 0 4.5 1.1 5.9 3l5.4-5.8Z"
+        fill="#053B08"/>
+</svg>

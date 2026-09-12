@@ -1,0 +1,103 @@
+# Reddit — "Meet Gwuap" sports-social signup campaign (12 Sep 2026)
+
+## Creatives
+
+| File | Size | Where it runs |
+|---|---|---|
+| `gw-field-square.png` | 1080×1080 | primary — mobile feed |
+| `gw-field-wide.png` | 1200×628 | desktop feed |
+| `gw-meet-square.png` | 1080×1080 | second headline, same ad group, for a read on which line pulls |
+
+Regenerate any of them with `python3 make.py`. The field is **drawn in CSS**,
+not photographed: a stock football photo we don't own is a copyright problem in
+a paid ad, and a field is mostly stripes and straight lines anyway.
+
+Every creative carries the line **"Not a sportsbook. No betting, no money —
+nothing at stake but your record."** That is there for the reviewer as much as
+the reader. Two campaigns have now been killed on a gambling read; the creative
+should answer that question before anyone has to ask it.
+
+## Copy
+
+**Primary (as written, tightened):**
+
+> Meet Gwuap — the new social network for sports fans. Build your own squad,
+> keep track of your picks, and talk every game while it's happening. Free to
+> join, no card, ever.
+
+Two changes from the original: *"see what's the hype"* → dropped, and *"social
+media"* → *"social network"*. The hype line is the one to reconsider on its own
+merits — there are 8 accounts on the site, and a Reddit audience is unusually
+quick to check a claim like that. "Free to join, no card, ever" is the thing we
+can say that nobody else in this category can.
+
+**Variant B (pairs with `gw-meet-square.png`):**
+
+> The group chat for sports, minus the sportsbook. Build a squad, post what you
+> think happens, and let the final score settle it. Free to join.
+
+**Destination:** `https://gwuap.co/squads?utm_source=reddit&utm_medium=cpc&utm_campaign=sports-social-sep&utm_content=field-square`
+
+Not `/signup`. Cold traffic dropped into a form converts worse than traffic
+dropped onto the page built to explain the thing, and `/squads` leads with
+"Sign up free". **This is the first real test of the new front door** — all 25
+clicks from the last campaign landed on the old one.
+
+## Objective
+
+**Traffic, not Conversions.** Conversions optimisation needs conversion history
+to learn from and the pixel has recorded zero. The last campaign asked for
+conversions, got 25 clicks and 0 signups, and never spent its budget. Traffic
+will actually deliver, and the question this campaign has to answer — *does the
+rebuilt front door convert anybody?* — is answered by the signup count either
+way.
+
+## Targeting
+
+### Communities — sports, general
+r/sports, r/nfl, r/CFB, r/nba, r/CollegeBasketball, r/baseball, r/MLB,
+r/hockey, r/soccer, r/MMA, r/boxing, r/tennis, r/formula1, r/NASCAR, r/golf,
+r/fantasyfootball, r/DynastyFF, r/fantasybball, r/fantasybaseball
+
+### Interests
+Sports · American Football · Basketball · Baseball · Soccer · Hockey ·
+Combat Sports · Motorsports · Golf · Tennis · Fantasy Sports
+
+### Geo / age
+United States, 18+.
+
+### Do NOT add, and this is the whole argument
+r/sportsbook · r/sportsbetting · r/DraftKings · r/gambling · r/BettingTips ·
+the **Gambling** interest category · sportsbook keyword lists · book and
+prediction-market look-alike audiences.
+
+Reddit's rejection email cited **"prohibited targeting methods"**, and the one
+gambling-categorised community in the ad group was the only thing the two
+rejected ads had in common. X halted a campaign whose creative and handle were
+both clean, with the same kind of targeting underneath. The build guide's
+conclusion after two controlled tests was that **the creative was never the
+thing** — so "target DraftKings users" is a direct request for the one variable
+we have evidence gets us rejected, and it would be the account's third policy
+rejection, which is the level at which platforms stop rejecting ads and start
+restricting accounts.
+
+The copy doesn't need them. "The new social network for sports fans" is aimed at
+sports fans, and sports fans are who the clean list reaches. A DraftKings
+audience can be tested later as its own ad group, once this account has a
+campaign that has actually cleared review and delivered — right now there is
+nothing to risk it against.
+
+## Budget
+
+$20/day, same as before. Stop and read at **$40 spent or 100 clicks, whichever
+comes first** — that is roughly four times the sample the old front door got,
+and enough to tell 0/100 from 3/100.
+
+## What this campaign is actually testing
+
+One thing: **does the rebuilt `/squads` convert cold traffic?** Acquisition has
+never been the problem — $86 of Reddit spend and 160 Polymarket members both
+arrived and left. 25 clicks → 22 page visits → 0 signups was a verdict on a page
+that no longer exists. If the new one goes 0-for-100, the answer is that paid
+cold traffic doesn't convert for this product at this stage, and the Polymarket
+channel — 2 signups for $0 — is the whole strategy.

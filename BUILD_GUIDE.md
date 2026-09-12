@@ -3337,6 +3337,49 @@ length cap and the not-empty rule in a single check. 052 splits them, so
 a shared pick can carry no words without losing the cap. Both tables keep
 a says-something constraint: never all fields empty.
 
+### A sports-social campaign, and the one thing left out of it (12 Sep 2026)
+
+Creatives, copy and targeting live in `ads/CAMPAIGN-sports-social-sep.md`;
+`python3 ads/make.py` regenerates the images. Three of them, a drawn
+football field with the wordmark on it, in the shape of a Polymarket ad
+that was working on the same audience.
+
+**The field is drawn in CSS, not photographed.** A stock football photo
+we don't own is a copyright problem in a paid ad, and a field is mostly
+stripes and straight lines. First attempt ran the mow stripes and the
+yard lines in the same direction and produced a barcode; they have to be
+perpendicular, and the hash marks are what make it read as football
+rather than as a tennis court.
+
+Every creative carries **"Not a sportsbook. No betting, no money —
+nothing at stake but your record."** That line is for the reviewer as
+much as the reader. Two campaigns have now died on a gambling read.
+
+**The ask included "target DraftKings users and all sports keywords",
+and the DraftKings half is deliberately not in the brief.** Reddit's
+rejection cited *prohibited targeting methods*; the only
+gambling-categorised community in the ad group was the one thing both
+rejected ads shared; X halted a campaign whose creative and handle were
+clean. The conclusion already written above, after two controlled tests,
+was that the creative was never the thing. Adding a sportsbook audience
+now is a request for the exact variable we have evidence gets us
+rejected — and it would be the third policy rejection on this account,
+which is where platforms stop rejecting ads and start restricting
+accounts.
+
+It also fights the copy. "The new social network for sports fans" is
+aimed at sports fans. The clean list reaches them. A DraftKings audience
+is worth testing as its own ad group *after* this account has a campaign
+that has cleared review and delivered — there is currently nothing to
+risk that against.
+
+**What the campaign actually tests:** whether the rebuilt `/squads`
+converts cold traffic. All 25 clicks from the last campaign landed on
+the old page, so 0-for-22 was never a verdict on the new one. Traffic
+objective, not Conversions — the pixel has no conversion history to
+optimise against, and asking for conversions is part of why the last
+campaign never spent its budget. Stop and read at $40 or 100 clicks.
+
 ---
 
 
