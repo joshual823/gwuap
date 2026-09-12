@@ -3405,6 +3405,27 @@ campaign never spent its budget. Stop and read at $40 or 100 clicks.
 
 ### Building it in the dashboard, and what the UI taught us (12 Sep 2026)
 
+**APPROVED — 11 Sep, 11:00 PM EDT. The first ad that has ever cleared
+review on this account.**
+
+> *"your ad Build your squad — square has been approved under campaign
+> Football communities — enforced"*
+
+Two campaigns were rejected before this one, both citing *prohibited
+targeting methods*. This one is the same site, the same claim-free
+positioning, and the same kind of creative. **What changed was the
+targeting**: automated targeting off so the community list is binding,
+ten football communities, and r/sportsbook, r/sportsbetting, r/gambling
+and r/wallstreetbets explicitly excluded. The theory recorded above —
+that *the creative was never the thing* — is now supported by a positive
+result rather than only by two negative ones.
+
+Worth being precise about what that does and doesn't prove: it proves
+the account can get an ad approved, and it is consistent with targeting
+having been the blocker. It is one data point, and the creative also
+changed (a real photograph, plus the "Not a sportsbook. No betting, no
+money" line that speaks directly to the reviewer). Both variables moved.
+
 **Campaign `Football — Sep 2026` is LIVE** — published 12 Sep, status
 *Processing* (Reddit's review queue). Traffic objective, Standard type,
 $20/day CBO, lowest cost, runs continuously. One ad group, one ad,
@@ -3444,6 +3465,14 @@ Clarity.
 Reddit also offers *"Use Auto Targeting"* one last time on the review
 screen, worth +4% optimization score. Declined, for the reason the whole
 ad group is built around.
+
+**"Not delivering — Campaign Schedule not started" is not a fault.** The
+fresh create tab defaulted the start to 11:00 PM EDT, so for the hour
+between publishing and then, the dashboard showed the campaign toggled
+on, the ad approved, and the ad group *not delivering*. That reads
+alarmingly like the "No active ad groups" state that killed
+`General — Sep 2026`. It isn't the same thing — check the start time
+before chasing it.
 
 **The mechanism the last two campaigns probably got wrong.** Reddit's ad
 group has two targeting blocks and they are not equivalent:
