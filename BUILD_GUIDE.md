@@ -3545,6 +3545,55 @@ wallstreetbets**, audience **20.8m–26m**, CTA **Sign Up**, destination
   action under 50 characters. The copy is kept as written; the creative
   already carries the short version ("Build your squad · Free to join").
 
+### PostHog is on (12 Sep 2026)
+
+`NEXT_PUBLIC_POSTHOG_KEY` is set in Vercel production as **Config**, US
+cloud (project 606081), so the default `https://us.i.posthog.com` host in
+`components/PostHog.tsx` is correct and no override is needed. It takes
+effect on the next deploy — an env var is baked into the build, so the
+value was `undefined` in every build before this one.
+
+`NEXT_PUBLIC_CLARITY_ID` removed. `Clarity.tsx` and `ClarityGuard.tsx`
+were deleted days ago, so it was config describing software that no
+longer existed.
+
+**The wizard was deliberately not used.** PostHog's onboarding offers
+`npx -y @posthog/wizard@latest`, which auto-installs the SDK and wires
+up capture. It would have undone work that exists on purpose:
+
+- **It doesn't know about the privacy exclusions.** `PostHog.tsx` opts
+  out of capturing on `/vent`, `/messages` and `/reset` and sets
+  `maskAllInputs`. Vent is where somebody types about a gambling problem
+  at 3am. That is not a setting to let a code generator overwrite.
+- **It would double-init.** The tracker is already mounted in
+  `layout.tsx`; a second provider means two pageviews and two recordings
+  per visit.
+- **It writes `.env.local`, not Vercel**, so production would not have
+  changed.
+- `capture_pageview: false` is also deliberate — the App Router does not
+  do a document load per navigation, so PostHog's automatic pageview
+  misses every soft route change. We capture them by hand.
+
+**Vercel refused the env var on the first try, correctly.** `vercel env
+add` flagged `NEXT_PUBLIC_POSTHOG_KEY` as *"looks like a credential, and
+NEXT_PUBLIC_ exposes its value to anyone visiting your site"* and made
+the choice explicit. A PostHog project token is genuinely public — it
+ships in the bundle by design, like the Reddit and X pixel ids already
+stored as Config — so `--type config` is right. Worth knowing the guard
+exists; the next `NEXT_PUBLIC_` secret it catches might be a real
+mistake.
+
+**CSP will not block it.** `next.config.js` sets only `frame-ancestors
+'none'`, which restricts who may embed the page and nothing about what
+the page may load. That re-confirms what the Clarity investigation
+concluded.
+
+**If PostHog also records nothing**, that stops looking like a vendor
+problem. The test to run then — the one that should have been run on
+Clarity on day one — is a plain `fetch` to the analytics host from the
+browser console on a real device, which separates "the script never
+sends" from "the send is blocked in transit".
+
 ---
 
 
