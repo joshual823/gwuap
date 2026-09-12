@@ -1,9 +1,21 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 
 const SEEN_KEY = 'gwuap:welcome-seen'
+
+/**
+ * Pages that are already a pitch, and so must not get a second one.
+ *
+ * `/squads` is the ad's landing page: it has its own headline, its own
+ * proof and its own call to action. Firing a modal over it interrupts
+ * somebody mid-read to make a *different* offer, which is competition
+ * rather than persuasion — and reading is exactly what the two visitors
+ * we watched on 13 Sep were doing when this would have fired.
+ */
+const NO_MODAL = ['/squads', '/signup', '/login']
 
 /** How far down the feed counts as "they're actually reading this". */
 const SCROLL_TRIGGER_PX = 600
@@ -35,8 +47,11 @@ const TIME_TRIGGER_MS = 15_000
  */
 export default function WelcomeModal({ remaining }: { remaining: number | null }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const muted = NO_MODAL.some(p => pathname === p || pathname?.startsWith(p + '/'))
 
   useEffect(() => {
+    if (muted) return
     let seen = false
     try { seen = localStorage.getItem(SEEN_KEY) === '1' } catch { /* private mode */ }
     if (seen) return
@@ -64,7 +79,7 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
     // scrolls again, this keeps working instead of silently never firing.
     if (!scroller) window.addEventListener('scroll', onScroll, { passive: true })
     return cleanup
-  }, [])
+  }, [muted])
 
   function close() {
     setOpen(false)

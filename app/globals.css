@@ -1659,3 +1659,33 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
   color: var(--brand); flex: 0 0 auto; }
 .share-pick-what { font-size: 12.5px; color: var(--ink-dim); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------------------------------------------------------------
+   Squads landing: real proof, and the squad section demoted
+   --------------------------------------------------------------- */
+
+/* The tally is the page's strongest claim, so it gets the weight the
+   example leaderboard used to have. Deliberately plain — a number that
+   needs decorating reads like it's being sold. */
+.squads-proof { margin: 20px 0 24px; padding: 16px 18px; border: 1px solid var(--line);
+  border-radius: 14px; background: var(--card); }
+.squads-proof-head { margin: 0; font-size: 15px; color: var(--ink-dim); }
+.squads-proof-head strong { font-family: var(--font-mono), sans-serif; font-size: 26px;
+  font-weight: 800; color: var(--ink); margin-right: 6px; }
+.squads-proof-tally { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 0;
+  font-family: var(--font-mono), sans-serif; font-size: 15px; font-weight: 700; }
+.sp-win { color: var(--brand); }
+.sp-loss { color: var(--bear); }
+.sp-push { color: var(--ink-faint); }
+.squads-proof-note { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+.squads-proof-recent { list-style: none; margin: 12px 0 0; padding: 10px 0 0;
+  border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px; }
+.squads-proof-recent li { display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--ink-dim); }
+
+/* Squads are the upgrade now, not the entry fee — so the section reads
+   as a second act rather than the headline. */
+.squads-later { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+.squads-later-head { font-family: var(--font-display), sans-serif; font-size: 19px;
+  font-weight: 800; margin: 0 0 8px; color: var(--ink); }
+.squads-later > p { font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 14px; }

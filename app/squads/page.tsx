@@ -127,97 +127,143 @@ export default async function SquadsPage() {
  * stranger who arrives on "leaderboard" and finds "The table" has to do
  * the translation anyway, one screen later.
  */
-function SquadsIntro() {
+async function SquadsIntro() {
+  // Real numbers, not a claim. The old page's only demonstration was a
+  // leaderboard labelled "example" — honest, and therefore an admission
+  // that nothing on the page was real. Meanwhile ninety-odd genuinely
+  // graded picks were sitting in the database unshown.
+  const supabase = await createClient()
+  const { data: settled } = await supabase
+    .from('posts')
+    .select('ticker, status, created_at')
+    .eq('post_kind', 'pick')
+    .in('status', ['win', 'loss', 'push'])
+    .order('created_at', { ascending: false })
+    .limit(500)
+
+  const rows = settled ?? []
+  const won = rows.filter(r => r.status === 'win').length
+  const lost = rows.filter(r => r.status === 'loss').length
+  const pushed = rows.filter(r => r.status === 'push').length
+  const recent = rows.slice(0, 3)
+
   return (
     <div className="legal squads-intro">
-      <h1 className="page-title">Squads</h1>
+      <h1 className="page-title">Keep a record that isn&apos;t yours to edit</h1>
       <p className="squads-lead">
-        Track your group&apos;s picks on a leaderboard that keeps itself.
+        Post a pick. The final score settles it. Nobody grades their own.
       </p>
 
-      {/* The front door, rebuilt 11 Sep after the pixel showed 22 people
-          landing here and none signing up.
+      {/* Rebuilt 13 Sep, after PostHog showed two visitors read the whole
+          page — this, the popup, the help page — and leave.
 
-          It used to offer exactly two things: "Start a squad", which
-          means naming one and recruiting your friends, and "Log in",
-          which is for people who already have an account. So a stranger
-          off an ad had one door that asked a lot and one that wasn't for
-          them. The ad was deliberately built so the invite was *not* the
-          ask — and then this page made it anyway, one screen later.
+          That rules out the obvious explanations. They weren't confused
+          and they didn't bounce; they understood it and declined. What
+          they'd understood was the ask, which was: sign up, then go
+          recruit your friends onto a site they've never heard of, and
+          *then* it's good. The three steps literally read "start a squad
+          / invite your group / post picks", and the sign-up button
+          pointed at `/squads/new` — an empty room with an invite link and
+          nobody to send it to. One squad exists in the entire database.
+          Reading carefully was what exposed that, which is why the
+          carefullest readers left.
 
-          The ladder now escalates after they're in, not before:
-          signing up is one person's decision, and `next=/squads/new`
-          means the intent survives it, so they still land on squad
-          creation — having already committed something small.
-
-          "Look around first" is the door that didn't exist. Somebody
-          deciding whether this is worth an account could not, before
-          this, see the thing working without making one. /feed is real
-          picks being graded, which is the argument. */}
+          So the ask changed rather than the wording. Posting a pick works
+          with nobody else present, takes a minute, and is the actual
+          product. The squad is what you grow into once you have a record
+          worth putting on a table — it is no longer the entry fee. */}
       <p className="squads-cta">
-        <Link href="/signup?next=/squads/new" className="btn">Sign up free</Link>
+        <Link href="/signup?next=/post/new" className="btn">Post your first pick</Link>
         <Link href="/feed" className="btn secondary">Look around first</Link>
       </p>
       <p className="squads-micro">
         Free · we never ask for a card ·{' '}
-        <Link href="/login?next=/squads" className="help-link">Log in</Link>
+        <Link href="/login?next=/feed" className="help-link">Log in</Link>
       </p>
 
-      {/* The payoff, before the instructions. Telling somebody a
-          leaderboard keeps itself is a sentence; showing them one is the
-          product. Built from the same `rec-table` / `squad-board-row`
-          classes the real leaderboard uses, so it isn't an artist's
-          impression — it's the component, with sample rows in it.
-
-          Labelled EXAMPLE and the first row is @you. This site's whole
-          claim is that its numbers are real, so a fake leaderboard that
-          could be mistaken for a live one would cost more than it buys. */}
-      <figure className="squads-preview">
-        <figcaption>
-          Your squad&apos;s leaderboard <span className="squads-tag">example</span>
-        </figcaption>
-        <div className="rec-table">
-          {/* Record and win rate, and deliberately no profit column.
-              The real leaderboard has one and keeps it. Here it would
-              read "@you  +$248" to a stranger who arrived from an ad,
-              which is an implied earnings claim — the one thing the ad
-              doctrine rules out flat ("no win rates, no implied edge, no
-              money anyone could make"). The record is the product; the
-              dollar figure is the part that sounds like a promise. */}
-          {[
-            { rank: 1, who: 'you', wl: '12-7', pct: '63%' },
-            { rank: 2, who: 'dave', wl: '9-10', pct: '47%' },
-            { rank: 3, who: 'marcus', wl: '4-11', pct: '27%' },
-          ].map(r => (
-            <div className="rec-row squad-board-row" key={r.who}>
-              <span className="lb-rank">{r.rank}</span>
-              <span className="rec-label squad-board-who">
-                <Avatar url={null} size={22} name={r.who} />@{r.who}
-              </span>
-              <span className="rec-wl mono">{r.wl}</span>
-              <span className="rec-pct mono">{r.pct}</span>
-            </div>
-          ))}
-        </div>
-      </figure>
+      {/* The proof, and it is deliberately not flattering. A near-even
+          record is the strongest thing this page can say: it shows the
+          grader isn't on the site's side. A page selling an edge would
+          bury the losses; this one is selling that the number can't be
+          fiddled, and 43-42 makes that case better than 43-2 ever could. */}
+      {rows.length > 0 && (
+        <figure className="squads-proof">
+          <p className="squads-proof-head">
+            <strong>{rows.length}</strong> picks graded from the final score
+          </p>
+          <p className="squads-proof-tally">
+            <span className="sp-win">{won} won</span>
+            <span className="sp-loss">{lost} lost</span>
+            {pushed > 0 && <span className="sp-push">{pushed} pushed</span>}
+          </p>
+          <p className="squads-proof-note">
+            Not one of them edited after kickoff. That&apos;s the whole point —
+            we show the losses because a record you can edit isn&apos;t a record.
+          </p>
+          {recent.length > 0 && (
+            <ul className="squads-proof-recent">
+              {recent.map((r, i) => (
+                <li key={i}>
+                  <span className="mono">{r.ticker}</span>
+                  <span className={`stamp ${r.status}`}>{r.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </figure>
+      )}
 
       <ol className="squads-steps">
-        <li><span className="squads-num">1</span> Start a squad</li>
-        <li><span className="squads-num">2</span> Invite your group</li>
-        <li><span className="squads-num">3</span> Post picks &mdash; the final score grades them</li>
+        <li><span className="squads-num">1</span> Post a pick — takes a minute</li>
+        <li><span className="squads-num">2</span> The final score grades it, not you</li>
+        <li><span className="squads-num">3</span> Bring your group when you want a table</li>
       </ol>
 
-      {/* "Bring your group" and not "import your Discord".
-          There is no Discord integration and no Polymarket one, and this
-          site's entire pitch is that it doesn't overstate itself — an ad
-          promising an import that doesn't exist is the $300-contest
-          mistake wearing a different hat. What is true is that wherever
-          the group already talks, one link moves them, and that's the
-          benefit the reader actually wanted. */}
-      <p className="squads-bring">
-        Already have a group on Discord, iMessage or anywhere else?
-        One link brings them over.
-      </p>
+      {/* Squads, demoted to what they actually are for a stranger: the
+          thing worth having *later*. Same example leaderboard as before,
+          still labelled, but no longer the first thing asked of someone
+          who arrived alone thirty seconds ago. */}
+      <section className="squads-later">
+        <h2 className="squads-later-head">Then bring your group</h2>
+        <p>
+          A squad is a private room with a leaderboard that keeps itself.
+          Everyone&apos;s picks are graded the same way, so the table settles
+          the argument instead of starting it.
+        </p>
+
+        <figure className="squads-preview">
+          <figcaption>
+            Your squad&apos;s leaderboard <span className="squads-tag">example</span>
+          </figcaption>
+          <div className="rec-table">
+            {/* Record and win rate, and deliberately no profit column.
+                The real leaderboard has one and keeps it. Here it would
+                read "@you  +$248" to a stranger who arrived from an ad,
+                which is an implied earnings claim — the one thing the ad
+                doctrine rules out flat. */}
+            {[
+              { rank: 1, who: 'you', wl: '12-7', pct: '63%' },
+              { rank: 2, who: 'dave', wl: '9-10', pct: '47%' },
+              { rank: 3, who: 'marcus', wl: '4-11', pct: '27%' },
+            ].map(r => (
+              <div className="rec-row squad-board-row" key={r.who}>
+                <span className="lb-rank">{r.rank}</span>
+                <span className="rec-label squad-board-who">
+                  <Avatar url={null} size={22} name={r.who} />@{r.who}
+                </span>
+                <span className="rec-wl mono">{r.wl}</span>
+                <span className="rec-pct mono">{r.pct}</span>
+              </div>
+            ))}
+          </div>
+        </figure>
+
+        <p className="squads-bring">
+          Already have a group on Discord, iMessage or anywhere else?
+          One link brings them over.{' '}
+          <Link href="/signup?next=/squads/new" className="help-link">Start a squad</Link>
+        </p>
+      </section>
 
       {/* The long answer, for whoever wants it. Closed by default: the
           people who need it will open it, and the people who don't were
