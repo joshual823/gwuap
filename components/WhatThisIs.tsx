@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SITE_PITCH } from '@/lib/brand'
 
 /**
  * What the site is, before the scores.
@@ -26,6 +27,12 @@ import Link from 'next/link'
 export default function WhatThisIs() {
   return (
     <section className="what-is">
+      {/* The positioning line first, because a stranger needs to know
+          what kind of site this is before any claim about grading means
+          anything. Same sentence as the meta description and the signup
+          page, on purpose — it's said identically everywhere until
+          enough people recognise the name. */}
+      <p className="what-is-pitch">{SITE_PITCH}</p>
       <p className="what-is-lead">
         <strong>Post a pick, the final score settles it.</strong> Nobody grades
         their own, and nothing can be edited once a game starts.

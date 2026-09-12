@@ -3749,6 +3749,45 @@ targeting at this account. Declined again.
 **Read the campaign at 100 clicks rather than on a fixed date** — the 16 Sep date
 assumed a delivery rate that never existed.
 
+### One sentence, said everywhere (13 Sep 2026)
+
+Josh wants the site to repeat a single positioning line until enough
+people know the name. It lives in `lib/brand.ts` as **`SITE_PITCH`**:
+
+> Gwuap — the social media website for sports fans. Sign up today to
+> track your picks, chat with sports fans, and start your own personal
+> squad.
+
+One constant rather than a sentence retyped per page, for the same
+reason `SITE_NAME` is one: the wording is still moving, and a line that
+has to be hunted through nine files ends up saying nine things.
+
+Two edits to what Josh wrote, both deliberate:
+
+- **"Signup today" → "Sign up today."** Signup is the noun, sign up is
+  the verb. It matters here more than usual because this exact string
+  appears in Google results, browser tabs and every pasted link.
+- Nothing else. **"Personal squad" was kept on purpose** — it says a
+  squad can be one person, which is precisely the fix the squads page
+  needed. Josh arrived at that himself in the same message.
+
+Where it appears: the meta `description`, the OpenGraph and Twitter
+cards, the logged-out feed lead (`WhatThisIs`), the signup form, and the
+squads landing.
+
+**It replaced the old meta description**, which led with *"no
+self-reporting, no cropped screenshots"*. That argues with a competitor
+the reader hasn't met. A description's job in a search result is to say
+what this *is* to somebody who has never heard of it; the differentiator
+still leads on the pages themselves, where there is room to make the
+case.
+
+**Not put at the top of `/squads`.** That page was rebuilt hours earlier
+precisely because it asked too much of a reader before earning it, and a
+brand paragraph above the call to action would put the clutter straight
+back. It sits below the CTA, where it catches someone who has already
+decided to keep reading.
+
 ---
 
 

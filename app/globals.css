@@ -1689,3 +1689,11 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-later-head { font-family: var(--font-display), sans-serif; font-size: 19px;
   font-weight: 800; margin: 0 0 8px; color: var(--ink); }
 .squads-later > p { font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 14px; }
+
+/* The positioning line, said identically on the feed, the signup form
+   and the squads landing. Quiet by design: it's there to be recognised
+   after the fifth time, not to shout on the first. */
+.what-is-pitch, .signup-pitch, .squads-pitch {
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 12px;
+}
+.squads-pitch { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }

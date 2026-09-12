@@ -9,6 +9,27 @@ export const SITE_TAGLINE = 'talk sports, post picks, keep the receipts'
 export const SITE_URL = 'https://gwuap.co'
 
 /**
+ * The positioning line, said the same way everywhere until enough people
+ * know what this is.
+ *
+ * One constant rather than a sentence retyped per page, for the same
+ * reason SITE_NAME is: the wording is still moving, and a line that has
+ * to be hunted down in nine files will end up saying nine things.
+ *
+ * "Sign up" and not "Signup" — signup is the noun, sign up is the verb,
+ * and this is the one sentence on the site that appears in Google
+ * results, browser tabs and every shared link.
+ *
+ * "Personal squad" is doing real work and is kept deliberately: it says
+ * a squad can be one person, which is the thing the squads page had to
+ * be rebuilt to fix. Two visitors read that page end to end and left
+ * because the ask was to go recruit their friends first.
+ */
+export const SITE_PITCH =
+  'Gwuap — the social media website for sports fans. Sign up today to track ' +
+  'your picks, chat with sports fans, and start your own personal squad.'
+
+/**
  * Where support goes. Email rather than an in-app form on purpose: it
  * still works when the site doesn't, which is when people most need to
  * reach someone, and it lands somewhere already read every day.

@@ -3,7 +3,7 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from '@/lib/brand'
+import { SITE_NAME, SITE_TAGLINE, SITE_URL, SITE_PITCH } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
 import PostHogTracker from '@/components/PostHog'
 import InstallPrompt from '@/components/InstallPrompt'
@@ -53,8 +53,13 @@ export const viewport = {
 // absolute URL. Without it the tag ships a relative path, and every
 // messaging app drops the image silently — the link still previews, just
 // with no picture, which is easy to miss and the whole point of this.
-const SHARE_DESCRIPTION =
-  'Post your picks and the final score grades them — no self-reporting, no cropped screenshots. Talk sports with people who keep the receipts.'
+// The pitch, not the differentiator, and that's a deliberate swap. The
+// old line led with "no self-reporting, no cropped screenshots", which
+// argues with a competitor a stranger hasn't met yet. A description's
+// job in a search result or a pasted link is to say what this *is* to
+// somebody who has never heard of it. The differentiator still leads on
+// the pages themselves, where there's room to make the case.
+const SHARE_DESCRIPTION = SITE_PITCH
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),

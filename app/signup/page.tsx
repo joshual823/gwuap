@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabaseClient'
-import { SITE_NAME } from '@/lib/brand'
+import { SITE_NAME, SITE_PITCH } from '@/lib/brand'
 import ThemeToggle from '@/components/ThemeToggle'
 import GoogleButton from '@/components/GoogleButton'
 import FoundingCount from '@/components/FoundingCount'
@@ -180,7 +180,11 @@ export default function SignupPage() {
   return (
     <div style={{ maxWidth: 360, margin: '48px auto' }}>
       <h1 className="display" style={{ fontSize: 28, marginBottom: 4 }}>{SITE_NAME}</h1>
-      <p style={{ color: 'var(--ink-dim)', marginBottom: 12 }}>Create an account and get in the conversation.</p>
+      {/* The same sentence as the meta description and the feed lead.
+          Someone who arrived straight on /signup from an ad has read
+          nothing else, so this is the only place they learn what they're
+          joining before typing a password. */}
+      <p className="signup-pitch">{SITE_PITCH}</p>
       <FoundingCount />
       <GoogleButton />
       <div className="or-line"><span>or</span></div>

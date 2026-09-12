@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
+import { SITE_PITCH } from '@/lib/brand'
 import FeedTabs from '@/components/FeedTabs'
 import Avatar from '@/components/Avatar'
 
@@ -180,6 +181,13 @@ async function SquadsIntro() {
         Free · we never ask for a card ·{' '}
         <Link href="/login?next=/feed" className="help-link">Log in</Link>
       </p>
+
+      {/* The positioning line, once, below the fold-breaking CTA rather
+          than above it. This page was just rebuilt because it asked too
+          much of a reader before earning it; a brand paragraph at the top
+          would put the clutter straight back. Here it catches someone who
+          has already decided to keep reading. */}
+      <p className="squads-pitch">{SITE_PITCH}</p>
 
       {/* The proof, and it is deliberately not flattering. A near-even
           record is the strongest thing this page can say: it shows the
