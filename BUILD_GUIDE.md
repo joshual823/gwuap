@@ -3588,11 +3588,38 @@ mistake.
 the page may load. That re-confirms what the Clarity investigation
 concluded.
 
-**If PostHog also records nothing**, that stops looking like a vendor
-problem. The test to run then — the one that should have been run on
-Clarity on day one — is a plain `fetch` to the analytics host from the
-browser console on a real device, which separates "the script never
-sends" from "the send is blocked in transit".
+#### It works, and here is the proof Clarity never produced
+
+Verified on the live site by reading the network log, which is the test
+that should have been run on Clarity on day one:
+
+| Page | PostHog traffic |
+|---|---|
+| `/squads` | `config.js` 200 · `surveys.js` 200 · **`POST us.i.posthog.com/e/` 200** |
+| `/login` | **`POST /e/` 200** |
+| `/reset` | **nothing — not even `config.js`** |
+
+**`POST /e/` returning 200 is the whole difference.** Clarity fetched its
+script with a 200 for nine days and never once POSTed to `/collect`.
+PostHog initialises and ships events on the first page load. Nothing
+about this site or this network was ever blocking analytics — whatever
+Clarity's problem was, it was Clarity's.
+
+**Both privacy guards verified live, not just read in the source:**
+
+- *Load-time guard.* A direct navigation to `/reset` produces **zero**
+  PostHog requests. `posthog.init()` is never reached, so there is no
+  recorder to stop.
+- *Route-change guard.* Loading `/login` (where PostHog is live and
+  POSTing), then soft-navigating to `/reset` via "Forgot your password?",
+  produces **no further POSTs at all** — no `$pageview` for the excluded
+  page. `stopSessionRecording()` + `opt_out_capturing()` do what the
+  comment claims.
+
+`/vent` itself could not be tested from a logged-out browser — it
+redirects to `/login` — but it is the same code path and the same
+`POSTHOG_EXCLUDED` list that `/reset` proves. Worth one look from a
+logged-in session on a real phone to close it out completely.
 
 ---
 
