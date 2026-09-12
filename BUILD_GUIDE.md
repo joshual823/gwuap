@@ -3405,9 +3405,45 @@ campaign never spent its budget. Stop and read at $40 or 100 clicks.
 
 ### Building it in the dashboard, and what the UI taught us (12 Sep 2026)
 
-**Campaign `Football — Sep 2026` is built and left unpublished.** Traffic
-objective, Standard type, $20/day CBO, lowest cost, runs continuously.
-One ad group, one ad. The launch click is deliberately not ours.
+**Campaign `Football — Sep 2026` is LIVE** — published 12 Sep, status
+*Processing* (Reddit's review queue). Traffic objective, Standard type,
+$20/day CBO, lowest cost, runs continuously. One ad group, one ad,
+publishing as u/Fanasty823.
+
+**It took five Publish clicks and a rebuild.** Worth writing down,
+because the failure looked exactly like an outage and wasn't:
+
+* First click: red toast, *"Couldn't connect to https://ads-api.reddit.com"*.
+* Next three: spinner, no toast, no redirect, no campaign. Silent.
+* The dashboard, checked with all filters cleared and the date range
+  widened to cover today, showed **7 campaigns and no Football** —
+  so nothing was half-created and there were no duplicates to clean up.
+
+The network tab named it: **HTTP 503 on
+`POST /api/v3/ad_accounts/.../bulk_actions`**, the campaign-creation
+endpoint, and 503 on every other ads-api call from that tab.
+
+**It was not an outage, and that took one more test to establish.**
+`curl` to `ads-api.reddit.com` returned a normal **401** — the host was
+healthy. And in a *second* tab open at the same moment, the dashboard's
+ads-api calls all returned **200, including POSTs**. Same host, same
+account, same browser, same minute: 200 in one tab, 503 in the other.
+
+So the fault was **that one long-lived create tab**, open for hours
+through a window resize and a stuck support widget, with a session that
+had gone stale. Rebuilding the whole campaign in a fresh tab published
+first time.
+
+**The lesson is the diagnostic, not the bug.** "Couldn't connect" and a
+503 both read as *their* problem. The thing that settled it was checking
+whether the same API worked somewhere else right now — a second tab, and
+a curl from outside the browser. Two cheap tests turned an apparent
+platform outage into a stale tab. The same move would have saved days on
+Clarity.
+
+Reddit also offers *"Use Auto Targeting"* one last time on the review
+screen, worth +4% optimization score. Declined, for the reason the whole
+ad group is built around.
 
 **The mechanism the last two campaigns probably got wrong.** Reddit's ad
 group has two targeting blocks and they are not equivalent:
