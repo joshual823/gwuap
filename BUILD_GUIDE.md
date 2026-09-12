@@ -3403,6 +3403,61 @@ objective, not Conversions — the pixel has no conversion history to
 optimise against, and asking for conversions is part of why the last
 campaign never spent its budget. Stop and read at $40 or 100 clicks.
 
+### Building it in the dashboard, and what the UI taught us (12 Sep 2026)
+
+**Campaign `Football — Sep 2026` is built and left unpublished.** Traffic
+objective, Standard type, $20/day CBO, lowest cost, runs continuously.
+One ad group, one ad. The launch click is deliberately not ours.
+
+**The mechanism the last two campaigns probably got wrong.** Reddit's ad
+group has two targeting blocks and they are not equivalent:
+
+| Block | Reddit's own words |
+|---|---|
+| Audience suggestions | *"help find the best audience but **don't limit who sees your ads**"* |
+| Audience Controls | *"Settings that are **always followed**"* |
+
+By default a Standard ad group puts communities in **suggestions**, which
+are advisory. **Turning off automated targeting collapses the whole block
+into Audience Controls** — that is the switch that makes a community list
+binding, and it is not obvious from the form. Reddit argues against it
+(*"an 8% improvement to CPC"*); control is worth more than 8% on an
+account that has been rejected twice for targeting.
+
+The **Max** campaign type only ever offers suggestions, so it can't
+express this brief at all. Standard was the only option.
+
+**Where r/wallstreetbets came from.** Reddit pre-populates "Suggested
+communities" with **r/sportsbook and r/wallstreetbets**, next to an
+**"Add all"** link. That is almost certainly how a blind click added
+wallstreetbets to the old ad group. Both are now in *Brand Safety →
+Exclude communities* along with gambling and sportsbetting, which is
+belt-and-braces on top of a targeting list that already can't reach them.
+
+**Bulk entry reports its drops now.** Last time it silently swallowed
+`sportsbook`; this time it said *"no results for the following entries:
+draftkings, bettingtips, prediction_market, polymarket"*. Useful finding
+on its own: **r/DraftKings is not a targetable ad community at all**, so
+the DraftKings targeting that was argued against above was never
+available to buy in the first place.
+
+Final state, read off the review screen: automated targeting **False**,
+included locations **United States**, communities **nfl, CFB,
+fantasyfootball, DynastyFF, sports, eagles, cowboys, 49ers, steelers,
+NFLNoobs**, excluded **sportsbook, sportsbetting, gambling,
+wallstreetbets**, audience **20.8m–26m**, CTA **Sign Up**, destination
+`/squads` with UTMs.
+
+**Two things to decide before launching:**
+
+- **The ad publishes as u/Fanasty823.** It is the only identity on the
+  account — there is no Gwuap-branded Reddit profile. This is the exact
+  handle-mismatch problem the X write-up above identified and fixed by
+  making @gwuapco. Worth creating a u/gwuap account first.
+- **Reddit flags the headline as too long** and claims 38% lower cost per
+  action under 50 characters. The copy is kept as written; the creative
+  already carries the short version ("Build your squad · Free to join").
+
 ---
 
 
