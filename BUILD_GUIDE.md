@@ -3344,12 +3344,18 @@ Creatives, copy and targeting live in `ads/CAMPAIGN-sports-social-sep.md`;
 football field with the wordmark on it, in the shape of a Polymarket ad
 that was working on the same audience.
 
-**The field is drawn in CSS, not photographed.** A stock football photo
-we don't own is a copyright problem in a paid ad, and a field is mostly
-stripes and straight lines. First attempt ran the mow stripes and the
-yard lines in the same direction and produced a barcode; they have to be
-perpendicular, and the hash marks are what make it read as football
-rather than as a tennis court.
+**The field started out drawn in CSS and that was wrong.** The logic was
+sound — a stock photo we don't own is a copyright problem in a paid ad,
+and a field is mostly stripes and straight lines — but the result read
+as a cartoon, which is what a vector does in a feed full of
+photographs. Replaced with a real photo (`ads/field.jpg`).
+
+**The licence question doesn't go away, it just moves.** "Free" on a
+stock site usually means free to download, not free to use in
+advertising; Freepik-style licences commonly require attribution or
+exclude commercial use. Confirm the licence covers advertising and keep
+a copy of it before this spends anything. Avoiding a real photo is not
+the way to avoid that problem — reading the licence is.
 
 Every creative carries **"Not a sportsbook. No betting, no money —
 nothing at stake but your record."** That line is for the reviewer as

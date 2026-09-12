@@ -8,9 +8,18 @@
 | `gw-field-wide.png` | 1200×628 | desktop feed |
 | `gw-meet-square.png` | 1080×1080 | second headline, same ad group, for a read on which line pulls |
 
-Regenerate any of them with `python3 make.py`. The field is **drawn in CSS**,
-not photographed: a stock football photo we don't own is a copyright problem in
-a paid ad, and a field is mostly stripes and straight lines anyway.
+Regenerate any of them with `python3 make.py`; the photograph is `field.jpg`.
+
+**Licence check before any of these run.** The photo is a free stock download
+(`football-ball-rugby-field.jpg`). "Free" on those sites usually means free to
+download, not free to use in advertising — Freepik-style licences commonly
+require attribution or exclude commercial use, and a paid ad is exactly where
+that bites. Confirm the licence page allows commercial/advertising use, and keep
+a copy of it.
+
+The first version of these drew the field in CSS to sidestep the licence
+question entirely. It read as a cartoon, which is what a vector does in a feed
+full of photographs — not worth the trade.
 
 Every creative carries the line **"Not a sportsbook. No betting, no money —
 nothing at stake but your record."** That is there for the reviewer as much as
