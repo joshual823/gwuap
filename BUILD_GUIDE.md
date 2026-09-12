@@ -3379,6 +3379,23 @@ is worth testing as its own ad group *after* this account has a campaign
 that has cleared review and delivered — there is currently nothing to
 risk that against.
 
+**One sport, not five.** The obvious next thought is a creative per
+category — a court for r/nba, a rink for r/hockey. The budget says no,
+and the arithmetic is the whole argument: at the last campaign's
+$1.37/click, $20/day buys about 15 clicks a day. Undivided that is 100
+clicks in a week for ~$137, which is a readable sample. Split across five
+sport-specific ad groups it is 3 clicks a day each — a month and ~$660
+before any one of them means anything. Five creatives is also five times
+the review surface on an account already rejected twice, and five more
+stock licences to check.
+
+Football is the largest US sports audience in September regardless, which
+is why the Polymarket ad being copied is a football field. Targeting was
+narrowed to match the creative: an r/soccer user shown a gridiron is a
+worse match than not reaching them. `ads/make.py` takes the photo per
+variant, so phase 2 is one row per sport whenever a campaign has actually
+cleared review and delivered.
+
 **What the campaign actually tests:** whether the rebuilt `/squads`
 converts cold traffic. All 25 clicks from the last campaign landed on
 the old page, so 0-for-22 was never a verdict on the new one. Traffic

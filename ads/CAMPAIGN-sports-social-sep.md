@@ -63,14 +63,29 @@ way.
 
 ## Targeting
 
-### Communities — sports, general
-r/sports, r/nfl, r/CFB, r/nba, r/CollegeBasketball, r/baseball, r/MLB,
-r/hockey, r/soccer, r/MMA, r/boxing, r/tennis, r/formula1, r/NASCAR, r/golf,
-r/fantasyfootball, r/DynastyFF, r/fantasybball, r/fantasybaseball
+### Communities — football-weighted, because the creative is football
+r/nfl, r/CFB, r/fantasyfootball, r/DynastyFF, r/NFLstatheads, r/sports
+
+Plus the four biggest team subs for whoever is playing that week, swapped
+weekly: r/eagles, r/cowboys, r/49ers, r/steelers (etc.).
 
 ### Interests
-Sports · American Football · Basketball · Baseball · Soccer · Hockey ·
-Combat Sports · Motorsports · Golf · Tennis · Fantasy Sports
+Sports · American Football · Fantasy Sports
+
+### Phase 2 — only after one campaign clears review and delivers
+r/nba, r/CollegeBasketball, r/baseball, r/MLB, r/hockey, r/soccer, r/MMA,
+r/boxing, r/tennis, r/formula1, r/NASCAR, r/golf, and their interest
+categories — each paired with **its own sport's creative**. A basketball
+audience shown a gridiron is a worse match than not reaching them at all.
+
+**Why not all of it now.** At the last campaign's $1.37/click, $20/day buys
+about 15 clicks a day. Undivided, that is 100 clicks in a week for ~$137 — a
+readable sample. Split across five sport-specific ad groups it is 3 clicks a
+day each, needing a month and ~$660 before any one of them means anything.
+Five creatives is also five times the review surface on an account that has
+already been rejected twice, and five more stock licences to verify. Football
+is the largest US sports audience in September anyway; the seasonality is the
+same reason the Polymarket ad we are copying is a football field.
 
 ### Geo / age
 United States, 18+.
