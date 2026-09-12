@@ -3616,10 +3616,16 @@ Clarity's problem was, it was Clarity's.
   page. `stopSessionRecording()` + `opt_out_capturing()` do what the
   comment claims.
 
-`/vent` itself could not be tested from a logged-out browser — it
-redirects to `/login` — but it is the same code path and the same
-`POSTHOG_EXCLUDED` list that `/reset` proves. Worth one look from a
-logged-in session on a real phone to close it out completely.
+**`/vent` confirmed too**, from a logged-in session on a real phone —
+the only place the answer actually counts, since logged out it just
+redirects to `/login`. Zero events matching `vent` in Activity, and the
+session replay shows `/feed`, a **gap**, then `/feed` again. The Vent
+page never renders in the recording.
+
+So the guarantee on the privacy page is now a tested claim rather than an
+intention. That matters more than the analytics: Vent is where somebody
+types about a gambling problem at 3am, and "we meant to exclude it" is
+not something to find out was wrong afterwards.
 
 ---
 
