@@ -3627,6 +3627,70 @@ intention. That matters more than the analytics: Vent is where somebody
 types about a gambling problem at 3am, and "we meant to exclude it" is
 not something to find out was wrong afterwards.
 
+### Google sign-in was never switched on (12 Sep 2026)
+
+"Continue with Google" has been on `/login` and `/signup` for weeks and **never
+worked**. `GoogleButton.tsx` and `app/auth/callback/route.ts` were both correct;
+the Google provider had simply never been enabled in the Supabase project:
+
+```
+GET /auth/v1/authorize?provider=google
+{"code":400,"error_code":"validation_failed",
+ "msg":"Unsupported provider: provider is not enabled"}
+```
+
+**The worse half was the silent failure.** The button awaited
+`signInWithOAuth` and discarded what it returned, so a click did *nothing* — no
+redirect, no message, nothing logged. On the exact page the live Reddit ad sends
+people to: `/squads` → "Sign up free" → a control that behaves like broken
+hardware. Fixed in `20275e7`; it now shows the error and points at the email
+form. Kept as a visible error rather than hiding the button, because the same
+path covers a Google outage later, not just today's missing config.
+
+#### What was set up
+
+Google Cloud project **`gwuap-508416`** under **hellogwuap@gmail.com** — a new
+account made for this, because the browser was signed into
+`anntotalconstruction@gmail.com` and the consent screen shows the owning
+account's support email. Same argument as the `u/Fanasty823` ad handle: a
+mismatched identity at the moment you ask a stranger for trust.
+
+Consent screen: app name Gwuap, External, support and contact
+`hellogwuap@gmail.com`, home `https://gwuap.co`, privacy
+`https://gwuap.co/privacy`. **Publish it** — left in Testing it only works for
+100 manually-added users, which looks exactly like a broken button to everyone
+else. OAuth client: Web application, origin `https://gwuap.co`, redirect URI
+**`https://knunjqhlpyyjnxaemlam.supabase.co/auth/v1/callback`** — Supabase's
+host, not ours, and the single most error-prone value in the whole setup. Google
+→ Supabase → gwuap.co; our route is the third hop and Google never sees it.
+
+#### Verified, and what isn't
+
+The same endpoint now returns **302 to accounts.google.com** with the right
+client id, redirect uri and `scope=email profile`. Both scopes are
+**non-sensitive**, so the console's "limited to 100 sensitive scope logins until
+verified" banner does not apply and no verification review is needed.
+
+**A completed sign-in has still never been observed.** Zero profiles created
+since it went live, so the code exchange and the `/claim-username` handoff are
+correct by inspection only. Left there deliberately. The cheap check when it
+matters: Supabase → Authentication → Users; any Google identity there means the
+round trip reached Supabase.
+
+#### The consent screen says `knunjqhlpyyjnxaemlam.supabase.co`
+
+Not a misconfiguration — Google displays the host of the `redirect_uri`, which is
+Supabase's. The privacy and terms links on that screen point at Supabase too. It
+reads like a phishing page to a stranger off an ad, which is a real cost on a
+site selling trustworthiness. The fix is a **paid Supabase custom auth domain**
+(`auth.gwuap.co`), needing Pro. **Deliberately not bought:** 8 accounts and 0
+signups from 7 clicks means polishing a screen almost nobody reaches. Revisit if
+Google sign-in starts carrying signups.
+
+Still open: `/terms` is a 404, and `/privacy` does not mention the X pixel even
+though `NEXT_PUBLIC_X_PIXEL_ID` is still set in Vercel — and that privacy URL is
+now on file with Google.
+
 ---
 
 
