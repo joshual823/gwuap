@@ -3466,6 +3466,28 @@ Reddit also offers *"Use Auto Targeting"* one last time on the review
 screen, worth +4% optimization score. Declined, for the reason the whole
 ad group is built around.
 
+### Reddit's three recommendations, all declined (12 Sep)
+
+The campaign sits at a 93% optimization score with three suggestions.
+All three declined, and the decisive argument is in Reddit's own
+approval email: *"If you make any edits to your campaign or ad, your
+campaign will be paused and subject to review... up to 1 business day."*
+Every recommendation is an edit. Taking any of them pauses a campaign
+that just cleared review, on the first football weekend, and re-rolls
+the dice on an account already rejected twice.
+
+| Suggestion | Verdict |
+|---|---|
+| Use Auto Targeting (+4%) | **Never.** It says *"reach users beyond your initial targeting selection"* — that is Reddit overriding the community list, which makes the gambling exclusions advisory again. It is the thing we turned off and the most likely reason this ad was approved. Asked three times now; the answer doesn't change. |
+| Trim Headline (+2%) | **Later, as a second ad.** The 38%-lower-CPA claim is plausible and 171 characters is long for a feed — but test it *against* the original rather than overwriting the thing we haven't measured. |
+| Create More Ads (+1%) | **Later, same batch.** `ads/gw-meet-square.png` is already built for exactly this. |
+
+**What the score actually measures.** Campaign Optimization Score is how
+closely the setup follows Reddit's preferences, not whether the campaign
+will work. It rewards giving Reddit more targeting latitude and more
+budget. The missing 7% is almost entirely "you won't let us target
+whoever we want", which is the entire design.
+
 **"Not delivering — Campaign Schedule not started" is not a fault.** The
 fresh create tab defaulted the start to 11:00 PM EDT, so for the hour
 between publishing and then, the dashboard showed the campaign toggled
