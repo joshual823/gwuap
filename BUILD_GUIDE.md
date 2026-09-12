@@ -3691,6 +3691,64 @@ Still open: `/terms` is a 404, and `/privacy` does not mention the X pixel even
 though `NEXT_PUBLIC_X_PIXEL_ID` is still set in Vercel — and that privacy URL is
 now on file with Google.
 
+### The campaign stopped delivering, and "don't edit it" was wrong (13 Sep 2026)
+
+Josh: *"i think it stopped spending"* — right about the symptom, and the cause
+was worth chasing.
+
+**Spend was flat because a Traffic campaign bills per click.** 7 clicks × $1.29 =
+$9.03 and no new clicks, so no new spend. Impressions are free. Nothing was
+paused: the ad read **Active** and approved throughout.
+
+**The real problem was delivery.**
+
+| | First ~1.3 hours | Next ~24 hours |
+|---|---|---|
+| Impressions | 1,315 | **+88** |
+| Clicks | 7 | **+0** |
+
+It was never budget-capped — it spent $9.03 of $20/day and stopped.
+
+**Cause: starved inventory.** Auto-targeting off plus only ten subreddits. The
+"20.8m–26m audience" figure is *reach*, not daily impression supply — ten
+communities cannot fill $20/day for a single advertiser, and with automated
+targeting off there is nowhere else for Reddit to go. **The thing that most
+likely got this ad approved is also what was strangling its reach.** Reddit
+warned auto-targeting-off would cost ~8% on CPC; the real cost was reach, not
+price.
+
+**The earlier advice was conditional and the condition failed.** "Don't touch it
+for five days" was right *because it was delivering*. At ~88 impressions and 0
+clicks a day, 100 clicks was a month out and the 16 Sep read would have landed on
+about nine clicks — worth nothing. The re-review cost had also inverted: on 12
+Sep an edit meant pausing something that worked; on 13 Sep it meant pausing
+something already stopped. Advice that depends on a fact has to be re-checked
+when the fact moves.
+
+**Fix: 10 → 41 communities, all football, all non-gambling.** The 28 NFL team
+subs were the untapped inventory — hundreds of thousands of members each, peak
+season, and none of them were in the original list. Exclusions
+(gambling, sportsbetting, sportsbook, wallstreetbets), auto-targeting-off,
+US-only and $20/day all unchanged. Audience estimate 20.8m–26m → **23.8m–29.7m**.
+Every entry matched; nothing was silently dropped.
+
+Two things worth keeping:
+
+- **The bulk-entry dialog pre-fills with the existing list and replaces it**, it
+  does not append. Retype the full set — the existing entries plus the new ones —
+  rather than trusting a cursor position.
+- **A targeting-only edit did not visibly trigger re-review.** The ad group
+  stayed Active. The approval email's *"any edits to your campaign or ad"* seems
+  to mean creative and copy, not widening communities. Useful before hesitating
+  over a future targeting change.
+
+Reddit suggested **r/sportsbetting** again on the edit screen, next to an "Add
+all" link. That is now the fifth separate place it has pushed gambling-adjacent
+targeting at this account. Declined again.
+
+**Read the campaign at 100 clicks rather than on a fixed date** — the 16 Sep date
+assumed a delivery rate that never existed.
+
 ---
 
 

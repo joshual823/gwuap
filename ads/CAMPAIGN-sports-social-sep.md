@@ -59,10 +59,35 @@ way.
 ## Targeting
 
 ### Communities — football-weighted, because the creative is football
-r/nfl, r/CFB, r/fantasyfootball, r/DynastyFF, r/NFLstatheads, r/sports
 
-Plus the four biggest team subs for whoever is playing that week, swapped
-weekly: r/eagles, r/cowboys, r/49ers, r/steelers (etc.).
+**Widened to 41 on 13 Sep** after delivery collapsed (see below). All football,
+all non-gambling:
+
+r/nfl, r/CFB, r/fantasyfootball, r/DynastyFF, r/sports, r/NFLNoobs,
+r/fantasyfootballadvice, r/NFL_Draft, r/DynastyFFTradeAdvice
+
+...plus all 28 NFL team subs: r/eagles, r/cowboys, r/49ers, r/steelers,
+r/Patriots, r/GreenBayPackers, r/ravens, r/KansasCityChiefs, r/buffalobills,
+r/detroitlions, r/minnesotavikings, r/Seahawks, r/miamidolphins, r/CHIBears,
+r/Texans, r/Commanders, r/nyjets, r/NYGiants, r/Browns, r/bengals,
+r/AZCardinals, r/falcons, r/panthers, r/Saints, r/buccaneers, r/DenverBroncos,
+r/Chargers, r/raiders, r/Colts, r/Jaguars, r/Tennesseetitans, r/LosAngelesRams
+
+### Why it had to be widened
+
+The first version ran **10** communities and starved. 1,315 impressions in the
+opening ~1.3 hours, then **+88 impressions and zero clicks over the next 24**.
+Spend looked frozen at $9.03 purely because a Traffic campaign bills per click —
+impressions alone cost nothing, so "it stopped spending" was really "it stopped
+being clicked".
+
+**The audience estimate misleads.** 20.8m–26m is *reach* — people who could ever
+see it — not daily impression supply. Ten subreddits cannot fill $20/day for one
+advertiser, and with auto-targeting off there is nowhere else for Reddit to go.
+The 28 team subs were the obvious untapped inventory: hundreds of thousands of
+members each, at peak activity in September, and none of them were in the list.
+
+Audience estimate after widening: **23.8m–29.7m**.
 
 ### Interests
 Sports · American Football · Fantasy Sports
