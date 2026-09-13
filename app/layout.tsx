@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabaseServer'
 import { SITE_NAME, SITE_TAGLINE, SITE_URL, SITE_PITCH } from '@/lib/brand'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import PostHogTracker from '@/components/PostHog'
 import InstallPrompt from '@/components/InstallPrompt'
 import ServiceWorker from '@/components/ServiceWorker'
@@ -216,6 +217,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </nav>
         </div>
         <Analytics />
+        {/* Real-user Core Web Vitals. Added 13 Sep after the speed check
+            found there was no field data at all — every number we had was
+            server timing from one machine on a good connection, which
+            says nothing about a phone on 4G, and that is the audience.
+            Reports the App Router's route pattern rather than the URL, so
+            /messages/[id] never carries an id. */}
+        <SpeedInsights />
         {/* useSearchParams needs a boundary, and analytics must never be
             the reason a page fails to render. */}
         <Suspense fallback={null}><PostHogTracker /></Suspense>

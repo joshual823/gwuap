@@ -3955,9 +3955,11 @@ paid traffic lands: 0.36s to first byte and 6 KB of HTML.
 click pays for it before anything is interactive, and none of it is
 needed to read a headline and press a button.
 
-**There is no real-user data at all.** `@vercel/analytics` is installed;
-**`@vercel/speed-insights` is not**, so nothing measures LCP, CLS or INP
-from actual devices. Everything above is server-side timing from one
+**There was no real-user data at all** — fixed the same day by adding
+`@vercel/speed-insights`, which now reports LCP, CLS and INP from real
+devices and sends the App Router's route pattern rather than the URL, so
+`/messages/[id]` never carries an id. Until it collects a few days of
+traffic, everything below stands. Everything above is server-side timing from one
 machine on a good connection — it says nothing about a phone on 4G in a
 stadium car park, which is the actual audience. That is the single
 biggest gap in knowing whether the site is fast.
@@ -4000,18 +4002,35 @@ Tested against production with the anon key, not read off the migrations.
 
 **Findings, worst first:**
 
-1. **Password spraying is unthrottled (medium).** `/api/login` limits
-   attempts to 10 per 15 minutes **keyed on the username**
-   (`.eq('username_key', key)`). That stops someone hammering one
-   account, and does nothing about one password tried against a thousand
-   usernames — which is the attack that actually works at scale. Harmless
-   at 8 accounts; it gets worse in exact proportion to how well the ads
-   work. Fix is a second counter keyed on IP.
+1. ~~**Password spraying is unthrottled (medium).**~~ **Fixed same day,
+   migration 053.** `/api/login` limited attempts to 10 per 15 minutes
+   keyed on the username, which stops one account being hammered and does
+   nothing about one password tried against a thousand usernames — the
+   attack that works at scale, where counting per username hands every
+   guess a fresh bucket. There is now a second counter keyed on the
+   request source, **30 per 15 minutes**.
 
-2. **`login_attempts` is only tidied on success (low).** Old rows are
-   deleted when somebody logs in correctly. Sustained failures against
-   many usernames accumulate rows with no other cleanup path. A scheduled
-   delete would close it.
+   The ceiling is deliberately loose: carrier NAT and offices put many
+   real people behind one address, so a tight limit locks out bystanders.
+   Thirty is far more than anyone types by hand and far less than a spray
+   needs. The address is stored as a **SHA-256 hash** — counting needs
+   only equality, and a log of who tried to sign in from where is not
+   something this site should hold.
+
+   Honest about what it buys: `x-forwarded-for` is spoofable in principle
+   and an attacker can rotate addresses regardless. This is one more
+   thing to get past, not a wall.
+
+   A success clears the *username* count but deliberately not the
+   source's — otherwise anyone holding one valid account could reset
+   their own spray budget by logging into it.
+
+2. ~~**`login_attempts` is only tidied on success (low).**~~ **Fixed.**
+   The hourly sweep hung off a successful login, so a run of failures
+   against many usernames piled up rows nothing would clear — the exact
+   situation the table exists to detect was the one where it never got
+   tidied. It now runs unconditionally at the top of every attempt: one
+   indexed delete on a table whose rows all expire within the hour.
 
 3. **The GIF proxy is unauthenticated (low).** Anyone can spend the
    free-tier GIPHY quota (~100 calls/hour). The 5-minute cache only helps
