@@ -4131,6 +4131,53 @@ triangle.
 The CSP is `frame-ancestors` only, so nothing there blocks the
 same-origin request.
 
+### X: the targeting was the problem, confirmed (14 Sep 2026)
+
+The guide's standing advice was not to relaunch on X without first
+reading and clearing the old ad group's targeting. Josh decided to go
+again; the first build step was that read, and it settled the question.
+
+**What the halted ad group actually contained:**
+
+| | |
+|---|---|
+| Keywords | `bad beat` · `player props` · `nfl picks` · `week 1 picks` · `NBA picks` · `mlb picks` |
+| Follower look-alikes | **ActionNetworkHQ** · espn · ESPNNFL · ESPNNBA · ESPNCFB · MLB |
+| Interests | 23 sports categories **+ Gaming** |
+| Optimize targeting | **ON** |
+
+**A bad beat is a bet you should have won. Player props are a bet type.
+ActionNetworkHQ is a sports betting media company.** That is a betting
+advertiser's targeting profile, attached to a site that doesn't take
+bets — and it was sitting under a creative everyone agreed was clean,
+on an account whose appeal was declined without explanation.
+
+Two platforms, two rejections citing targeting, and in both cases the
+targeting turned out to be built from sportsbook vocabulary. The theory
+recorded on 11 Sep — *"the creative was never the thing"* — is now
+supported on X by direct evidence rather than by inference from Reddit.
+
+**Cleared:** all six keywords, ActionNetworkHQ, the Gaming interest, and
+Optimize targeting switched off — X's equivalent of the automated
+targeting turned off on Reddit, and for the same reason: it expands
+beyond the list, which makes every exclusion advisory. What remains is 23
+sports interests and five sports-media accounts (ESPN family, MLB). Saved.
+
+#### The ad now points at the home page
+
+Josh's call, and it fits what the page already does: `/` redirects to
+`/feed` **carrying the query string**, which `app/page.tsx` does
+deliberately so campaign tags survive. So an X visitor lands on the feed
+— real picks being graded — with UTMs intact, and meets the welcome
+modal after 15 seconds or 600px rather than a form.
+
+**"Maybe later" on that modal became "Look around more".** Both buttons
+close the card; only one says what happens next. A dismissal reads as the
+end of the conversation and leaves the visitor to work out for themselves
+that the site is still there. It is the same softer second door that the
+squads page needed — somebody not ready to sign up will still keep
+reading, and the feed underneath is the argument.
+
 ---
 
 

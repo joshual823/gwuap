@@ -125,8 +125,17 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
           How it works
         </Link>
 
+        {/* "Look around more", not "Maybe later".
+            Both close the card; only one of them says what happens next.
+            "Maybe later" is a dismissal and reads as the end of the
+            conversation — the visitor has to work out for themselves that
+            the site is still there behind it. The softer second door is
+            what the squads page found worked: somebody who isn't ready to
+            sign up will still keep reading, and the feed underneath is the
+            argument. Same reason the paid ads point at "/" rather than a
+            form — be introduced first, decide after. */}
         <button type="button" className="welcome-close" onClick={close}>
-          Maybe later
+          Look around more
         </button>
       </div>
     </div>
