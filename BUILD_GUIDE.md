@@ -4205,20 +4205,33 @@ Ad group is unchanged otherwise: $25/day, auto bid, US, starts 9 Sep.
 existing campaign that button is the launch: it submits both ads to X
 review. Given this account's declined appeal, that press is Josh's.
 
-#### Two things to decide before pressing it
+#### Launched by accident, and both ads cleared
 
-**The timeline ad names Facebook, Twitter, Instagram and TikTok — inside
-an ad running on X.** That is X's direct competitors, under a trademark
-policy, from an account that has already had an appeal declined. It is a
-rejection vector with nothing to do with gambling, and this account has
-no strikes to spend. `gw-timeline-noname-square.png` is built and keeps
-the whole structure without the trademarks — *a social network / another
-one / the photo one / the video one* — which is also funnier. One swap.
+Josh pressed Save changes before deciding the two open questions. No
+harm: **both new ads came back Active.** Nothing rejected.
 
-**The dead ad is still attached to the ad group.** Submitting a group
-that still contains an ad marked *Appeal declined* puts a known
-violation in front of the reviewer alongside the new work. Worth deleting
-or pausing it first.
+**That answered the trademark question for free.** The timeline ad names
+Facebook, Twitter, Instagram and TikTok *inside an ad running on X* —
+X's own competitors, under a trademark policy, on an account with a
+declined appeal. It passed. The concern was real and did not bite;
+`gw-timeline-noname-square.png` stays on disk as the swap-in if that ad
+is ever flagged later.
+
+**The advice therefore inverts, and the inversion is the lesson.** Before
+launch: swap the creative, delete the dead ad. After: **touch neither.**
+Both are Active, and editing an ad that has passed review pauses it and
+re-enters the queue voluntarily — the same mistake as editing a
+delivering Reddit campaign, which this project already made once. The
+dead *Appeal declined* ad is inert now that the new ones cleared, so
+removing it is tidying with no upside and a non-zero cost.
+
+Worth noting the dead ad's own name: **"Traffic · A · Books lookalikes ·
+Model card."** The betting targeting was written on the tin the whole
+time, in the ad list, visible from the dashboard. Nobody read it for
+five days.
+
+**Three ads now:** the two new ones Active, the 9 Sep one still Halted.
+$25/day, US, sports interests and ESPN/MLB accounts only.
 
 ---
 
