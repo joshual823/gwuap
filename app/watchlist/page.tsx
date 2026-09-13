@@ -6,6 +6,18 @@ import { tickerHref } from '@/lib/ticker'
 import PostCard from '@/components/PostCard'
 import { attachPostMeta } from '@/lib/postMeta'
 import WatchButton from '@/components/WatchButton'
+import WatchlistAutoClean from '@/components/WatchlistAutoClean'
+
+/**
+ * How long after kickoff a fixture is safely over.
+ *
+ * We know when a game started, never when it ended — by the time it
+ * matters the scoreboard has rolled past it, so there is nothing left to
+ * ask. Four hours covers a baseball game into extras or a tennis match
+ * that goes five sets, and the setting promises "about a day after it
+ * ends", so 4 + 24 is the honest reading of that.
+ */
+const OVER_AFTER_MS = 28 * 60 * 60 * 1000
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +25,28 @@ export default async function WatchlistPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/watchlist')
+
+  const { data: profile } = await supabase
+    .from('profiles').select('watchlist_autoclean').eq('id', user.id).maybeSingle()
+  const autoClean = Boolean(profile?.watchlist_autoclean)
+
+  // Tidy before reading, so the page never renders a row it is about to
+  // delete. Games only — a watched team has no end, and quietly
+  // unfollowing somebody's team because it hasn't played this week would
+  // be a bug wearing a feature's clothes.
+  //
+  // Rows starred before migration 054 have no starts_at and are left
+  // alone rather than guessed at: deleting on a hunch is worse than a
+  // stale star somebody can remove themselves.
+  if (autoClean) {
+    await supabase
+      .from('watchlist')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('kind', 'game')
+      .not('starts_at', 'is', null)
+      .lt('starts_at', new Date(Date.now() - OVER_AFTER_MS).toISOString())
+  }
 
   const { data: rows, error: watchError } = await supabase
     .from('watchlist')
@@ -97,6 +131,12 @@ export default async function WatchlistPage() {
           <Link key={w.ticker} href={tickerHref(`$${w.ticker}`)} className="chip">${w.ticker}</Link>
         ))}
       </div>
+
+      {/* Only once there's something to tidy. The empty state above
+          returns early, so reaching here already means the list has
+          rows — a switch offered before the problem exists is one more
+          thing to read on a page that hasn't earned it yet. */}
+      <WatchlistAutoClean viewerId={user.id} initial={autoClean} />
 
       {games.length > 0 && <h2 className="comments-heading">Their games</h2>}
       {games.map(g => (

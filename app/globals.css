@@ -1714,3 +1714,21 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-illus { margin: 16px 0 14px; border-radius: 14px; overflow: hidden;
   background: #0B0E11; border: 1px solid var(--line); line-height: 0; }
 .squads-illus img { width: 100%; height: auto; display: block; }
+
+/* Watchlist auto-clean. A real switch rather than a checkbox, because
+   this one deletes rows and should look like a decision. */
+.wl-clean { display: flex; align-items: flex-start; gap: 12px; margin: 14px 0 18px;
+  padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); }
+.wl-switch { flex: 0 0 auto; width: 42px; height: 24px; border-radius: 999px; padding: 0;
+  border: 1px solid var(--line); background: var(--card-2); cursor: pointer; position: relative;
+  transition: background 140ms ease, border-color 140ms ease; margin-top: 1px; }
+.wl-switch.on { background: var(--brand); border-color: transparent; }
+.wl-switch:disabled { opacity: .55; cursor: default; }
+.wl-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--ink); transition: transform 140ms ease, background 140ms ease; }
+.wl-switch.on .wl-knob { transform: translateX(18px); background: var(--btn-ink); }
+.wl-clean-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.wl-clean-text strong { font-size: 14px; color: var(--ink); }
+.wl-clean-text span { font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); }
+.wl-clean-error { color: var(--bear) !important; }

@@ -101,7 +101,8 @@ export default async function GamePage(props: {
           ? <span className="gd-when"><strong>{start.time}</strong> {start.day}</span>
           : detail.state !== 'post' && <span className="gd-when">{detail.status}</span>}
         <WatchButton ticker={gameKey} league={league} kind="game" viewerId={user?.id ?? null}
-          initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())} label />
+          initiallyWatched={watchedCodes.includes(gameKey.toUpperCase())}
+          startsAt={game?.startsAt ?? null} label />
       </div>
 
       <GameTabs

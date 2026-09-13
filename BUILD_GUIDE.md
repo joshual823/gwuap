@@ -4233,6 +4233,56 @@ five days.
 **Three ads now:** the two new ones Active, the 9 Sep one still Halted.
 $25/day, US, sports interests and ESPN/MLB accounts only.
 
+### The watchlist tidies itself, if you ask it to (14 Sep 2026)
+
+**MIGRATION 054 MUST RUN BEFORE THIS DEPLOYS** — `watchlist.starts_at`
+and `profiles.watchlist_autoclean`. Without the first, starring a game
+fails on insert.
+
+A starred game stays starred forever. Pin a few over a weekend and the
+watchlist is mostly last week by Wednesday — the page still works, it
+just stops being worth opening, which is the quiet way a feature dies.
+Now there's an opt-in switch that drops finished games about a day after
+they end.
+
+**The hard part was knowing when a game ended, and the answer is that we
+can't.** A fixture that finished two days ago has rolled off ESPN's
+scoreboard, so by the time it matters there is nothing left to ask. What
+*is* knowable is kickoff, at the moment somebody stars it — so
+`watchlist.starts_at` records it and the rule becomes arithmetic:
+**start + 28 hours**. Four hours covers baseball into extras or a
+five-set tennis match, and the setting says "about a day after it ends",
+so 4 + 24 is the honest reading rather than a pretence of precision.
+
+Three boundaries worth keeping:
+
+- **Games only.** `kind = 'game'` rows point at one fixture and have a
+  natural end. A watched *team* has none, and quietly unfollowing
+  somebody's team because it hasn't played this week would be a bug
+  wearing a feature's clothes. Tickers are never touched.
+- **Rows from before 054 are left alone.** They have no `starts_at`, and
+  deleting on a hunch is worse than a stale star the owner can remove in
+  one tap.
+- **The tidy runs before the read**, so the page never renders a row it
+  is about to delete — and turning the switch on visibly does the thing
+  rather than promising to do it next time.
+
+**The switch only appears once there is something in the list.** Josh's
+call and the right one: the empty watchlist already has one job, which
+is explaining what a watchlist is for, and a control for a problem you
+don't have yet is one more thing to read on a page that hasn't earned it.
+
+**Two grant restatements in 054, not additions.** `grant update (a, b)`
+accumulates rather than replaces, so the only way to read a migration and
+know what the grant actually *is* is to revoke and restate the whole
+list. Same for the watchlist insert grant, which now has to include
+`starts_at` or starring a game is refused by column privilege rather than
+by RLS — a failure that looks nothing like a permissions problem from
+the client.
+
+Alerts were mentioned as the next thing on this surface; nothing built
+for them yet.
+
 ---
 
 
