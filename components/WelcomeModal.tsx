@@ -20,8 +20,20 @@ const NO_MODAL = ['/squads', '/signup', '/login']
 /** How far down the feed counts as "they're actually reading this". */
 const SCROLL_TRIGGER_PX = 600
 
-/** And the backstop, for someone who reads the top of the page and stops. */
-const TIME_TRIGGER_MS = 15_000
+/**
+ * How long somebody gets before being interrupted at all.
+ *
+ * Was 15 seconds, raised to 60 on 14 Sep: the paid ads now land on the
+ * feed rather than a landing page, so the modal *is* the introduction,
+ * and it should arrive after somebody has had a look rather than while
+ * they're still working out what the site is.
+ *
+ * This is a floor, not just a timer — the scroll trigger is gated behind
+ * it too. Otherwise a reader scrolling normally trips 600px in a few
+ * seconds and the delay buys nothing, which is the whole thing it was
+ * raised to prevent.
+ */
+const MIN_DWELL_MS = 60_000
 
 /**
  * The pitch, once, to a logged-out visitor — after they've seen the site,
@@ -57,6 +69,7 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
     if (seen) return
 
     const scroller = document.querySelector<HTMLElement>('main.scroll')
+    const arrived = Date.now()
     let done = false
     const show = () => {
       if (done) return
@@ -64,11 +77,14 @@ export default function WelcomeModal({ remaining }: { remaining: number | null }
       setOpen(true)
       cleanup()
     }
+    // Scrolling still says "this one is engaged", but it can't jump the
+    // queue — it only counts once the minute is up.
     const onScroll = () => {
+      if (Date.now() - arrived < MIN_DWELL_MS) return
       const top = scroller ? scroller.scrollTop : window.scrollY
       if (top > SCROLL_TRIGGER_PX) show()
     }
-    const timer = setTimeout(show, TIME_TRIGGER_MS)
+    const timer = setTimeout(show, MIN_DWELL_MS)
     function cleanup() {
       clearTimeout(timer)
       scroller?.removeEventListener('scroll', onScroll)

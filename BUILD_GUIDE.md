@@ -4171,6 +4171,18 @@ deliberately so campaign tags survive. So an X visitor lands on the feed
 — real picks being graded — with UTMs intact, and meets the welcome
 modal after 15 seconds or 600px rather than a form.
 
+**The modal now waits a full minute** (was 15 seconds, raised 14 Sep).
+Since the paid ads land on the feed rather than a landing page, the modal
+*is* the introduction — it should arrive after somebody has had a look,
+not while they're still working out what the site is.
+
+**Raising the timer alone would have done nothing**, which is the part
+worth remembering: the modal has two triggers, 15s *or* 600px of scroll,
+whichever comes first. A reader scrolling normally trips 600px in a few
+seconds. So the minute is a **floor** — the scroll trigger is gated
+behind it and only counts once the minute is up. Scrolling still says
+"this one is engaged"; it just can't jump the queue.
+
 **"Maybe later" on that modal became "Look around more".** Both buttons
 close the card; only one says what happens next. A dismissal reads as the
 end of the conversation and leaves the visitor to work out for themselves
