@@ -4052,6 +4052,47 @@ service-role key, admin auth, redirects — are all right, and the real
 gaps are the two rate-limiting ones plus the total absence of real-user
 performance data.
 
+### 37 clicks in, and the second creative is live (14 Sep 2026)
+
+`Join the new wave — square` cleared review and is **Active**, so two
+ads now run head-to-head on identical targeting:
+
+| | Build your squad | Join the new wave |
+|---|---|---|
+| Impressions | 4,610 | 1,368 |
+| Clicks | 26 | 9 |
+| CTR | 0.564% | **0.658%** |
+| CPC | $1.17 | **$0.72** |
+| Spend | $30.31 | $6.46 |
+
+**Don't call it yet.** Reddit gives new ads a cheaper exploration period
+while it finds their audience, so some of that CPC gap is age rather than
+quality, and nine clicks is thin. Read it again at 25–30 clicks on the
+new one.
+
+**37 clicks, 0 signups, 8 accounts.** Worth being exact about what that
+does and doesn't establish:
+
+| True signup rate | Chance of seeing 0 in 37 |
+|---|---|
+| 10% | 2% — effectively ruled out |
+| 5% | 15% — unlikely |
+| 3% | 32% — still perfectly possible |
+
+So the honest reading is not "the page is broken" but "the page is not
+converting at a rate that makes $1 clicks work". Those are different
+claims and only the first would be premature.
+
+**And the clicks are dirty.** The landing page changed three times on 13
+September — solo-first rebuild, Josh's restructure, then the bullets and
+illustration. Most of these 37 hit earlier versions. This is not a clean
+test of what is live now.
+
+**The next move is not more clicks.** Thirty-seven visits' worth of
+behaviour is already bought and PostHog recorded it. Where those people
+stopped on the page answers *why*, and another $40 of traffic does not.
+Watch the replays filtered to `utm_source=reddit` before spending more.
+
 ---
 
 
