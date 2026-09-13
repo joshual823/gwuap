@@ -3895,6 +3895,42 @@ surgical radial over the single blurred money bag the vignette couldn't
 reach. `ads/crop.html` regenerates it; the source is kept at
 `ads/squad-src.png` so the crop can be redone rather than guessed at.
 
+### Widening worked, and the second ad is up (13 Sep 2026, evening)
+
+**The starved-inventory diagnosis was right.** Roughly two hours after
+going from 10 communities to 41:
+
+| Football ad | Before | After |
+|---|---|---|
+| Impressions | 1,416 | **3,793** |
+| Clicks | 7 | **21** |
+| Spend | $9.03 | **$31.47** |
+
++2,377 impressions and +14 clicks. It was never the bid, the creative or
+the audience size — it was ten subreddits with nowhere else to go. CPC
+drifted $1.29 → $1.50, which is the expected price of buying inventory
+that isn't the cheapest available, and cheap at the exchange rate.
+
+Worth remembering the shape of the mistake: **"20.8m–26m audience" reads
+like supply and is actually reach.** Nothing on the dashboard warns that
+ten communities can't fill $20/day.
+
+**`Join the new wave — square` published into the same ad group** and is
+*Processing*. Added as a second ad rather than an edit, so
+`Build your squad — square` keeps delivering through review and the two
+run head-to-head on identical targeting. UTM `utm_content=newwave-square`
+separates them.
+
+**Still 0 signups, now against 21 clicks.** Not yet damning — at a true
+5% rate, zero from 21 is a 34% coincidence — but it is the first number
+big enough to start meaning something. It becomes hard to explain away
+around 60.
+
+The rebuilt landing page has only been live for part of that window, and
+the fourth-pass version (three bullets, illustration) is not deployed at
+the time of writing, so these clicks mostly hit earlier versions. Don't
+score the page rebuild on them.
+
 ---
 
 
