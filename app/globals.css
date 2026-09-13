@@ -1700,3 +1700,17 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 .squads-h2 { font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 800;
   margin: 0 0 10px; color: var(--ink); }
 .squads-block > p { font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 14px; }
+
+/* Three lines instead of a paragraph. Same numbered chips as the old
+   steps list, which is why .squads-num is reused rather than restyled. */
+.squads-how { list-style: none; margin: 0 0 6px; padding: 0;
+  display: flex; flex-direction: column; gap: 10px; }
+.squads-how li { display: flex; align-items: center; gap: 11px;
+  font-size: 15.5px; font-weight: 600; color: var(--ink); }
+
+/* The squad illustration. Dark-edged by design — the money was cropped
+   and burned out of the corners — so it gets a matching dark surround
+   rather than sitting on a light card and reading as a black box. */
+.squads-illus { margin: 16px 0 14px; border-radius: 14px; overflow: hidden;
+  background: #0B0E11; border: 1px solid var(--line); line-height: 0; }
+.squads-illus img { width: 100%; height: auto; display: block; }

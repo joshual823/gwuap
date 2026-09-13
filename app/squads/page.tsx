@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabaseServer'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 import FeedTabs from '@/components/FeedTabs'
@@ -192,11 +193,15 @@ async function SquadsIntro() {
 
       <section className="squads-block">
         <h2 className="squads-h2">Track your picks</h2>
-        <p>
-          Every pick you post is graded a win, a loss or a push from the final
-          score, and counted towards your record automatically. You never grade
-          your own, and nothing can be edited once a game starts.
-        </p>
+        {/* Three lines, not a paragraph. Josh's structure — the previous
+            version said the same thing in fifty words and the whole
+            problem with this page has been asking for more reading than
+            it has earned. */}
+        <ol className="squads-how">
+          <li><span className="squads-num">1</span> Post a pick</li>
+          <li><span className="squads-num">2</span> It&apos;s graded a win, loss or push</li>
+          <li><span className="squads-num">3</span> Counts towards your record</li>
+        </ol>
 
         {/* The proof, and it is deliberately not flattering. A near-even
             record is the strongest thing this page can say: it shows the
@@ -234,41 +239,26 @@ async function SquadsIntro() {
           on a table, rather than the entry fee. */}
       <section className="squads-block">
         <h2 className="squads-h2">Then bring your group</h2>
-        <p>
-          A squad is a private room with a leaderboard that keeps itself.
-          Everyone&apos;s picks are graded the same way, so the table settles the
-          argument instead of starting it.
-        </p>
+        <p>Have a group chat? Invite them to create your own squad.</p>
 
-        <figure className="squads-preview">
-          <figcaption>
-            Your squad&apos;s leaderboard <span className="squads-tag">example</span>
-          </figcaption>
-          <div className="rec-table">
-            {/* Record and win rate, and deliberately no profit column.
-                The real leaderboard has one and keeps it. Here it would
-                read "@you  +$248" to a stranger who arrived from an ad,
-                which is an implied earnings claim — the one thing the ad
-                doctrine rules out flat. */}
-            {[
-              { rank: 1, who: 'you', wl: '12-7', pct: '63%' },
-              { rank: 2, who: 'dave', wl: '9-10', pct: '47%' },
-              { rank: 3, who: 'marcus', wl: '4-11', pct: '27%' },
-            ].map(r => (
-              <div className="rec-row squad-board-row" key={r.who}>
-                <span className="lb-rank">{r.rank}</span>
-                <span className="rec-label squad-board-who">
-                  <Avatar url={null} size={22} name={r.who} />@{r.who}
-                </span>
-                <span className="rec-wl mono">{r.wl}</span>
-                <span className="rec-pct mono">{r.pct}</span>
-              </div>
-            ))}
-          </div>
+        {/* The mock leaderboard this replaces was labelled "example" and
+            therefore an admission that nothing on the page was real. The
+            proof block above is now the real version of that job, so the
+            squad section can be an illustration instead of a claim.
+
+            The source image arrived covered in cash stacks, money bags
+            and $-eyes emoji. Cropped and the edges darkened to clear all
+            of it: this page's ad carries the line "no betting, no money",
+            Reddit's first rejection cited the landing page, and a page
+            decorated with money is the exact signal that pulls an ad. */}
+        <figure className="squads-illus">
+          <Image
+            src="/squad-chat.png" alt="" width={700} height={655}
+            sizes="(max-width: 460px) 100vw, 460px" priority={false}
+          />
         </figure>
 
         <p className="squads-bring">
-          Already have a group on Discord, iMessage or anywhere else?
           One link brings them over.{' '}
           <Link href="/signup?next=/squads/new" className="help-link">Start a squad</Link>
         </p>

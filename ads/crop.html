@@ -1,0 +1,17 @@
+<meta charset="utf-8">
+<style>
+  *{margin:0;padding:0}
+  html,body{width:700px;height:655px;overflow:hidden;background:#0B0E11}
+  .box{position:relative;width:700px;height:655px;overflow:hidden}
+  .box img{position:absolute;left:-398px;top:-198px}
+  .vig{position:absolute;inset:0;
+    background:
+      /* the one blurred money bag the vignette can't reach */
+      radial-gradient(120px 105px at 85% 27%,
+        #0B0E11 0%, rgba(11,14,17,.92) 58%, rgba(11,14,17,0) 100%),
+      radial-gradient(105% 100% at 50% 48%,
+        rgba(11,14,17,0) 34%, rgba(11,14,17,.88) 68%, #0B0E11 88%),
+      linear-gradient(90deg, #0B0E11 0%, rgba(11,14,17,0) 12%,
+        rgba(11,14,17,0) 84%, #0B0E11 100%);}
+</style>
+<div class="box"><img src="squad-src.png"><div class="vig"></div></div>

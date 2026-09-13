@@ -3850,6 +3850,51 @@ Worth doing *after* the widened targeting has had a few days, so the
 creative change doesn't land on top of the targeting change and make both
 unreadable.
 
+### Fourth pass on the squads page, and a picture full of money (13 Sep 2026)
+
+Josh's edits, applied:
+
+- **"Track your picks" is three lines, not a paragraph.** Post a pick →
+  it's graded → it counts. The page's standing problem is asking for more
+  reading than it has earned, and fifty words to say that was more of the
+  same.
+- **"Then bring your group"** now reads *"Have a group chat? Invite them
+  to create your own squad."*
+- **The mock leaderboard is gone**, replaced by an illustration. That
+  table was labelled "example" and was therefore an admission that
+  nothing on the page was real; the live 91-pick tally above now does
+  that job properly, so the squad section can illustrate rather than
+  claim.
+
+Three wording changes to the dictated copy, all for accuracy:
+
+- *"Its then graded"* → **"It's"**.
+- *"a win or loss"* → **"a win, loss or push"**. The tally directly above
+  displays *6 pushed*. The one page whose argument is that the numbers
+  are trustworthy cannot contradict its own number three lines apart.
+- *"your total score"* → **"your record"**. There is no score anywhere in
+  the product — it's a record, on the leaderboard, on `/profile/x/record`,
+  in "keep the receipts". A word that appears nowhere after signup
+  shouldn't appear before it.
+
+#### The image needed the money taken out of it
+
+The supplied illustration was people and speech bubbles surrounded by
+**cash stacks, money bags and $-eyes emoji**.
+
+That could not go up as sent. Every creative carries *"Not a sportsbook.
+No betting, no money"*; two campaigns were rejected for gambling signals;
+and **Reddit's first rejection cited the landing page**, not the ad. A
+landing page decorated with cash is the precise signal that pulls an ad,
+and it would have been carrying that risk on behalf of a campaign that
+took three attempts to get approved.
+
+The subject was fine — it's only the surroundings. Cropped past the
+worst of it, edges darkened to the site's own `#0B0E11`, and one
+surgical radial over the single blurred money bag the vignette couldn't
+reach. `ads/crop.html` regenerates it; the source is kept at
+`ads/squad-src.png` so the crop can be redone rather than guessed at.
+
 ---
 
 
