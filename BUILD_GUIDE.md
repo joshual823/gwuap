@@ -3931,6 +3931,108 @@ the fourth-pass version (three bullets, illustration) is not deployed at
 the time of writing, so these clicks mostly hit earlier versions. Don't
 score the page rebuild on them.
 
+### Speed check and security audit (13 Sep 2026)
+
+#### Speed — measured, not estimated
+
+| Page | TTFB | HTML (gzip) | JS (gzip) |
+|---|---|---|---|
+| `/login` | 0.15s | 24 KB | — |
+| `/help` | 0.21s | 29 KB | — |
+| `/leaderboard` | 0.24s | 25 KB | — |
+| **`/squads`** (ad landing) | **0.36s** | **6 KB** | **277 KB** |
+| `/scores` | 0.89s | 238 KB | — |
+| **`/feed`** | **1.23s** | 30 KB | **347 KB** |
+
+**`/feed` is the slow one at 1.23s TTFB**, and it's server time rather
+than payload — the HTML is only 30 KB. It fans out across Supabase and
+ESPN before rendering. `/scores` at 0.89s is the same shape.
+
+**`/squads` is in good health**, which matters most because it's where
+paid traffic lands: 0.36s to first byte and 6 KB of HTML.
+
+**277 KB of JavaScript on a landing page is the real cost.** Every ad
+click pays for it before anything is interactive, and none of it is
+needed to read a headline and press a button.
+
+**There is no real-user data at all.** `@vercel/analytics` is installed;
+**`@vercel/speed-insights` is not**, so nothing measures LCP, CLS or INP
+from actual devices. Everything above is server-side timing from one
+machine on a good connection — it says nothing about a phone on 4G in a
+stadium car park, which is the actual audience. That is the single
+biggest gap in knowing whether the site is fast.
+
+#### Security — what was tested and what came back
+
+Tested against production with the anon key, not read off the migrations.
+
+**Clean:**
+
+- **No secrets in the client bundle.** Grepped the deployed chunks for
+  the service-role key, `CRON_SECRET`, `VAPID_PRIVATE_KEY` and
+  `RESEND_API_KEY`: zero hits. Every file touching `SUPABASE_SERVICE_ROLE_KEY`
+  is server-only; none carry `'use client'`.
+- **RLS holds.** Anonymous reads return 0 rows on `squad_messages`,
+  `game_messages`, `notifications`, `push_subscriptions`, `messages`,
+  `vent_messages`, `reports`, `watchlist`, `squad_members` — all of which
+  are known to contain data, so that is policy and not emptiness.
+  `login_attempts` isn't exposed to PostgREST at all (`42501`), which is
+  the strongest possible answer.
+- **Anonymous writes all blocked** — posts, profiles, squads, game
+  messages, push subscriptions, notifications, and an attempt to edit
+  another user's bio. Every one `42501`.
+- **Admin and cron surfaces sealed.** `/admin` redirects to login; both
+  admin APIs answer 401 to an unauthenticated POST; all four cron
+  endpoints answer 401 without `CRON_SECRET`.
+- **No open redirect.** `next=https://evil.example` and `next=//evil.example`
+  both land back on gwuap.co. All three places that honour `next`
+  (`/auth/callback`, `/login`, `/claim-username`) apply the same
+  `startsWith('/') && !startsWith('//')` check.
+- **One `dangerouslySetInnerHTML`**, in `layout.tsx`, a static literal
+  reading `localStorage` for the theme. No user input reaches it.
+- **`npm audit --omit=dev`: 0 vulnerabilities.**
+- **Headers present:** HSTS `max-age=63072000`, `nosniff`,
+  `frame-ancestors 'none'` + `X-Frame-Options: DENY`,
+  `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`.
+- **The GIF proxy is safe.** Fixed base URL so no SSRF, query capped at
+  60 chars and encoded, `rating=pg` forced server-side, key never leaves
+  the server.
+
+**Findings, worst first:**
+
+1. **Password spraying is unthrottled (medium).** `/api/login` limits
+   attempts to 10 per 15 minutes **keyed on the username**
+   (`.eq('username_key', key)`). That stops someone hammering one
+   account, and does nothing about one password tried against a thousand
+   usernames — which is the attack that actually works at scale. Harmless
+   at 8 accounts; it gets worse in exact proportion to how well the ads
+   work. Fix is a second counter keyed on IP.
+
+2. **`login_attempts` is only tidied on success (low).** Old rows are
+   deleted when somebody logs in correctly. Sustained failures against
+   many usernames accumulate rows with no other cleanup path. A scheduled
+   delete would close it.
+
+3. **The GIF proxy is unauthenticated (low).** Anyone can spend the
+   free-tier GIPHY quota (~100 calls/hour). The 5-minute cache only helps
+   for repeated queries. Worst case the picker stops working; nothing
+   leaks.
+
+4. **No script-src CSP (low, and deliberate).** Only `frame-ancestors` is
+   set. `next.config.js` already explains the deferral, and the XSS
+   surface is genuinely small — React escaping throughout, one static
+   inline script. Worth doing eventually, not urgent.
+
+5. **Unverified: the password minimum.** The signup form says 8
+   characters; whether Supabase Auth enforces that server-side wasn't
+   tested, because testing it means creating an account with a weak
+   password. Worth a look in the Supabase dashboard.
+
+The overall picture is that the parts most likely to be wrong — RLS, the
+service-role key, admin auth, redirects — are all right, and the real
+gaps are the two rate-limiting ones plus the total absence of real-user
+performance data.
+
 ---
 
 
