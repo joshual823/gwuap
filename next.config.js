@@ -45,5 +45,44 @@ const nextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },
+
+  /**
+   * PostHog through our own domain.
+   *
+   * The browser talked to `us.i.posthog.com` directly, which every ad
+   * blocker blocks by hostname. A blocked request doesn't error — the
+   * session simply never records — so the data looked fine and was
+   * quietly missing whoever runs a blocker. That is the exact failure
+   * that cost nine days on Clarity: a script that loads with a 200 and
+   * never sends.
+   *
+   * It matters more than usual right now because the decision in front
+   * of us — is the landing page the problem, or is paid cold traffic the
+   * wrong instrument — rests on watching session replays of Reddit
+   * visitors. A sample skewed towards people who don't block trackers,
+   * drawn from a tech-leaning sports audience, would answer a different
+   * question than the one being asked. Bad data is worse than none,
+   * because it still gets believed.
+   *
+   * Worth saying plainly: this routes around a choice the visitor made.
+   * It's first-party product analytics rather than ad targeting, and
+   * what gets collected is unchanged — /vent, /messages and /reset are
+   * still excluded outright and every input is still masked, which is
+   * the part that actually protects anyone. But it is a deliberate step,
+   * not a free one.
+   *
+   * Two hosts, because PostHog serves them separately: the static
+   * assets (array/*, static/*) and the ingestion endpoint.
+   */
+  async rewrites() {
+    return [
+      { source: '/ingest/static/:path*', destination: 'https://us-assets.i.posthog.com/static/:path*' },
+      { source: '/ingest/:path*', destination: 'https://us.i.posthog.com/:path*' },
+    ]
+  },
+  // The rewrites above proxy to a different origin, and without this
+  // Next appends a trailing slash on the way out, which PostHog's
+  // ingestion endpoint rejects.
+  skipTrailingSlashRedirect: true,
 }
 module.exports = nextConfig

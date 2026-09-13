@@ -27,7 +27,10 @@ export const POSTHOG_EXCLUDED = ['/vent', '/messages', '/reset']
 
 export default function PostHogTracker() {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
+  // Same-origin, rewritten to PostHog in next.config.js so ad blockers
+  // can't drop it by hostname. An env override still wins, for anyone
+  // running this against a different region or without the proxy.
+  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || '/ingest'
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const optedOut = useRef(false)
@@ -43,6 +46,9 @@ export default function PostHogTracker() {
 
     posthog.init(key, {
       api_host: host,
+      // Where the dashboard lives, as opposed to where events go. Without
+      // it, PostHog's own "view in app" links would point at /ingest.
+      ui_host: 'https://us.posthog.com',
       // Pageviews are captured below instead, because the App Router
       // doesn't do a document load per navigation and the automatic one
       // would miss every soft route change.

@@ -4093,6 +4093,44 @@ behaviour is already bought and PostHog recorded it. Where those people
 stopped on the page answers *why*, and another $40 of traffic does not.
 Watch the replays filtered to `utm_source=reddit` before spending more.
 
+### PostHog behind our own domain (14 Sep 2026)
+
+PostHog's Installation Health flagged one of six checks: no reverse
+proxy. Events were going straight to `us.i.posthog.com`, which every ad
+blocker drops by hostname — and a dropped request doesn't error, the
+session just never records.
+
+**That is the Clarity failure wearing a different hat.** A script that
+loads with a 200 and silently never sends. The difference is that this
+time it's partial rather than total, which is worse in one specific way:
+the data looks fine.
+
+It mattered right now because the decision in front of us — is the
+landing page the problem, or is paid cold traffic the wrong instrument —
+rests on watching replays of Reddit visitors. A sample skewed towards
+people who don't run blockers, drawn from a tech-leaning sports
+audience, answers a different question than the one being asked. **Bad
+data is worse than none, because it still gets believed.**
+
+Implementation: `rewrites()` in `next.config.js` maps `/ingest/*` to
+PostHog — two entries, because the static assets and the ingestion
+endpoint are served from different hosts — and `PostHog.tsx` now
+defaults `api_host` to `/ingest`. `ui_host` is set explicitly so
+PostHog's own "view in app" links still point at the dashboard rather
+than at our proxy path. `skipTrailingSlashRedirect` is on because Next
+otherwise appends a slash on the way out and ingestion rejects it.
+
+**Said plainly: this routes around a choice the visitor made.** It is
+first-party product analytics rather than ad targeting, and *what* gets
+collected is unchanged — `/vent`, `/messages` and `/reset` are still
+excluded outright and every input is still masked, which is the part
+that actually protects anybody. But it is a deliberate step and worth
+taking knowingly rather than because a dashboard showed a warning
+triangle.
+
+The CSP is `frame-ancestors` only, so nothing there blocks the
+same-origin request.
+
 ---
 
 
