@@ -3824,6 +3824,32 @@ style:
   only win-or-loss twelve lines above it would contradict our own number.
 - *"Signup"* → *"Sign up"*, as with the pitch line.
 
+### A creative that says what the button says (13 Sep 2026)
+
+`ads/gw-newwave-square.png` and `-wide.png`. Headline **JOIN THE NEW
+WAVE**, sub-line **the social media site for sports fans** — the page's
+button and the page's h1, in that order.
+
+The running ad still said BUILD YOUR SQUAD, which is precisely the ask
+the landing page was rebuilt to stop making. An ad promising one thing
+and a page offering another wastes the click twice: once on the mismatch,
+and once because the page can no longer deliver what was promised.
+
+**The founding line is fixed, not live.** The page renders "192 of 200
+founding places left" from a live count and falls on its own. The
+creative says *"First 200 accounts keep the founding badge"* — true
+today and true at account 199. A number baked into a static image is
+wrong the moment somebody signs up, and a wrong number in a paid ad is
+the overstatement this site does not do. Same reasoning as never putting
+a win rate on a creative.
+
+**Not yet uploaded.** Swapping the creative on the live ad means a new ad
+in the ad group, not an edit — which is the safer route anyway, since it
+leaves the approved ad running while the new one goes through review.
+Worth doing *after* the widened targeting has had a few days, so the
+creative change doesn't land on top of the targeting change and make both
+unreadable.
+
 ---
 
 

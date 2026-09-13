@@ -4,9 +4,29 @@
 
 | File | Size | Where it runs |
 |---|---|---|
-| `gw-field-square.png` | 1080×1080 | primary — mobile feed |
-| `gw-field-wide.png` | 1200×628 | desktop feed |
-| `gw-meet-square.png` | 1080×1080 | second headline, same ad group, for a read on which line pulls |
+| **`gw-newwave-square.png`** | 1080×1080 | **current — matches the rebuilt landing page** |
+| **`gw-newwave-wide.png`** | 1200×628 | desktop |
+| `gw-field-square.png` | 1080×1080 | the running ad as of 13 Sep; superseded by the above |
+| `gw-field-wide.png` | 1200×628 | desktop version of the same |
+| `gw-meet-square.png` | 1080×1080 | "the group chat for sports"; unused |
+
+### Message match: the creative says what the button says
+
+The landing page was rebuilt twice on 13 Sep and now leads with
+**"Gwuap — the social media website for sports fans"** and a button
+reading **"Join the new wave"**. The running creative still said BUILD
+YOUR SQUAD, which is the ask the page was rebuilt to stop making.
+
+`gw-newwave-*` closes that. Headline is the button, sub-line is the
+page's h1, so somebody who clicks "join the new wave" lands on a page
+that says it back to them.
+
+**The founding line is a fixed fact, not a live count.** The page shows
+"192 of 200 founding places left" and counts down on its own; the
+creative says *"First 200 accounts keep the founding badge"*. A number
+baked into a static image is wrong the moment somebody signs up, and a
+stale number in a paid ad is exactly the overstatement this site does
+not do.
 
 Regenerate any of them with `python3 make.py`; the photograph is `field.jpg`.
 
@@ -23,22 +43,25 @@ should answer that question before anyone has to ask it.
 
 ## Copy
 
-**Primary (as written, tightened):**
+**Current, pairs with `gw-newwave-*` and matches the site's `SITE_PITCH`:**
+
+> Gwuap — the social media website for sports fans. Track your picks, chat with
+> sports fans, and start your own personal squad. Free to join, and the first
+> 200 accounts keep the founding badge.
+
+Same sentence as the meta description, the feed lead and the signup form, so
+the ad, the search result and the page all say one thing.
+
+**Superseded (kept for the record):**
 
 > Meet Gwuap — the new social network for sports fans. Build your own squad,
 > keep track of your picks, and talk every game while it's happening. Free to
 > join, no card, ever.
 
-Two changes from the original: *"see what's the hype"* → dropped, and *"social
-media"* → *"social network"*. The hype line is the one to reconsider on its own
-merits — there are 8 accounts on the site, and a Reddit audience is unusually
-quick to check a claim like that. "Free to join, no card, ever" is the thing we
-can say that nobody else in this category can.
-
-**Variant B (pairs with `gw-meet-square.png`):**
-
-> The group chat for sports, minus the sportsbook. Build a squad, post what you
-> think happens, and let the final score settle it. Free to join.
+That one led with building a squad, which PostHog showed was the thing losing
+readers. The hype line from the very first draft — *"see what's the hype"* — was
+already dropped for the same reason it would fail now: 8 accounts, and a Reddit
+audience unusually quick to check.
 
 **Destination:** `https://gwuap.co/squads?utm_source=reddit&utm_medium=cpc&utm_campaign=sports-social-sep&utm_content=field-square`
 
