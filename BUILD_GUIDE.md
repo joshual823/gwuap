@@ -4178,6 +4178,48 @@ that the site is still there. It is the same softer second door that the
 squads page needed — somebody not ready to sign up will still keep
 reading, and the feed underneath is the argument.
 
+### Two new X ads, built and left unsaved (14 Sep 2026)
+
+**The old ad can't be revived.** Campaign and ad group both read Active,
+but the *ad* carries **Halted · Appeal declined**. That's the 0
+impressions. It's a promoted post from 9 Sep and cleaning the targeting
+underneath it does nothing — so this needed new ads in the cleaned ad
+group, not an edit.
+
+| | Ad 1 | Ad 2 |
+|---|---|---|
+| Name | Join the new wave — square | Founded this year — timeline |
+| Creative | `gw-newwave-square.png` | `gw-timeline-square.png` |
+| Destination | `gwuap.co/?utm_source=x…newwave` | `…timeline` |
+| Headline | The social network for sports fans | same |
+
+**Both point at the home page, not a landing page.** Josh's call, and it
+works because `app/page.tsx` forwards the query string to `/feed`
+deliberately, so the visitor lands on real graded picks with UTMs intact
+and meets the welcome modal — whose dismiss button now reads **"Look
+around more"** — rather than a form.
+
+Ad group is unchanged otherwise: $25/day, auto bid, US, starts 9 Sep.
+
+**Left at "Review and launch" without pressing Save changes.** On an
+existing campaign that button is the launch: it submits both ads to X
+review. Given this account's declined appeal, that press is Josh's.
+
+#### Two things to decide before pressing it
+
+**The timeline ad names Facebook, Twitter, Instagram and TikTok — inside
+an ad running on X.** That is X's direct competitors, under a trademark
+policy, from an account that has already had an appeal declined. It is a
+rejection vector with nothing to do with gambling, and this account has
+no strikes to spend. `gw-timeline-noname-square.png` is built and keeps
+the whole structure without the trademarks — *a social network / another
+one / the photo one / the video one* — which is also funnier. One swap.
+
+**The dead ad is still attached to the ad group.** Submitting a group
+that still contains an ad marked *Appeal declined* puts a known
+violation in front of the reviewer alongside the new work. Worth deleting
+or pausing it first.
+
 ---
 
 
