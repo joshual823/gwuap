@@ -4365,6 +4365,73 @@ PostHog session replays** of the Reddit and X visitors. Repeatedly
 deferred. Everything above is inference about *why* they leave; the
 replays are the evidence.
 
+### Every X click landed on a 404 (14 Sep 2026)
+
+Josh watched the session replays — the thing deferred for days — and said a
+visitor hit a 404 before reaching the feed. **That one observation
+invalidated the headline number of the previous entry.**
+
+**The bug.** Both X ads had their Website URL set to
+
+    gwuap.co/utm_source=x&utm_medium=cpc&utm_campaign=timeline
+
+with **no `?`**. X treated the whole UTM string as a path segment, so every
+click landed on `gwuap.co/utm_source=x&...` — a 404. Confirmed directly:
+that URL returns 404 while `gwuap.co/?utm_source=...` returns 307 → `/feed`.
+
+PostHog's **Paths** table named it without ambiguity, because the UTMs show
+up as *paths* rather than query strings:
+
+| Path | Visitors | Bounce |
+|---|---|---|
+| `/squads` | 48 | 79.5% |
+| `/utm_source=x&…campaign=tim…` | **17** | 58.8% |
+| `/utm_source=x&…campaign=ne…` | **9** | **100%** |
+| `/feed` | 9 | 20% |
+
+**26 visitors — effectively the entire X spend — never saw the site.**
+
+**The correction this forces.** The previous entry pooled "89 paid clicks,
+~$104, zero signups" and ran a binomial argument off it. That pooling was
+wrong: **~34 of those clicks never reached a page.** X never tested the
+funnel at all; it tested a 404. The only channel that genuinely ran the
+experiment is Reddit — 55 clicks onto `/squads`, 79.5% bounce, 0 signups —
+and one channel at n=55 is a much weaker basis for "activation is the
+problem" than 89 looked. The conclusion isn't overturned, but the evidence
+behind it is about half what it appeared to be.
+
+**Why it stayed invisible for two days.** The X dashboard reported it as a
+*success*: 19k impressions, 34 link clicks, $1.21 CPC, ads Active and
+approved. Click-tracking stops at the click. Nothing on the ad platform can
+tell you the page 404'd — only the analytics on the receiving end can, and
+only if somebody looks. Spend, CTR and CPC all looked healthy the entire
+time.
+
+**X will not let you fix this in place.** Editing the URL of a published
+promoted post fails with **"Unauthorized to edit card"** — the card is
+frozen once the post exists. The fix is to build replacement posts and
+retire the originals. Deleting a post that has delivered leaves it
+**Paused** rather than removed, which is the better outcome: spend history
+survives and nothing more is bought.
+
+Now live, all three Active and verified: `Founded this year — timeline v2`,
+`Join the new wave — square v2` (both → `gwuap.co/?utm_source=x&...`) and
+`Signup · Join the new wave · /signup` (→ `gwuap.co/signup`). The two
+broken ads are Paused; the 9 Sep ad is still Halted.
+
+**Rules worth keeping:**
+
+- **Paste an ad's destination URL into a browser before it spends.** The
+  ad platform validates that the string is a URL, not that it resolves. One
+  paste would have saved $42.
+- **Check PostHog's Paths list after any campaign starts.** A UTM string
+  appearing as a *path* rather than a query string is the signature of this
+  exact bug, and it is visible within an hour of first spend.
+- X's URL field splits base from query and shows the assembled result under
+  **URL tracking** — read that box, it is the thing that actually ships.
+- Ad-platform metrics measure the ad, never the landing. Impressions,
+  clicks and CPC can all look correct while 100% of traffic hits a dead page.
+
 ---
 
 
