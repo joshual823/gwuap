@@ -4295,6 +4295,76 @@ the client.
 Alerts were mentioned as the next thing on this surface; nothing built
 for them yet.
 
+### Reddit off, a signup ad on X (14 Sep 2026)
+
+**Reddit `Football — Sep 2026` is paused.** Final: 8,345 impressions, 55
+clicks, $62.73, CPC $1.14, CTR 0.659%, **0 signups**. Every Reddit
+campaign is now Inactive or Archived.
+
+**The scoreboard that justified turning it off.** Reddit 55 clicks +
+X 34 clicks = **89 paid clicks, ~$104, zero signups**, against 8 total
+accounts and nothing new since 13 Sep. Polymarket earlier: 160 people,
+2 signups, $0. A 5% signup rate is ruled out by this sample (P(0 of 89)
+≈ 1%); 3% is very unlikely (≈7%). **Acquisition is not the problem;
+activation is.** Buying more clicks into the same funnel buys more of
+the same result, which is the actual argument for spending the money on
+one channel instead of two.
+
+**New X ad group: `Signup — straight to /signup`,** $15/day, inside the
+existing `Traffic` campaign (42400139). Ad `Signup · Join the new wave ·
+/signup`, post id 2099627235082977321, **Active** — not halted.
+
+**Why a Traffic ad group and not a Conversions campaign.** "Run a signup
+ad" reads as *use the Conversions objective*, and that is the trap. A
+Conversions campaign optimises by finding people who resemble your
+existing converters, and the X pixel has recorded **zero** SignUp events
+ever. With no converters to learn from it guesses broadly and
+underdelivers at a high CPM — exactly how Reddit's first Conversions
+campaign died without spending. So the objective stays Traffic, which is
+demonstrably delivering, and only the **destination** changes:
+`gwuap.co` (home, then the 60s popup) vs `gwuap.co/signup` (the form).
+That is a clean A/B on the one thing actually in question — whether the
+popup detour is costing signups. If signups land, the pixel gains
+history and Conversions becomes viable *later*, in that order.
+
+**The targeting was cloned exactly, and the audience estimate proves
+it:** both ad groups read **76.8m – 87.6m**. US, any gender, all ages,
+23 Sports interests, follower look-alikes of @espn @ESPNNFL @ESPNNBA
+@ESPNCFB @MLB, no keywords, all placements, auto bid, CPM.
+
+Two traps in X's new-ad-group form, both of which recreate the halted ad:
+
+- **"Optimize targeting" defaults to ON.** It is X's auto-expansion —
+  the same mechanism as Reddit's Auto Targeting — and it was ON for the
+  ad that got Halted / appeal declined. Turn it off. X then shows a
+  green "~28% higher click-through rate with optimized targeting" nudge
+  with an **Optimize** button sitting right next to the interest list;
+  clicking it turns the thing back on.
+- **The daily budget defaults to $100.** Not inherited from the
+  campaign, and easy to save without reading.
+- Searching look-alikes for `espn` also surfaces **@ESPNBET**, and
+  `ESPNCFB` surfaces impostor accounts with 15–199 followers. Take the
+  verified account with the real follower count, and never the
+  sportsbook — betting adjacency is what got the first ad killed.
+
+**Total daily spend went down, not up:** $25 X + $20 Reddit = $45/day
+before; $25 + $15 = **$40/day** now.
+
+**Production checks worth repeating.** `gwuap.co` 307-redirects to
+`/feed`; **`/signup` returns 200 with no redirect**, so the new ad's
+destination costs no extra hop. And the 60-second popup delay (c485aae)
+is genuinely live: `6e4` appears exactly twice in the deployed modal
+chunk, matching the timer and the scroll gate, alongside the "Look
+around more" button. Grep the deployed bundle rather than trusting the
+push — note that `curl` without `-L` gets the 307 shell, whose chunk
+list does **not** contain the modal, which looks exactly like a missing
+deploy and isn't.
+
+**Still the only thing that explains 0-from-89: nobody has watched the
+PostHog session replays** of the Reddit and X visitors. Repeatedly
+deferred. Everything above is inference about *why* they leave; the
+replays are the evidence.
+
 ---
 
 
