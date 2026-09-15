@@ -62,11 +62,16 @@ export default function FirstPostModal() {
           <span className="welcome-sub">you&apos;re part of the new wave</span>
         </div>
 
-        <h2>Post your first pick today</h2>
+        <h2>Post your first pick or take today</h2>
         <p>
           Thanks for joining. The feed is worth more with you in it — and the
-          quickest way in is one post about a team you already have an opinion
-          on. It takes about a minute, and we&apos;ll walk you through it.
+          quickest way in is a <strong>take</strong>: a team and a sentence, no
+          odds, and it never touches your record. A <strong>pick</strong> is the
+          other kind, settled by the final score.
+        </p>
+        <p className="welcome-second">
+          Either takes about a minute, and the walkthrough points at each field
+          as you go.
         </p>
 
         <button type="button" className="btn welcome-cta" onClick={start}>

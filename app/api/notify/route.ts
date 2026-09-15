@@ -3,6 +3,7 @@ import { sendEmail, emailShell } from '@/lib/email'
 import { SITE_NAME, SITE_URL } from '@/lib/brand'
 import { renderDigest, type Notif, type Pick } from '@/lib/digest'
 import { renderNudge, nudgeDue, MAX_NUDGES } from '@/lib/nudge'
+import { renderFirstPost, firstPostDue, MAX_FIRST_POST_NUDGES } from '@/lib/firstPost'
 import { fetchNewsMixed } from '@/lib/news'
 import { fetchClips } from '@/lib/clips'
 
@@ -159,17 +160,22 @@ export async function GET(req: Request) {
       html: emailShell({
         heading: `You're in, @${p.username}`,
         body: `
-          <p style="margin:0 0 12px">Post a pick and the final score settles it — you
-          never grade your own, and nobody can edit a record after the fact. That's
-          the whole idea.</p>
+          <p style="margin:0 0 12px"><strong>Post your first pick or take today.</strong>
+          A take is a team and a sentence — no odds, and it never touches your record.
+          A pick is a call the final score settles, and that one counts.</p>
+          <p style="margin:0 0 12px">You never grade your own, and nothing can be
+          edited after a game starts. That's the whole idea.</p>
           <p style="margin:0 0 12px">Two things worth knowing on day one:
           picks have to be in within five minutes of the start to count, and
           five settled picks puts you on the leaderboard.</p>
           <p style="margin:0">Free, and it stays free — no deposit, no card,
           nothing at stake but your record.</p>`,
-        cta: { label: 'Post your first pick', href: `${SITE_URL}/post/new` },
+        /* The guided version, not the bare form: this is the one email
+           that reaches somebody who has never seen the composer, and it
+           opens the same walkthrough the welcome card does. */
+        cta: { label: 'Show me how', href: `${SITE_URL}/post/new?tour=1` },
       }),
-      text: `You're in, @${p.username}.\n\nPost a pick and the final score settles it. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new`,
+      text: `You're in, @${p.username}.\n\nPost your first pick or take today. A take is a team and a sentence and never touches your record; a pick is settled by the final score and counts. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new?tour=1`,
     })
     if (result.ok) {
       welcomed++
@@ -186,6 +192,76 @@ export async function GET(req: Request) {
     await pause()
   }
 
+  // ---- first post, for accounts that never started -------------
+  //
+  // A different silence from the one below. That one reads off
+  // last_seen_at and means "you haven't been here"; this one means "you
+  // have never posted", which is just as true of somebody who reads the
+  // feed every morning. Day 3, then weekly for three more, then it
+  // stops. See lib/firstPost.ts.
+  let firstPosted = 0
+  const { data: quiet } = await supabase
+    .from('profiles')
+    .select('id, username, created_at, first_post_nudge_count, email_notifications')
+    .lt('first_post_nudge_count', MAX_FIRST_POST_NUDGES)
+    .eq('is_bot', false)
+    .order('created_at', { ascending: true })
+    .limit(200)
+
+  const dueForFirst = (quiet ?? []).filter((p: any) => {
+    if (p.email_notifications === false) return false
+    const days = (Date.now() - Date.parse(p.created_at)) / 86_400_000
+    return firstPostDue(days, p.first_post_nudge_count ?? 0)
+  })
+
+  /**
+   * Which of them have in fact posted — one query for the batch rather
+   * than a count each. Anybody here is done: the campaign ends the
+   * moment somebody posts, and nothing has to be cleared for that to
+   * happen.
+   *
+   * They keep matching the query above afterwards, because their
+   * counter never reaches the cap, and are skipped every run. That is
+   * cheap at this size and would want a `has_posted` column long before
+   * it isn't.
+   */
+  const hasPosted = new Set<string>()
+  if (dueForFirst.length > 0) {
+    const { data: theirs } = await supabase
+      .from('posts').select('author_id')
+      .in('author_id', dueForFirst.map((p: any) => p.id))
+    for (const row of theirs ?? []) hasPosted.add((row as any).author_id)
+  }
+
+  for (const p of dueForFirst as any[]) {
+    if (hasPosted.has(p.id)) continue
+    const { data: found } = await supabase.auth.admin.getUserById(p.id)
+    const to = found?.user?.email
+    if (!to) { skipped++; continue }
+
+    const mail = renderFirstPost({
+      username: p.username,
+      sent: p.first_post_nudge_count ?? 0,
+    })
+    const result = await sendEmail({ to, subject: mail.subject, html: mail.html, text: mail.text })
+    if (result.ok) {
+      firstPosted++
+      // Stamped only once it has gone, same as the welcome and the
+      // come-back: a counter that runs ahead of the sending silently
+      // burns somebody's remaining emails.
+      await supabase.from('profiles')
+        .update({
+          first_post_nudged_at: new Date().toISOString(),
+          first_post_nudge_count: (p.first_post_nudge_count ?? 0) + 1,
+        })
+        .eq('id', p.id)
+    } else {
+      failed++
+      if (!errors.includes(result.error)) errors.push(result.error)
+    }
+    await pause()
+  }
+
   // ---- come back, for people who've drifted off ----------------
   //
   // Day 3, day 10, day 30, then it stops. Not daily: somebody who
@@ -195,18 +271,43 @@ export async function GET(req: Request) {
   let nudged = 0
   const { data: away } = await supabase
     .from('profiles')
-    .select('id, username, last_seen_at, nudge_count, email_notifications')
+    .select('id, username, last_seen_at, nudge_count, first_post_nudge_count, email_notifications')
     .lt('nudge_count', MAX_NUDGES)
     .not('last_seen_at', 'is', null)
     .eq('is_bot', false)
     .order('last_seen_at', { ascending: true })
     .limit(50)
 
-  const candidates = (away ?? []).filter((p: any) => {
+  const dueToComeBack = (away ?? []).filter((p: any) => {
     if (p.email_notifications === false) return false
     const days = (Date.now() - Date.parse(p.last_seen_at)) / 86_400_000
     return nudgeDue(days, p.nudge_count ?? 0)
   })
+
+  /**
+   * One campaign at a time per person.
+   *
+   * Somebody who signed up last week, never posted and hasn't been back
+   * qualifies for both of these, and would get two emails on overlapping
+   * schedules — from the same domain, about the same site, days apart.
+   * The first-post one is the better fit for them, so while it is still
+   * running the come-back one stands down.
+   *
+   * It stands down rather than being cancelled: once those four are
+   * spent, an account that still hasn't posted becomes an ordinary
+   * lapsed member and the come-back schedule picks it up.
+   */
+  const stillBeingAsked = (dueToComeBack as any[])
+    .filter(p => (p.first_post_nudge_count ?? 0) < MAX_FIRST_POST_NUDGES)
+    .map(p => p.id)
+  const everPosted = new Set<string>()
+  if (stillBeingAsked.length > 0) {
+    const { data: theirs } = await supabase
+      .from('posts').select('author_id').in('author_id', stillBeingAsked)
+    for (const row of theirs ?? []) everPosted.add((row as any).author_id)
+  }
+  const candidates = (dueToComeBack as any[]).filter(p =>
+    (p.first_post_nudge_count ?? 0) >= MAX_FIRST_POST_NUDGES || everPosted.has(p.id))
 
   if (candidates.length > 0) {
     // Fetched once for everybody rather than per recipient — the news and
@@ -263,7 +364,7 @@ export async function GET(req: Request) {
   }
 
   return Response.json({
-    digests: sent, welcomed, nudged, skipped, failed,
+    digests: sent, welcomed, firstPost: firstPosted, nudged, skipped, failed,
     considered: pending.length,
     // Named, so a failing run says why instead of just counting.
     errors: errors.slice(0, 3),

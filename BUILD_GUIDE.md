@@ -4509,6 +4509,81 @@ and the thing it points at drift apart the moment they live in two files.
 **Not done:** the tour was verified in the harness, not on the real form —
 that needs a signed-in session. Worth walking once after this deploys.
 
+### The first-post ask, by email too (15 Sep 2026)
+
+**MIGRATION 055 MUST RUN BEFORE THIS DEPLOYS** —
+`profiles.first_post_nudge_count` and `first_post_nudged_at`. Without
+them the notifier's new query errors and the whole hourly run, digests
+and welcomes included, returns 500.
+
+Three changes, all around the same ask.
+
+**The welcome email now names both kinds and opens the walkthrough.** It
+led with "Post a pick and the final score settles it" and its button went
+to a bare `/post/new` — a form with a league, a bet type and a cashtag on
+it, shown to somebody who has never seen a composer. It now says *post
+your first pick or take today*, explains the difference in one sentence,
+and the button is **Show me how** pointing at `/post/new?tour=1`, the same
+walkthrough the in-app welcome card opens.
+
+**A second campaign: `lib/firstPost.ts`.** Day 3, then weekly for three
+more, then it stops — four in total.
+
+**Why not reuse the come-back nudge.** 047's `nudge_count` is driven by
+`last_seen_at` and means *you haven't been here*. That is the wrong
+sentence for somebody who reads the feed every morning and has never
+posted, and they'd never qualify for it anyway because they aren't
+absent. Two counters rather than one, so a come-back email can't silently
+consume a first-post slot and the numbers stay readable afterwards.
+
+**Why it ends.** Josh asked for "maybe once a week", ongoing. It stops at
+four deliberately, and the reason isn't timidity: unlimited weekly mail to
+somebody who has ignored every previous one is how a young sending domain
+gets marked spam, and that reputation is shared with the confirmation
+links and the graded-pick notifications — mail people actually want. The
+fourth says it is the last, so nobody has to guess or unsubscribe to make
+it stop.
+
+**Four different angles, not one email four times.** Easiest-first (start
+with a take), then the product's actual argument (nobody grades their
+own), then the leaderboard at five settled picks, then the sign-off.
+Identical repeats are both a spam signal and an admission there was only
+ever one thing to say.
+
+**One campaign at a time per person.** Somebody who signed up last week,
+never posted and hasn't been back qualifies for *both* schedules and would
+get two emails days apart from the same domain about the same site. While
+the first-post campaign is still running, the come-back one stands down —
+stands down, not cancelled: once those four are spent an account that
+still hasn't posted becomes an ordinary lapsed member and 047's schedule
+picks it up.
+
+**It self-cleans.** The campaign ends the moment somebody posts, with no
+flag to clear — the send loop skips anyone the batch `posts` query says
+has posted. They do keep matching the candidate query forever, since their
+counter never reaches the cap, and get skipped each run. Cheap at nine
+accounts; wants a `has_posted` column long before it isn't.
+
+No schedule change: `/api/notify` runs hourly on **GitHub Actions at :47**
+(Hobby refuses sub-daily Vercel crons), so the new campaign is picked up
+by the job that already exists. `vercel.json` still only holds
+`/api/grade`.
+
+**The grant is deliberately untouched.** Both new columns are the
+notifier's bookkeeping, written with the service role, which bypasses
+column privileges — and an account that could reset its own counter could
+ask for the same email as often as it liked. 055 revokes `select` on them
+from `anon` and restates nothing, because the safest edit to a grant you
+are not changing is no edit at all. `lib/grants.test.ts` still passes on
+the eight-column list from 054.
+
+**The tour already covered takes.** Worth stating plainly because it was
+asked for: there is one composer with a Take/Pick switch, so there is one
+walkthrough, and it drops the steps that don't apply — *Step 1 of 5* on
+Take, *of 6* on Pick. What was missing was only that every piece of copy
+said "pick", so the welcome card now says **pick or take** and names the
+difference.
+
 ---
 
 
