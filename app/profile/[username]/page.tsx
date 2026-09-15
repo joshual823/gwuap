@@ -30,9 +30,16 @@ export default async function ProfilePage(props: { params: Promise<{ username: s
   // column into that query means the whole thing fails until the migration
   // runs, and since it gates notFound(), every profile on the site would
   // 404. An error here just leaves the picker empty.
-  const { data: prefRow } = await supabase
-    .from('profiles').select('preferred_leagues, email_notifications')
-    .eq('id', profile.id).maybeSingle()
+  //
+  // Only for the owner, and not merely to save a query: both values feed
+  // the edit form below, which renders for nobody else, and leaving them
+  // readable by everybody is what kept `email_notifications` in the
+  // grant `anon` holds. See 056.
+  const { data: prefRow } = user?.id === profile.id
+    ? await supabase
+        .from('profiles').select('preferred_leagues, email_notifications')
+        .eq('id', profile.id).maybeSingle()
+    : { data: null }
   const preferredLeagues = (prefRow?.preferred_leagues as string[] | null) ?? null
   // Undefined before 039 has run, which reads as "on" — the same as the
   // column's default, so the toggle is never wrong for long.

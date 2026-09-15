@@ -4584,6 +4584,75 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### Three migrations' worth of revokes that never did anything (15 Sep 2026)
+
+**MIGRATION 056 MUST RUN** — and unlike most, this one is a live data
+leak rather than a missing feature.
+
+Verifying that 055 had landed, the check was "the notifier's columns
+exist but `anon` can't read them". The first half passed. The second half
+failed, and so did every version of it going back to 040:
+
+    curl "$SUPABASE_URL/rest/v1/profiles?select=last_seen_at&limit=1" \
+         -H "apikey: $ANON_KEY"
+    -> [{"last_seen_at":"2026-09-13T13:36:48.773+00:00"}]
+
+Every column on `profiles` was readable with the public anon key —
+`is_admin`, `last_seen_at`, `nudge_count`, all of it. **The anon key
+ships inside the JavaScript bundle**, so that is not "an authenticated
+user could see it", it is the open internet.
+
+**Why three separate migrations failed silently.** 040 wrote `revoke
+select (is_admin) … from anon`. 047 did the same for `last_seen_at`,
+`nudged_at`, `nudge_count`. 055 did it for the two first_post columns.
+A column-level REVOKE only removes *column-level* grants — it cannot
+subtract from a **table-level** grant, and `grant select on profiles to
+anon` was in force the whole time, covering every column and every column
+added later. Postgres accepts the narrower statement and changes nothing.
+No error, no warning, three times.
+
+**The fix, in 056:** drop the table grant, hand back the nine columns the
+logged-out site actually reads, by name. Anything added to `profiles`
+after this is private to anon until a migration says otherwise — the
+right default, and the opposite of the one we had.
+
+The nine were **audited, not guessed**, by walking every
+`from('profiles')` and every embedded `profiles!fk ( … )` in `app/`,
+`components/` and `lib/`: `id, username, display_name, avatar_url, bio,
+badges, created_at, is_bot, is_banned`. A SELECT naming one forbidden
+column fails *whole* — the 039 rule again — so being short by one would
+have shown up as a broken feed rather than a missing field. `is_banned`
+in particular is easy to miss and is in the feed's author join.
+
+**One code change had to land with it.** The profile page read
+`preferred_leagues, email_notifications` for *every* visitor, though both
+only feed the edit form, which renders for nobody but the owner. That
+single query was the reason `email_notifications` would otherwise have
+had to stay public. It is now gated on `user?.id === profile.id`. Grant
+and code had to move together.
+
+**`authenticated` was deliberately left alone**, and the migration says
+so rather than leaving it to look like an oversight. A signed-in member
+can still read another member's `last_seen_at`. That is a real but much
+smaller hole — it needs an account — and closing it properly wants a view
+or an RLS column policy, because `authenticated` legitimately reads its
+*own* settings from this table. Guessing which of a dozen signed-in reads
+names which column, with whole-query failure as the penalty, did not
+belong in the same migration as the fix that mattered.
+
+**The lasting part is the test.** `lib/grants.test.ts` now asserts the
+table-level grant to anon has been dropped somewhere in the migration
+history, which is the thing that makes every narrow revoke in 040, 047
+and 055 mean anything. Confirmed it fails with 056 removed — a guard that
+cannot fail is worse than none.
+
+**The method worth keeping.** This was found by checking the *effect*
+rather than the *statement*: reading a supposedly-private column back
+with the key an attacker would use. "The migration ran without error" and
+"the migration did what it said" are different claims, and for grants
+they came apart three times in a row. Migrations that change permissions
+get verified from the outside, with curl, from then on.
+
 ---
 
 

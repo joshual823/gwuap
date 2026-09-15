@@ -1,0 +1,94 @@
+-- ============================================================
+-- SESSION 21 — The column revokes never did anything
+-- Run this once in the Supabase SQL editor. Safe to re-run.
+--
+-- 040 revoked `is_admin` from anon. 047 revoked `last_seen_at`,
+-- `nudged_at` and `nudge_count`. 055 revoked the two first_post columns.
+-- All five statements ran without error and **none of them did
+-- anything**. Checked from the browser with the public anon key on
+-- 15 Sep 2026:
+--
+--   select last_seen_at from profiles limit 1;
+--   -> [{"last_seen_at":"2026-09-13T13:36:48.773+00:00"}]
+--
+-- Every column on the table was readable, including is_admin.
+--
+-- **Why.** A column-level REVOKE only removes column-level grants. It
+-- cannot subtract from a *table-level* grant, and `profiles` has one:
+-- `grant select on profiles to anon` covers every column there is and
+-- every column added later. Postgres accepts the narrower revoke and
+-- changes nothing, which is why this failed silently three times.
+--
+-- The only thing that works is to drop the table-level grant and hand
+-- back the columns that should be public, by name.
+--
+-- Anything added to `profiles` after this is private to anon until a
+-- migration says otherwise. That is the right default and the opposite
+-- of the one we had.
+-- ============================================================
+
+-- ---- what the logged-out site actually reads -------------------
+-- Audited by walking every `from('profiles')` and every embedded
+-- `profiles!fk ( … )` in app/, components/ and lib/:
+--
+--   id, username, display_name, avatar_url, bio  -- profile header, search,
+--                                                   follow lists, post author
+--   badges                                       -- founding badge
+--   created_at                                   -- "member since"
+--   is_bot                                       -- labels the house account
+--   is_banned                                    -- the feed and search filter on it
+--
+-- Everything else is read only after `getUser()` with `.eq('id', user.id)`,
+-- or by the notifier with the service role, which ignores grants entirely.
+--
+-- A SELECT naming one forbidden column fails *whole* — the same rule that
+-- took the edit form down in 039 — so this list being short by one would
+-- show up as a broken page, not as a missing field. It was checked
+-- against the code rather than guessed.
+revoke select on public.profiles from anon;
+grant select (
+  id, username, display_name, avatar_url, bio,
+  badges, created_at, is_bot, is_banned
+) on public.profiles to anon;
+
+-- `preferred_leagues` and `email_notifications` are deliberately NOT in
+-- that list. The profile page used to read them for every visitor, which
+-- is the one thing that would have broken here; it now reads them only
+-- when the viewer is the owner, because they feed the edit form and
+-- nothing else. Code and grant have to land together.
+
+-- ---- authenticated is a separate question ----------------------
+-- Left alone on purpose, and worth being explicit that this is a
+-- decision rather than an oversight.
+--
+-- A signed-in member can still read another member's `last_seen_at`.
+-- That is a smaller hole than the anon one — the anon key ships inside
+-- the JavaScript bundle, so "anon can read it" means "the internet can
+-- read it", whereas this needs an account — and closing it properly
+-- wants a view or an RLS column policy rather than a grant, because
+-- `authenticated` legitimately reads its *own* settings from this table.
+--
+-- Doing it here would mean guessing which of a dozen signed-in reads
+-- names which column, with a whole-query failure as the penalty for
+-- getting one wrong. Worth doing; not worth doing blind in the same
+-- migration as the fix that matters.
+
+-- ---------------------------------------------------------------
+-- Check it. This is the check that was missing for three migrations —
+-- run it against the live database, not against the SQL:
+--
+--   select column_name from information_schema.column_privileges
+--    where table_name = 'profiles' and grantee = 'anon'
+--      and privilege_type = 'SELECT' order by column_name;
+--   -- expect exactly nine: avatar_url, badges, bio, created_at,
+--   -- display_name, id, is_banned, is_bot, username
+--
+-- Then, from a signed-out browser, confirm the leak is closed:
+--
+--   curl "$SUPABASE_URL/rest/v1/profiles?select=last_seen_at&limit=1" \
+--        -H "apikey: $ANON_KEY"
+--   -- expect 42501 permission denied, NOT a timestamp.
+--
+-- And confirm nothing public broke: open the feed, a profile, search and
+-- a squad page while signed out. All four read this table.
+-- ---------------------------------------------------------------

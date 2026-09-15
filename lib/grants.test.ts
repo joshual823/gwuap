@@ -72,6 +72,50 @@ for (const col of written) {
   check(`${col} is granted`, granted.includes(col), true)
 }
 
+/**
+ * A column-level REVOKE cannot subtract from a table-level GRANT.
+ *
+ * 040, 047 and 055 each wrote `revoke select (col) on profiles from
+ * anon`, each ran without error, and none of them did anything —
+ * `grant select on profiles to anon` was still in force and covers every
+ * column, including ones added afterwards. It was only caught by reading
+ * a supposedly-private column back with the public anon key.
+ *
+ * So: a narrow revoke is only meaningful if the broad grant it is trying
+ * to carve into has been dropped first, somewhere in the migration
+ * history. This checks the SQL says something true, not that the
+ * database agrees — running it is still on you.
+ */
+function anonSelectIsRestricted(): { revokesColumns: boolean; revokesTable: boolean } {
+  const files = [
+    'supabase/schema.sql',
+    ...readdirSync(new URL('supabase/migrations', root))
+      .filter(f => f.endsWith('.sql')).sort()
+      .map(f => `supabase/migrations/${f}`),
+  ]
+  let revokesColumns = false, revokesTable = false
+  for (const f of files) {
+    const live = read(f).split('\n').filter(l => !l.trimStart().startsWith('--')).join('\n')
+    if (/revoke\s+select\s*\([^)]*\)\s*(?:\n\s*)?on\s+(?:public\.)?profiles\s+from\s+anon/gi.test(live)) {
+      revokesColumns = true
+    }
+    if (/revoke\s+select\s+on\s+(?:public\.)?profiles\s+from\s+anon/gi.test(live)) {
+      revokesTable = true
+    }
+  }
+  return { revokesColumns, revokesTable }
+}
+
+console.log('\nanon cannot read what it is not meant to read')
+const anon = anonSelectIsRestricted()
+check('the table-level grant to anon has been dropped', anon.revokesTable, true)
+if (anon.revokesColumns) {
+  // Not a failure by itself — 040/047/055 are history and stay as
+  // written — but it is only harmless because 056 dropped the table
+  // grant. Without that they are decoration.
+  check('…which is what makes the older column revokes mean anything', anon.revokesTable, true)
+}
+
 console.log('\ngranted:', granted.join(', '))
 console.log('written:', written.join(', '))
 
