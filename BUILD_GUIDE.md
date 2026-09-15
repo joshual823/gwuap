@@ -4676,6 +4676,31 @@ with the space *inside* the tag — which is why a naive regex for this
 reports it as a fourth bug and is wrong. Any check here needs to ask
 whether the adjacent tag already carries the space.
 
+### The Pick path, walked (15 Sep 2026)
+
+The clamp holds: switching Take to Pick on step 5 renumbers to 8 of 8,
+re-centres the submit button, and the card stays fully on screen with
+Back, Next and Close all reachable — the case that was completely stuck
+an hour earlier. Stepping back through the three pick-only cards, each
+lands on the right field: pick type on the chip row, league on the
+select, odds on the "+ Add odds and an amount" block. The form itself
+switches correctly too — Neutral disappears from Which way for a pick,
+which is `directionsFor` doing what it says.
+
+**One thing the walk found: the ring reached into empty space.** The
+pick-type chips live in a horizontally scrolling row, and `outerRect`
+unions the target with its descendants — including the chips scrolled out
+of sight. They really are at those coordinates; they are just clipped by a
+parent the union knows nothing about, so the ring ran off past the edge of
+the content column.
+
+Fixed by making the union **vertical only**. The width is the target's
+own, always. Nothing needs to escape sideways: the single reason this
+function exists is a suggestion list, and that is exactly as wide as the
+field it hangs under. Verified both ways at once in a harness — a
+scrolling chip row that must not stretch the ring, and a real
+`CashtagInput` whose open list must.
+
 ### The second walk: a card nobody could press (15 Sep 2026)
 
 Everything from the first walk held — the dropdown is no longer hidden

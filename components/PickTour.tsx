@@ -44,25 +44,33 @@ type Frame = {
  * the step doing this says *choose from the list*. Found by walking the
  * real form; the harness had no dropdown to hide.
  *
- * So the box is the union of the target and every descendant, which for
- * ordinary children is the target unchanged and for an open dropdown is
- * the field plus its list. Rect maths only, no `getComputedStyle`, and
- * clamped to the viewport so nothing off-screen can drag the ring with
- * it.
+ * So the height is the union of the target and every descendant, which
+ * for ordinary children is the target unchanged and for an open dropdown
+ * is the field plus its list.
+ *
+ * **Vertically only.** The width stays the target's own. The pick-type
+ * chips sit in a horizontally scrolling row, so unioning across them drew
+ * a ring reaching off past the edge of the content column and into empty
+ * space — the chips are really there, they are just clipped by a parent
+ * the union knows nothing about. Nothing needs to escape sideways:
+ * the one thing this exists for, a suggestion list, is exactly as wide as
+ * the field it hangs under.
+ *
+ * Rect maths only, no `getComputedStyle`, and clamped to the viewport so
+ * nothing off-screen can drag the ring with it.
  */
 function outerRect(el: HTMLElement, vw: number, vh: number) {
   const r = el.getBoundingClientRect()
-  let { top, left, right, bottom } = r
+  let { top, bottom } = r
   for (const child of el.querySelectorAll<HTMLElement>('*')) {
     const c = child.getBoundingClientRect()
     if (c.width === 0 || c.height === 0) continue
     if (c.top < top) top = c.top
-    if (c.left < left) left = c.left
-    if (c.right > right) right = c.right
     if (c.bottom > bottom) bottom = c.bottom
   }
-  top = Math.max(top, 0); left = Math.max(left, 0)
-  right = Math.min(right, vw); bottom = Math.min(bottom, vh)
+  const left = Math.max(r.left, 0)
+  const right = Math.min(r.right, vw)
+  top = Math.max(top, 0); bottom = Math.min(bottom, vh)
   return { top, left, right, bottom, width: right - left, height: bottom - top }
 }
 
