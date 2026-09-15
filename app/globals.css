@@ -306,6 +306,35 @@ a { color: inherit; text-decoration: none; }
   padding: 8px 15px; border-radius: 999px;
 }
 
+/* Where-to-watch, on the Live page. The stream is half the answer; the
+   other half is the tour's own site, which is where most free tennis
+   actually is — the ITF streams hundreds of matches a week and puts none
+   of them on YouTube. */
+.wr-empty {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 18px 16px; margin-bottom: 10px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.wr-empty strong { font-size: 14.5px; color: var(--ink); }
+.wr-empty span { font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+.wr-official {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 13px 16px; margin-bottom: 12px;
+  background: var(--tint-brand, rgba(0, 200, 5, 0.08));
+  border: 1px solid var(--edge-brand, rgba(0, 200, 5, 0.3));
+  border-radius: 12px;
+  font-size: 15px; font-weight: 700; color: var(--brand);
+}
+.wr-official span {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.wr-live-soon { margin-left: 6px; font-weight: 600; color: var(--ink-faint); }
+.wr-live-when {
+  display: block; margin-top: 2px;
+  font-size: 12px; font-weight: 600; color: var(--ink-faint);
+}
+
 .oauth-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; }
 /* A rule with a word in it, so the two ways in read as alternatives
    rather than as a list. */

@@ -17,20 +17,21 @@
  * whose streaming rights are sold; what's free is the tier below it.
  */
 /**
- * Whether the Live room is open to the public.
+ * Whether the Live room is open to the public. Opened 15 Sep 2026.
  *
- * Off until there's a YOUTUBE_API_KEY in Vercel. Without one the room
- * can only show "whatever is live on this channel", which is an offline
- * card most of the time — and an offline player is a worse first
- * impression than no room at all, particularly for someone arriving
- * from an ad.
+ * It waited on a YOUTUBE_API_KEY, and on the room being worth arriving
+ * at. Both are settled: the key is in Vercel, and the page no longer
+ * depends on something being live to be useful — every feed now names
+ * where the tour streams it itself, which is the answer most of the
+ * time. The ITF alone streams hundreds of matches a week and none of
+ * them to YouTube.
  *
- * Flip to true and push. Nothing else needs changing: the tab reappears,
- * the route opens, and the noindex comes off. Admins can already see
- * /live while this is false, so it can be checked on the real site
- * before anyone else is let in.
+ * That is also what it is for. People ask "where can I watch this
+ * match?" — on Polymarket, in group chats — and the honest answer for
+ * the Challenger and ITF tiers is "free, here". Being the page that says
+ * so is worth more traffic than a player that is dark half the day.
  */
-export const LIVE_ROOM_PUBLIC = false
+export const LIVE_ROOM_PUBLIC = true
 
 export type WatchFeed = {
   key: string
@@ -39,7 +40,22 @@ export type WatchFeed = {
   sport: string
   name: string
   blurb: string
-  channel: string
+  /**
+   * The tour's own YouTube channel, when it has one worth watching.
+   *
+   * Optional, because the honest answer for some tours is a link. The
+   * ITF's channel has **two videos on it** — their streaming lives on
+   * itftennis.com and nowhere else — so pointing a player at it showed
+   * an empty stage and called it a feature.
+   */
+  channel?: string
+  /**
+   * Where the tour streams it themselves, which is the answer to the
+   * question this page exists for. `account` is the thing worth warning
+   * about up front: itftennis.com asks for nothing, the other two make
+   * you sign up before you can watch a free match.
+   */
+  official: { label: string; href: string; account: boolean }
 }
 
 /**
@@ -55,18 +71,27 @@ export type WatchFeed = {
  */
 export const WATCH_FEEDS: WatchFeed[] = [
   {
-    key: 'challenger',
-    sport: 'Tennis',
-    name: 'ATP Challenger',
-    blurb: 'One rung below the main tour, streamed free by the ATP. A court feed runs all day, so it moves from match to match.',
-    channel: 'UCT12ocLoA-sqRfs12yQM2Bg',
-  },
-  {
     key: 'itf',
     sport: 'Tennis',
     name: 'ITF World Tennis',
-    blurb: 'The World Tennis Tour, where nearly every professional starts. Coverage is thinner and comes and goes with the calendar.',
-    channel: 'UC5WdeJGV1zSUtBFpg186zZg',
+    blurb: 'The World Tennis Tour, where nearly every professional starts. Hundreds of matches a week, streamed free by the ITF with no account at all.',
+    // No channel on purpose. @OfficialITFTennis has two videos.
+    official: { label: 'itftennis.com', href: 'https://www.itftennis.com/en/live-stream/', account: false },
+  },
+  {
+    key: 'challenger',
+    sport: 'Tennis',
+    name: 'ATP Challenger',
+    blurb: 'One rung below the main tour. The ATP streams it free — some of it to YouTube, the rest on their own site.',
+    channel: 'UCT12ocLoA-sqRfs12yQM2Bg',
+    official: { label: 'atptour.com', href: 'https://www.atptour.com/en/atp-challenger-tour', account: true },
+  },
+  {
+    key: 'wta',
+    sport: 'Tennis',
+    name: 'WTA',
+    blurb: 'The main women\u2019s tour. Free to watch in a lot of the world once you have an account, though what you get depends on where you are \u2014 the rights are sold country by country.',
+    official: { label: 'wtatennis.com', href: 'https://www.wtatennis.com/tv', account: true },
   },
   {
     key: 'wtt',
@@ -74,6 +99,7 @@ export const WATCH_FEEDS: WatchFeed[] = [
     name: 'World Table Tennis',
     blurb: 'WTT streams its Contender and Star Contender events free, table by table, and runs most weeks of the year.',
     channel: 'UC9ckyA_A3MfXUa0ttxMoIZw',
+    official: { label: 'worldtabletennis.com', href: 'https://worldtabletennis.com/', account: true },
   },
 ]
 
@@ -101,9 +127,14 @@ export function roomKeyFor(feed: WatchFeed): string {
   return `watch:${feed.key}`
 }
 
-export function embedSrcFor(feed: WatchFeed): string {
-  return `https://www.youtube.com/embed/live_stream?channel=${feed.channel}`
-}
+/*
+ * `embed/live_stream?channel=…` used to live here and has been removed.
+ * YouTube retired that form: it answers their own oEmbed endpoint with a
+ * 404 and renders "Video player configuration error — Error 153" in the
+ * player. It was the fallback for "no API key or nothing named", so the
+ * room's default state was a broken player rather than the offline card
+ * this file assumed. Only ever embed a specific video id.
+ */
 
 /**
  * Human label for a chat room key, for the moderation queue. Game rooms
@@ -143,6 +174,10 @@ export type LiveVideo = {
   id: string
   title: string
   thumbnail: string | null
+  /** 'live' now, or scheduled and not started yet. */
+  state: 'live' | 'upcoming'
+  /** When an upcoming broadcast is due, ISO, if YouTube said. */
+  startsAt: string | null
 }
 
 /**
@@ -154,11 +189,22 @@ export function uploadsPlaylistFor(channelId: string): string {
   return `UU${channelId.slice(2)}`
 }
 
-/** Pull the live ones out of a videos.list response. Pure, so it's tested. */
+/**
+ * Pull the live and the scheduled ones out of a videos.list response.
+ * Pure, so it's tested.
+ *
+ * Upcoming used to be filtered out. It is the more useful half for the
+ * question this page answers — somebody asking where to watch a match
+ * is usually asking before it starts, not during — so both come back,
+ * live first, and the page says which is which.
+ */
 export function parseLiveVideos(videosJson: any): LiveVideo[] {
   const items = Array.isArray(videosJson?.items) ? videosJson.items : []
-  return items
-    .filter((v: any) => v?.snippet?.liveBroadcastContent === 'live')
+  const out: LiveVideo[] = items
+    .filter((v: any) => {
+      const s = v?.snippet?.liveBroadcastContent
+      return s === 'live' || s === 'upcoming'
+    })
     .map((v: any) => ({
       id: String(v.id ?? ''),
       title: String(v.snippet?.title ?? 'Untitled'),
@@ -166,13 +212,21 @@ export function parseLiveVideos(videosJson: any): LiveVideo[] {
         v.snippet?.thumbnails?.medium?.url ??
         v.snippet?.thumbnails?.default?.url ??
         null,
+      state: (v.snippet?.liveBroadcastContent === 'live' ? 'live' : 'upcoming') as 'live' | 'upcoming',
+      startsAt: v.liveStreamingDetails?.scheduledStartTime ?? null,
     }))
     .filter((v: LiveVideo) => v.id !== '')
+  // Live first; scheduled after it, earliest first.
+  return out.sort((a, b) => {
+    if (a.state !== b.state) return a.state === 'live' ? -1 : 1
+    return (a.startsAt ?? '').localeCompare(b.startsAt ?? '')
+  })
 }
 
 export async function fetchLive(feed: WatchFeed): Promise<LiveVideo[]> {
   const key = process.env.YOUTUBE_API_KEY
-  if (!key) return []
+  // A feed that streams on its own site has nothing to ask YouTube about.
+  if (!feed.channel || !key) return []
 
   const get = async (url: string) => {
     const res = await fetch(url, { next: { revalidate: 120 } })
@@ -192,7 +246,9 @@ export async function fetchLive(feed: WatchFeed): Promise<LiveVideo[]> {
 
     const videos = await get(
       'https://www.googleapis.com/youtube/v3/videos' +
-      `?part=snippet&id=${ids.join(',')}&key=${key}`,
+      // liveStreamingDetails is what carries the scheduled start. Still
+      // one unit: quota is per call, not per part.
+      `?part=snippet,liveStreamingDetails&id=${ids.join(',')}&key=${key}`,
     )
     return parseLiveVideos(videos)
   } catch {

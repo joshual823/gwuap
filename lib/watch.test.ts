@@ -25,14 +25,35 @@ const sample = {
   ],
 }
 const parsed = parseLiveVideos(sample)
-check('two of four are live', parsed.length, 2)
+check('three of four are live or scheduled', parsed.length, 3)
 check('finished video excluded', parsed.some(v => v.id === 'bbb'), false)
-// An upcoming stream is not watchable yet. Listing it gives someone a
-// player that shows a countdown, which reads as broken.
-check('upcoming excluded', parsed.some(v => v.id === 'ccc'), false)
+// Upcoming is now kept. It used to be dropped because embedding one
+// shows a countdown and reads as broken — which is still true, so the
+// page only ever embeds a video whose state is 'live' and lists the
+// rest with their start time. Somebody asking where to watch a match is
+// usually asking before it starts, so dropping them answered the
+// question only while it was too late to be useful.
+check('upcoming kept', parsed.some(v => v.id === 'ccc'), true)
+check('and marked as upcoming', parsed.find(v => v.id === 'ccc')?.state, 'upcoming')
+check('live is marked live', parsed.find(v => v.id === 'aaa')?.state, 'live')
+// Live first, so the page's default selection is always watchable.
+check('live sorts above scheduled', parsed.map(v => v.id), ['aaa', 'ddd', 'ccc'])
 check('title carried through', parsed[0].title, 'Court 1 — live')
 check('thumbnail carried', parsed[0].thumbnail, 'https://i.ytimg.com/a.jpg')
 check('missing thumbnail is null', parsed[1].thumbnail, null)
+check('scheduled time carried', parseLiveVideos({ items: [
+  { id: 'eee', snippet: { title: 'Later', liveBroadcastContent: 'upcoming' },
+    liveStreamingDetails: { scheduledStartTime: '2026-09-16T13:00:00Z' } },
+] })[0].startsAt, '2026-09-16T13:00:00Z')
+
+console.log('\nevery feed says where the tour streams it itself')
+for (const f of WATCH_FEEDS) {
+  check(`${f.key} has an official link`, /^https:\/\//.test(f.official.href), true)
+}
+// The ITF is the whole reason `channel` is optional: their YouTube has
+// two videos on it and their streaming is all on itftennis.com.
+check('the ITF is a link, not a player', WATCH_FEEDS.find(f => f.key === 'itf')?.channel, undefined)
+check('and asks for no account', WATCH_FEEDS.find(f => f.key === 'itf')?.official.account, false)
 
 console.log('\na broken response is an empty list, never a throw')
 check('no items key', parseLiveVideos({}), [])

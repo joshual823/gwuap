@@ -4806,6 +4806,49 @@ empty `?`.
 hardcode their own path. They are correct today because none of them
 reads a query parameter; each becomes this bug the day one does.
 
+### "Where can I watch this match?" (15 Sep 2026)
+
+The Live room existed to embed a stream. That was the wrong shape, and
+the reason came from Josh: people on Polymarket ask *where can I watch
+this match*, and for the Challenger and ITF tiers the answer is "free,
+here". **The value is being the page that answers the question**, not
+hosting the video. The room is now a where-to-watch directory that
+happens to embed a player when there is one.
+
+Three things were wrong with the old version, and only checking found
+them:
+
+**The fallback embed was dead.** `embed/live_stream?channel=…` answers
+YouTube's own oEmbed with a 404 and renders "Video player configuration
+error — Error 153". It was the fallback for no key or nothing named, so
+the room's *default* state was a broken player rather than the offline
+card the code assumed. Removed; only a specific video id is ever
+embedded now, and the empty state is written rather than delegated.
+
+**The ITF feed pointed at a dead channel.** @OfficialITFTennis has
+**two videos**. The ITF streams hundreds of matches a week and puts none
+of them on YouTube — it is all on itftennis.com, free, no account. So
+`channel` is optional now and the ITF is a link, which is the honest
+answer and the most useful one on the page.
+
+**Upcoming was filtered out.** Somebody asking where to watch a match is
+usually asking *before* it starts, so dropping scheduled broadcasts
+answered the question only once it was too late. They are kept and
+labelled with a start time; the stage still only embeds `state ===
+'live'`, which is what the old comment was actually protecting against.
+
+**ESPN cannot help here, checked rather than assumed.** `atp` and `wta`
+return events; `atp-challenger`, `challenger` and `itf` all 400. The
+free tier has no scoreboard feed, which is why this is a directory of
+tours rather than a list of fixtures. A per-match page — the thing that
+would rank for "X vs Y where to watch" — needs a schedule source that
+does not exist yet. Worth revisiting if one turns up.
+
+`LIVE_ROOM_PUBLIC` is true. It waited on a key, which arrived, and on
+the page being worth arriving at, which is what changed: every feed now
+names where the tour streams it itself and whether an account is wanted
+first, so the page is useful when nothing at all is playing.
+
 ### Presence out of profiles (15 Sep 2026)
 
 **PUSH FIRST, THEN RUN MIGRATION 057 — the reverse of the usual order.**

@@ -4,7 +4,7 @@ import GameChat from '@/components/GameChat'
 import { createClient } from '@/lib/supabaseServer'
 import LivePicker from '@/components/LivePicker'
 import { notFound } from 'next/navigation'
-import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor, embedSrcFor,
+import { WATCH_FEEDS, feedsBySport, feedFor, roomKeyFor,
          fetchLive, embedSrcForVideo, LIVE_ROOM_PUBLIC } from '@/lib/watch'
 
 export const metadata = {
@@ -75,7 +75,7 @@ export default async function LivePage(props: {
         </p>
       )}
       <p className="wr-sub">
-        Free, official, and running most days. No account needed to watch.
+        Where to watch tennis for free, and who wants an account first.
       </p>
 
       {/* Grouped by sport rather than one long row, because the row is
@@ -97,15 +97,38 @@ export default async function LivePage(props: {
         </div>
       ))}
 
-      <div className="wr-stage">
-        <iframe
-          className="wr-frame"
-          src={selected ? embedSrcForVideo(selected.id) : embedSrcFor(feed)}
-          title={selected ? selected.title : `${feed.name} live stream`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
+      {/* Only ever a specific video id. There used to be a channel-level
+          fallback here for "nothing named"; YouTube retired that form and
+          it rendered an error card, so the honest empty state below took
+          its place. */}
+      {selected && selected.state === 'live' ? (
+        <div className="wr-stage">
+          <iframe
+            className="wr-frame"
+            src={embedSrcForVideo(selected.id)}
+            title={selected.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <div className="wr-empty">
+          <strong>Nothing on YouTube from {feed.name} right now.</strong>
+          <span>
+            {feed.official.account
+              ? `Their own stream is free, but ${feed.official.label} asks you to make an account first.`
+              : `Their own stream is free and asks for no account.`}
+          </span>
+        </div>
+      )}
+
+      {/* The answer to the question, on every feed, whether or not
+          anything is playing above. */}
+      <a className="wr-official" href={feed.official.href}
+         target="_blank" rel="noopener noreferrer">
+        Watch free on {feed.official.label}
+        <span>{feed.official.account ? 'Free — account required' : 'Free — no account'}</span>
+      </a>
 
       {selected && <p className="wr-now">{selected.title}</p>}
 
@@ -113,13 +136,7 @@ export default async function LivePage(props: {
         <LivePicker videos={live} feedKey={feed.key} selectedId={selected?.id ?? ''} />
       )}
 
-      <p className="wr-note">
-        {feed.blurb}{' '}
-        {/* The player says "offline" itself when nothing is live, and says
-            so in the viewer's language. Repeating it here in our own words
-            would only be wrong half the time. */}
-        If the player is dark, nothing is on this feed right now.
-      </p>
+      <p className="wr-note">{feed.blurb}</p>
 
       <h2 className="wr-chat-head">Courtside</h2>
       <GameChat gameKey={roomKeyFor(feed)} viewerId={user?.id ?? null} />

@@ -16,6 +16,8 @@ export default function LivePicker({ videos, feedKey, selectedId }: {
   selectedId: string
 }) {
   const [query, setQuery] = useState('')
+  const liveCount = videos.filter(v => v.state === 'live').length
+  const soonCount = videos.length - liveCount
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -26,9 +28,12 @@ export default function LivePicker({ videos, feedKey, selectedId }: {
   return (
     <div className="wr-live">
       <div className="wr-live-head">
+        {/* "N live now" was a lie the moment scheduled broadcasts joined
+            the list. Count them separately and say both. */}
         <span className="wr-live-count">
-          <span className="live-dot" />
-          {videos.length} live now
+          {liveCount > 0 && <span className="live-dot" />}
+          {liveCount > 0 ? `${liveCount} live now` : 'Nothing live'}
+          {soonCount > 0 && <span className="wr-live-soon">· {soonCount} scheduled</span>}
         </span>
         {videos.length > 3 && (
           <input
@@ -56,7 +61,17 @@ export default function LivePicker({ videos, feedKey, selectedId }: {
             {v.thumbnail
               ? <img src={v.thumbnail} alt="" className="wr-live-thumb" loading="lazy" />
               : <span className="wr-live-thumb wr-live-thumb-blank" />}
-            <span className="wr-live-title">{v.title}</span>
+            <span className="wr-live-title">
+              {v.title}
+              {v.state === 'upcoming' && (
+                <span className="wr-live-when">
+                  {v.startsAt
+                    ? new Date(v.startsAt).toLocaleString(undefined,
+                        { weekday: 'short', hour: 'numeric', minute: '2-digit' })
+                    : 'Scheduled'}
+                </span>
+              )}
+            </span>
           </Link>
         ))}
       </div>
