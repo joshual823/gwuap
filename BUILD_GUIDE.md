@@ -4432,6 +4432,83 @@ broken ads are Paused; the 9 Sep ad is still Halted.
 - Ad-platform metrics measure the ad, never the landing. Impressions,
   clicks and CPC can all look correct while 100% of traffic hits a dead page.
 
+### Walking a new member to their first post (15 Sep 2026)
+
+The first paid signup landed, a day after the 404 fix. One account is not
+a trend, but it moves the open question along: the funnel now demonstrably
+connects, so the next thing worth fixing is what a new member does in the
+first minute. Right now the answer is nothing — the feed is other people's
+posts and there is no prompt to add one.
+
+Two pieces, both new:
+
+**`FirstPostModal`** — on the feed, to a signed-in member, a welcome and a
+single ask: post your first pick. `Show me how` opens
+`/post/new?tour=1`; `I'll look around first` closes it.
+
+**It's keyed on having no posts, not on being a new account.** "Has never
+posted" is the condition the card is actually about, it's already in the
+database, and it needs **no migration** — nothing to run in the SQL editor
+before this deploys, which is the first change in a while that ships on the
+push alone. It also stops appearing the moment the thing it asks for
+happens, which a `welcomed_at` column would have needed extra code to
+imitate. The cost is that an *older* account that never posted sees it too;
+that was judged a feature rather than a bug, since the ask is just as true
+for them.
+
+Dismissal is per-browser rather than per-account, deliberately: this is a
+nudge, and a nudge that survives being closed is nagging.
+
+**`PickTour`** — coach marks over the real form. A ring around the field, a
+card with an arrow, `Step 3 of 6`, Back/Next/Skip. Four decisions:
+
+- **It does not block the form.** The dim is `pointer-events: none`, so the
+  field being described stays usable while its step is up. A tour that
+  locks the page makes you read six steps and then do the thing from
+  memory; this one lets you fill each field as it's explained.
+- **Steps are matched by `data-tour` and missing ones are dropped.** The
+  form shows different fields for a take and a pick, so one list covers
+  both: on Take it reads *Step 1 of 5*, and switching to Pick makes it
+  *of 6* with the pick-type step inserted — **without losing your place**,
+  because the current step is tracked by name rather than by index.
+- **Position is re-read on an animation frame, not from scroll events.**
+  The target moves for reasons no single listener sees: smooth scrolling,
+  a suggestion dropdown opening, the mobile keyboard resizing the viewport,
+  a conditional warning appearing above the field. One
+  `getBoundingClientRect` per frame is immune to all of them at once, and
+  the measurement is compared before it's stored so a still page
+  re-renders zero times rather than sixty times a second.
+- **Nothing touches the DOM during render** — see below.
+
+**The bug a throwaway harness caught.** The first version filtered the step
+list in the render body, which reads `document`. A `'use client'` component
+still server-renders once, so `/post/new?tour=1` returned a **500,
+`ReferenceError: document is not defined`** — on the exact URL the welcome
+card sends every new member to. It would have shipped invisible: the page
+is behind auth, so no logged-out check reaches it, and `tsc` and `next
+build` both pass. What found it was a disposable page at `app/tourtest`
+rendering the component against fake anchors, viewed once and deleted.
+
+Worth repeating as a method: **anything behind a login is worth ten minutes
+of a throwaway page**, because the normal smoke test (curl the route) gets
+a redirect and reports nothing. Note also that a folder starting with `_`
+is private to the Next router and 404s — name the scratch route plainly.
+
+The measurement now lives entirely in the effect and the card draws from
+state, which is also the correct server output: nothing.
+
+**Anchors** are `data-tour` attributes on the form: `kind`, `bettype`,
+`league`, `cashtag`, `direction`, `caption`, `money`, `submit`. The two
+input components don't take extra props, so those two are wrapped in a bare
+`div` — safe because `.cashtag-wrap` and `.mention-wrap` are both
+`position: relative` roots styled only by descendant selectors.
+
+The step copy lives in `NewPickForm` beside the anchors on purpose: a step
+and the thing it points at drift apart the moment they live in two files.
+
+**Not done:** the tour was verified in the harness, not on the real form —
+that needs a signed-in session. Worth walking once after this deploys.
+
 ---
 
 

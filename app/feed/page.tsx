@@ -11,6 +11,7 @@ import { cleanPreferences, railLeaguesFor, newsLeaguesFor } from '@/lib/preferen
 import Scoreboard from '@/components/Scoreboard'
 import JoinCard from '@/components/JoinCard'
 import WelcomeModal from '@/components/WelcomeModal'
+import FirstPostModal from '@/components/FirstPostModal'
 import WhatThisIs from '@/components/WhatThisIs'
 import { FOUNDING_LIMIT } from '@/lib/badges'
 import NewsRail from '@/components/NewsRail'
@@ -64,6 +65,18 @@ export default async function FeedPage(props: {
       .from('profiles').select('id', { count: 'exact', head: true })
       .contains('badges', ['founding'])
     if (count !== null) foundingLeft = Math.max(0, FOUNDING_LIMIT - count)
+  }
+
+  // Has this member ever posted? The welcome card asks for a first post,
+  // so the question it turns on is exactly that — no flag to set, and it
+  // stops appearing the moment the thing it asks for happens. `head`
+  // means this is a count, not a row read.
+  let hasPosted = true
+  if (user) {
+    const { count } = await supabase
+      .from('posts').select('id', { count: 'exact', head: true })
+      .eq('author_id', user.id)
+    hasPosted = (count ?? 1) > 0
   }
 
   const tabs = <FeedTabs active="home" />
@@ -230,6 +243,10 @@ export default async function FeedPage(props: {
       {/* Logged-out only, once per browser. Signed-in people have
           already decided. */}
       {!user && <WelcomeModal remaining={foundingLeft} />}
+      {/* The signed-in counterpart, and the opposite argument: they've
+          already joined, so the only thing left to ask for is the first
+          post. */}
+      {user && !hasPosted && <FirstPostModal />}
       {!user && <JoinCard />}
 
       {tickerItems.length > 0 && (

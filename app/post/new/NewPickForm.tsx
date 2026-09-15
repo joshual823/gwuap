@@ -11,6 +11,7 @@ import { wordsFor } from '@/lib/sportWords'
 import { periodTotalLine, PERIOD_TOTAL_SHARE, LATE_ENTRY_GRACE_MS, GRADEABLE_BET_TYPES } from '@/lib/grade'
 import type { Market } from '@/lib/scores'
 import MentionInput from '@/components/MentionInput'
+import PickTour, { type TourStep } from '@/components/PickTour'
 import { humanDuration } from '@/lib/time'
 import {
   BET_TYPES, STAKE_PRESETS, MAX_STAKE,
@@ -20,10 +21,78 @@ import {
   isPeriodBet, periodBetsFor, splitAmericanOdds, formatAmericanOdds,
 } from '@/lib/odds'
 
+/**
+ * The walkthrough, in the order the form asks for things.
+ *
+ * Every step is optional in the sense that `PickTour` drops any whose
+ * field isn't on the page — the three pick-only steps simply don't exist
+ * while the form is set to Take, which is how one list covers both.
+ */
+const TOUR_STEPS: TourStep[] = [
+  {
+    target: 'kind',
+    title: 'Take or pick?',
+    body: (
+      <>A <strong>take</strong> is a team and an opinion — fastest way to post,
+      and it never touches your record. A <strong>pick</strong> is a call the
+      final score settles, and it counts. Start with a take.</>
+    ),
+  },
+  {
+    target: 'bettype',
+    title: 'What kind of pick',
+    body: <>Moneyline is just who wins. The others need a number from the book,
+      which the fixture list below fills in for you.</>,
+  },
+  {
+    target: 'league',
+    title: 'Which league',
+    body: <>This decides the teams you can tag and how the pick gets graded.</>,
+  },
+  {
+    target: 'cashtag',
+    title: "Who it's about",
+    body: (
+      <>Start typing a team or player and choose from the list — it becomes a
+      <strong> $cashtag</strong>, so your post shows up on that team&#39;s page
+      and in Trending.</>
+    ),
+  },
+  {
+    target: 'direction',
+    title: 'Which way',
+    body: <>Backing them or fading them. This drives Trending and the ticker,
+      so there&#39;s no default — say which.</>,
+  },
+  {
+    target: 'caption',
+    title: 'Say why',
+    body: <>The part people actually reply to. <strong>@</strong> brings someone
+      in, <strong>$</strong> mentions another team.</>,
+  },
+  {
+    target: 'money',
+    title: 'Odds are optional',
+    body: <>Without them the pick still settles as a win or a loss — there&#39;s
+      just no money on it. You can skip this.</>,
+  },
+  {
+    target: 'submit',
+    title: "That's it — post it",
+    body: <>It lands in the feed straight away. Nothing can be edited once the
+      game starts, which is what makes a record here worth reading.</>,
+  },
+]
+
 export default function NewPickForm() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  /* The walkthrough is opt-in and one-shot: it opens from the welcome
+     card's "Show me how" and closes for good when finished or skipped.
+     Reading the flag once means a re-render can't reopen it. */
+  const [tour, setTour] = useState(() => searchParams.get('tour') === '1')
 
   const [kind, setKind] = useState<PostKind>('take')
   const [betType, setBetType] = useState<BetType>('moneyline')
@@ -535,7 +604,7 @@ export default function NewPickForm() {
     <div style={{ marginTop: 20 }}>
       <h1 className="display" style={{ fontSize: 20 }}>{kind === 'take' ? 'Post a take' : 'Post a pick'}</h1>
       <form onSubmit={handleSubmit} style={{ marginTop: 16 }}>
-        <div className="segment" style={{ marginBottom: 14 }}>
+        <div className="segment" style={{ marginBottom: 14 }} data-tour="kind">
           <button type="button" aria-pressed={kind === 'take'}
             className={kind === 'take' ? 'active' : ''}
             onClick={() => setKind('take')}>Take</button>
@@ -551,7 +620,7 @@ export default function NewPickForm() {
         {kind === 'pick' && (
           <>
             <label className="form-label">Pick type</label>
-            <div className="chip-line">
+            <div className="chip-line" data-tour="bettype">
               <div className="chip-scroll">
               {availableBetTypes.map(b => (
                 <button key={b.value} type="button" aria-pressed={betType === b.value}
@@ -571,7 +640,7 @@ export default function NewPickForm() {
         {kind === 'pick' && (
           <>
             <label className="form-label">League</label>
-            <select className="field" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
+            <select className="field" data-tour="league" value={categoryId} onChange={e => setCategoryId(Number(e.target.value))} required>
               <option value="">Choose a league…</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -592,13 +661,15 @@ export default function NewPickForm() {
             ? 'Player / Team'
             : showOpponent ? words.side.charAt(0).toUpperCase() + words.side.slice(1) : 'Cashtag'}
         </label>
-        <CashtagInput
-          value={tag} onChange={setPrimaryTag}
-          league={kind === 'take' ? null : leagueName}
-          categoryId={categoryId}
-          onPick={onCashtagPicked}
-          preferLeagues={preferLeagues}
-        />
+        <div data-tour="cashtag">
+          <CashtagInput
+            value={tag} onChange={setPrimaryTag}
+            league={kind === 'take' ? null : leagueName}
+            categoryId={categoryId}
+            onPick={onCashtagPicked}
+            preferLeagues={preferLeagues}
+          />
+        </div>
 
         {showOpponent && (
           <>
@@ -710,7 +781,7 @@ export default function NewPickForm() {
         )}
 
         <label className="form-label">{showMatchup ? 'Over or under' : 'Which way'}</label>
-        <div className="sentiment-toggle">
+        <div className="sentiment-toggle" data-tour="direction">
           {directions.map(d => (
             <button key={d.value} type="button" aria-pressed={sentiment === d.value}
               className={sentiment === d.value ? `active ${d.value}` : ''}
@@ -726,9 +797,11 @@ export default function NewPickForm() {
           </p>
         )}
 
-        <MentionInput rows={3}
-          placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
-          value={caption} onChange={setCaption} />
+        <div data-tour="caption">
+          <MentionInput rows={3}
+            placeholder={kind === 'take' ? "What's your take? @ someone, $ a team" : "What's the pick? Any reasoning?"}
+            value={caption} onChange={setCaption} />
+        </div>
 
         {/* A book price is a fact about the market, so it's shown whether
             or not anyone adds money to the pick. */}
@@ -740,7 +813,7 @@ export default function NewPickForm() {
         )}
 
         {kind === 'pick' && !addMoney && (
-          <button type="button" className="add-money" onClick={() => setAddMoney(true)}>
+          <button type="button" className="add-money" data-tour="money" onClick={() => setAddMoney(true)}>
             + {fromBook ? 'Add an amount' : 'Add odds and an amount'}
             <span>
               Optional. Without {fromBook ? 'one' : 'them'} the pick still settles
@@ -850,10 +923,11 @@ export default function NewPickForm() {
         )}
 
         {error && <p style={{ color: 'var(--bear)', fontSize: 14 }}>{error}</p>}
-        <button className="btn" disabled={loading} type="submit">
+        <button className="btn" data-tour="submit" disabled={loading} type="submit">
           {loading ? 'Posting…' : kind === 'take' ? 'Post take' : 'Post pick'}
         </button>
       </form>
+      {tour && <PickTour steps={TOUR_STEPS} onDone={() => setTour(false)} />}
       <p style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 16 }}>
         A <strong>take</strong> is a cashtag and an opinion — it never
         touches your record. A <strong>pick</strong> has money on it: your
