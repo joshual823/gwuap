@@ -61,8 +61,10 @@ const TOUR_STEPS: TourStep[] = [
   {
     target: 'direction',
     title: 'Which way',
-    body: <>Backing them or fading them. This drives Trending and the ticker,
-      so there&#39;s no default — say which.</>,
+    body: <>Backing them or fading them — and a take can sit on the fence
+      with <strong>Neutral</strong>, because you&#39;re offering a read rather
+      than a wager. It drives Trending and the ticker, so there is no default:
+      say which.</>,
   },
   {
     target: 'caption',

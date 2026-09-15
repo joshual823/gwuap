@@ -4584,6 +4584,39 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### Walking the tour on the real form (15 Sep 2026)
+
+All five Take steps land on the right field, the ring tracks, and the
+card flips above the button on the last step — the placement branch the
+harness never reached, because its fake form was short enough that
+everything fitted below. Typing `$LAL` while step 2 was up worked
+through the dim, which is the non-blocking claim proven where it counts.
+
+Two things only the real form could show:
+
+**The suggestion list was hidden behind the card.** A cashtag field is
+44px tall until you type, then grows an absolutely-positioned list that
+changes its measured height not at all — so "just below the field" is
+exactly on top of the list, while the step says *choose from the list*.
+Fixed by measuring the union of the target and its descendants rather
+than the target alone: ordinary children leave the box unchanged, an
+open dropdown extends it, and the card is pushed below the whole thing.
+Rect maths only, no `getComputedStyle` per frame, clamped to the
+viewport. Verified against the real `CashtagInput`, including clicking a
+suggestion through the dim and watching the ring shrink back.
+
+**The direction step named two of three options.** The live form offers
+Backing, **Neutral** and Fading, because `directionsFor` gives takes a
+fence to sit on — "you're offering a read, not a wager" — and picks
+none, since money is on a side by definition. The copy said "backing
+them or fading them" and now says what is actually on screen.
+
+Neither was a positioning bug, which is what the harness was built to
+find. They were both *content* mismatches — a real input with real
+behaviour, and a real options list. Worth remembering when deciding how
+much a stand-in proves: the harness caught the SSR crash that would have
+500'd every new member, and missed both of these.
+
 ### The login round trip ate the walkthrough (15 Sep 2026)
 
 Found by trying to walk the tour on the real form: `/post/new?tour=1`

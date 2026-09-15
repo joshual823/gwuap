@@ -32,6 +32,39 @@ type Frame = {
 }
 
 /**
+ * The element's box, widened to include anything of its own that hangs
+ * outside it.
+ *
+ * A cashtag field is 44px tall right up until you type, at which point
+ * it grows a suggestion list that is absolutely positioned and so
+ * changes the field's measured height not at all. Placing the card
+ * "just below the field" then puts it exactly on top of the list — and
+ * the step doing this says *choose from the list*. Found by walking the
+ * real form; the harness had no dropdown to hide.
+ *
+ * So the box is the union of the target and every descendant, which for
+ * ordinary children is the target unchanged and for an open dropdown is
+ * the field plus its list. Rect maths only, no `getComputedStyle`, and
+ * clamped to the viewport so nothing off-screen can drag the ring with
+ * it.
+ */
+function outerRect(el: HTMLElement, vw: number, vh: number) {
+  const r = el.getBoundingClientRect()
+  let { top, left, right, bottom } = r
+  for (const child of el.querySelectorAll<HTMLElement>('*')) {
+    const c = child.getBoundingClientRect()
+    if (c.width === 0 || c.height === 0) continue
+    if (c.top < top) top = c.top
+    if (c.left < left) left = c.left
+    if (c.right > right) right = c.right
+    if (c.bottom > bottom) bottom = c.bottom
+  }
+  top = Math.max(top, 0); left = Math.max(left, 0)
+  right = Math.min(right, vw); bottom = Math.min(bottom, vh)
+  return { top, left, right, bottom, width: right - left, height: bottom - top }
+}
+
+/**
  * A step-by-step walkthrough of a form, pointing at the real fields.
  *
  * Four decisions worth knowing about:
@@ -100,9 +133,9 @@ export default function PickTour({ steps, onDone }: { steps: TourStep[]; onDone:
 
       const el = document.querySelector<HTMLElement>(`[data-tour="${present[idx].target}"]`)
       if (!el) return
-      const r = el.getBoundingClientRect()
       const vw = window.innerWidth
       const vh = window.innerHeight
+      const r = outerRect(el, vw, vh)
 
       const w = Math.min(MAX_W, vw - EDGE * 2)
       const h = cardRef.current?.offsetHeight ?? ASSUMED_H
