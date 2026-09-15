@@ -4676,6 +4676,46 @@ with the space *inside* the tag — which is why a naive regex for this
 reports it as a fourth bug and is wrong. Any check here needs to ask
 whether the adjacent tag already carries the space.
 
+### The second walk: a card nobody could press (15 Sep 2026)
+
+Everything from the first walk held — the dropdown is no longer hidden
+behind the card, the ring wraps field and list together, a suggestion is
+still clickable through the dim, and the shortened copy reads in two
+lines. Then switching Take to Pick mid-tour broke it properly.
+
+**The card went off the bottom of the screen with its buttons.** Pick
+adds three fields *above* the current step, which pushed the submit
+button below the fold. The card was anchored to the button via a CSS
+`bottom` computed from the target's top — and once the target is below
+the viewport that value goes negative, which pins the card *past* the
+bottom edge. "Step 8 of 8" was a sliver; Back, Next and Close were
+unreachable. Nothing could advance the tour or close it.
+
+Two fixes, because there were two faults:
+
+- **The card is now clamped into the viewport.** It computes one `top`
+  and pins it between the edges, so it is always fully visible whatever
+  the field does. When that pulls it away from its target the arrow is
+  dropped, since an arrow pointing at nothing is worse than none. A card
+  that has drifted from what it describes is survivable; a card nobody
+  can press is not.
+- **A shape change re-centres the step.** Once a step is centred, where
+  the reader scrolls is their business and the per-frame measuring must
+  not drag them back — but the tab switch was not them scrolling away.
+  The step list changing is the precise signal, because scrolling cannot
+  produce it.
+
+**The first attempt at the second fix did nothing, and the reason is
+worth keeping.** It reset the `scrolledFor` ref from a separate effect
+and left the scroll effect keyed on `[current]`. The step name doesn't
+change when the tab does, so the effect never re-ran — and writing to a
+ref never triggers one. Both are now a single effect keyed on the pair
+`step|shape`, which is the only version where the guard and the trigger
+can't disagree.
+
+Only the real form produced this: the harness's stand-in fields were
+short enough that nothing ever left the viewport.
+
 ### Walking the tour on the real form (15 Sep 2026)
 
 All five Take steps land on the right field, the ring tracks, and the

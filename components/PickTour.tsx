@@ -22,10 +22,12 @@ type Frame = {
   box: { top: number; left: number; width: number; height: number }
   cardLeft: number
   cardW: number
-  cardTop: number | null
-  cardBottom: number | null
+  cardTop: number
   above: boolean
   arrow: number
+  /** True when the card had to be pulled away from its field to stay on
+      screen, so the arrow would be pointing at nothing. */
+  adrift: boolean
   /** Targets present on the page right now, in order. */
   names: string[]
   idx: number
@@ -106,16 +108,32 @@ export default function PickTour({ steps, onDone }: { steps: TourStep[]; onDone:
   const scrolledFor = useRef<string | null>(null)
   const lastKey = useRef('')
 
-  /* Bring each new step's field into view once. Guarded by name so the
-     per-frame measuring below can't re-trigger it and fight the user's
-     own scrolling. */
+  /**
+   * Centre the current step's field, once per step — and again if the
+   * form changes shape under it.
+   *
+   * Two things have to be true at the same time. Once a step is centred,
+   * where the reader scrolls next is their business, so the per-frame
+   * measuring below must not drag them back. But switching Take to Pick
+   * inserts three fields *above* the current step and can carry it off
+   * the screen, which is not them scrolling away and should not be
+   * treated as it.
+   *
+   * The step list changing is the precise signal for the second case —
+   * scrolling cannot produce it — so the guard is keyed on the pair.
+   * Keying it on the step alone was the first attempt and did nothing:
+   * the step name doesn't change when the tab does, so the effect never
+   * re-ran.
+   */
+  const shape = frame?.names.join() ?? ''
   useEffect(() => {
-    if (!current || scrolledFor.current === current) return
+    const key = `${current}|${shape}`
+    if (!current || scrolledFor.current === key) return
     const el = document.querySelector<HTMLElement>(`[data-tour="${current}"]`)
     if (!el) return
-    scrolledFor.current = current
+    scrolledFor.current = key
     el.scrollIntoView({ block: 'center', behavior: 'smooth' })
-  }, [current])
+  }, [current, shape])
 
   useEffect(() => {
     let raf = 0
@@ -140,10 +158,20 @@ export default function PickTour({ steps, onDone }: { steps: TourStep[]; onDone:
       const w = Math.min(MAX_W, vw - EDGE * 2)
       const h = cardRef.current?.offsetHeight ?? ASSUMED_H
 
-      /* Below the field if it fits, otherwise above it — and if it fits
-         neither way, below, where at least the top of it is reachable. */
+      /* Below the field if it fits, otherwise above it. */
       const fitsBelow = r.bottom + GAP + h + EDGE <= vh
       const above = !fitsBelow && r.top - GAP - h - EDGE >= 0
+
+      /* Then keep it on screen whatever the field does.
+         Switching Take to Pick adds three fields and pushes the submit
+         button below the fold; anchoring to the button put the card —
+         and its Back and Next — off the bottom of the screen with no way
+         to reach them. A card nobody can press is worse than one that
+         has drifted from the thing it describes, so it pins to the edge
+         and drops its arrow. */
+      const wantTop = above ? r.top - GAP - h : r.bottom + GAP
+      const top = Math.max(EDGE, Math.min(wantTop, vh - h - EDGE))
+      const adrift = Math.abs(top - wantTop) > 1
 
       const centre = r.left + r.width / 2
       const left = Math.max(EDGE, Math.min(centre - w / 2, vw - w - EDGE))
@@ -156,9 +184,9 @@ export default function PickTour({ steps, onDone }: { steps: TourStep[]; onDone:
         },
         cardLeft: round(left),
         cardW: round(w),
-        cardTop: above ? null : round(r.bottom + GAP),
-        cardBottom: above ? round(vh - r.top + GAP) : null,
+        cardTop: round(top),
         above,
+        adrift,
         /* The arrow tracks the field's centre, but stays on the card. */
         arrow: round(Math.max(18, Math.min(centre - left, w - 18))),
         names: present.map(s => s.target),
@@ -206,17 +234,12 @@ export default function PickTour({ steps, onDone }: { steps: TourStep[]; onDone:
       <div
         ref={cardRef}
         className={`tour-card${frame.above ? ' above' : ''}`}
-        style={{
-          left: frame.cardLeft,
-          width: frame.cardW,
-          ...(frame.cardTop !== null ? { top: frame.cardTop } : {}),
-          ...(frame.cardBottom !== null ? { bottom: frame.cardBottom } : {}),
-        }}
+        style={{ left: frame.cardLeft, width: frame.cardW, top: frame.cardTop }}
         role="dialog"
         aria-live="polite"
         aria-label={`Step ${frame.idx + 1}: ${step.title}`}
       >
-        <span className="tour-arrow" style={{ left: frame.arrow }} />
+        {!frame.adrift && <span className="tour-arrow" style={{ left: frame.arrow }} />}
         <p className="tour-count">Step {frame.idx + 1} of {frame.names.length}</p>
         <h3 className="tour-title">{step.title}</h3>
         <div className="tour-body">{step.body}</div>
