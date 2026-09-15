@@ -161,8 +161,9 @@ export async function GET(req: Request) {
         heading: `You're in, @${p.username}`,
         body: `
           <p style="margin:0 0 12px"><strong>Post your first pick or take today.</strong>
-          A take is a team and a sentence — no odds, and it never touches your record.
-          A pick is a call the final score settles, and that one counts.</p>
+          A take is a <strong>team or a player</strong> and a sentence — no odds, and
+          it never touches your record. A pick is a call the final score settles, and
+          that one counts. Either kind can be about a team or a player.</p>
           <p style="margin:0 0 12px">You never grade your own, and nothing can be
           edited after a game starts. That's the whole idea.</p>
           <p style="margin:0 0 12px">Two things worth knowing on day one:
@@ -175,7 +176,7 @@ export async function GET(req: Request) {
            opens the same walkthrough the welcome card does. */
         cta: { label: 'Show me how', href: `${SITE_URL}/post/new?tour=1` },
       }),
-      text: `You're in, @${p.username}.\n\nPost your first pick or take today. A take is a team and a sentence and never touches your record; a pick is settled by the final score and counts. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new?tour=1`,
+      text: `You're in, @${p.username}.\n\nPost your first pick or take today. A take is a team or a player and a sentence and never touches your record; a pick is settled by the final score and counts. Either kind works on a team or a player. Picks count if they're in within five minutes of the start, and five settled picks puts you on the leaderboard.\n\n${SITE_URL}/post/new?tour=1`,
     })
     if (result.ok) {
       welcomed++

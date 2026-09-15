@@ -33,9 +33,10 @@ const TOUR_STEPS: TourStep[] = [
     target: 'kind',
     title: 'Take or pick?',
     body: (
-      <>A <strong>take</strong> is a team and an opinion — fastest way to post,
-      and it never touches your record. A <strong>pick</strong> is a call the
-      final score settles, and it counts. Start with a take.</>
+      <>Both are about a <strong>team or a player</strong>. A <strong>take</strong>{' '}
+      is one of those and an opinion — fastest way to post, and it never touches
+      your record. A <strong>pick</strong> is a call the final score settles, and
+      it counts. Start with a take.</>
     ),
   },
   {
@@ -47,15 +48,17 @@ const TOUR_STEPS: TourStep[] = [
   {
     target: 'league',
     title: 'Which league',
-    body: <>This decides the teams you can tag and how the pick gets graded.</>,
+    body: <>This decides the teams and players you can tag, and how the pick
+      gets graded.</>,
   },
   {
     target: 'cashtag',
     title: "Who it's about",
     body: (
       <>Start typing a team or player and choose from the list — it becomes a
-      <strong> $cashtag</strong>, so your post shows up on that team&#39;s page
-      and in Trending.</>
+      <strong> $cashtag</strong>, so your post shows up on their page and in
+      Trending. Tennis and the other individual sports are the player; the rest
+      are the team.</>
     ),
   },
   {

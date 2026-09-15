@@ -37,6 +37,17 @@ check('the button says the same thing the welcome card did',
   first.html.includes('Show me how'), true)
 check('plain text carries the link', first.text.includes('/post/new?tour=1'), true)
 
+// A cashtag is a team in the league sports and an athlete in the
+// individual ones — tennis codes are surnames — so copy that says only
+// "team" is wrong for a whole category of post.
+console.log('\nboth kinds work on a team or a player')
+check('the first email says so in HTML',
+  /team or\s+a player/.test(renderFirstPost({ username: 'blocca', sent: 0 }).html), true)
+check('and in plain text',
+  renderFirstPost({ username: 'blocca', sent: 0 }).text.includes('team or a player'), true)
+check('the last one says it too',
+  renderFirstPost({ username: 'blocca', sent: 3 }).text.includes('team or player'), true)
+
 console.log('\na different angle each time')
 const subjects = [0, 1, 2, 3].map(sent => renderFirstPost({ username: 'blocca', sent }).subject)
 check('four distinct subjects', new Set(subjects).size, 4)

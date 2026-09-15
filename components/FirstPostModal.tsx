@@ -65,9 +65,10 @@ export default function FirstPostModal() {
         <h2>Post your first pick or take today</h2>
         <p>
           Thanks for joining. The feed is worth more with you in it — and the
-          quickest way in is a <strong>take</strong>: a team and a sentence, no
-          odds, and it never touches your record. A <strong>pick</strong> is the
-          other kind, settled by the final score.
+          quickest way in is a <strong>take</strong>: a <strong>team or a player</strong>{' '}
+          and a sentence, no odds, and it never touches your record. A{' '}
+          <strong>pick</strong> is the other kind, settled by the final score —
+          also on a team or a player.
         </p>
         <p className="welcome-second">
           Either takes about a minute, and the walkthrough points at each field

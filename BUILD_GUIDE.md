@@ -4584,6 +4584,42 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### A cashtag is a team *or a player* (15 Sep 2026)
+
+All the onboarding copy said "a team". That is wrong for a whole
+category of post and the app already knew it: `lib/tickers.ts` gives the
+individual sports the athlete's surname as the code — `$DJOKOVIC`,
+`$GAUFF` — `player_prop` is a bet type, and the live take form labels
+that field **PLAYER / TEAM**. Only the words written around it had
+narrowed.
+
+Corrected in the four places a new member meets it: the tour's
+take-or-pick and league steps, the in-app welcome card, the welcome
+email, and all four first-post reminders. The cashtag step now also says
+which is which — tennis and the other individual sports are the player,
+the rest are the team — because "team or player" raises that question
+rather than settling it. Asserted in `firstPost.test.ts` so it can't
+quietly narrow again.
+
+**A JSX trap worth knowing, which this shipped straight into.** Written
+across two lines as
+
+    A <strong>take</strong>
+    is one of those
+
+it renders **"A takeis one of those"**. Whitespace *inside* a text node
+collapses to a single space, but whitespace at the boundary between an
+element and a text node is deleted outright when it contains a newline —
+so the space vanishes with the line break. Three instances went in with
+this change and were caught by looking at the rendered card, not the
+diff, where it is invisible.
+
+The fix is an explicit `{' '}` at the end of the line. Note the older
+cashtag step dodged it by accident, writing `<strong> $cashtag</strong>`
+with the space *inside* the tag — which is why a naive regex for this
+reports it as a fourth bug and is wrong. Any check here needs to ask
+whether the adjacent tag already carries the space.
+
 ### Walking the tour on the real form (15 Sep 2026)
 
 All five Take steps land on the right field, the ring tracks, and the

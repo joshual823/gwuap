@@ -61,11 +61,12 @@ const ANGLES = [
     subject: `Post your first take, @{u}`,
     heading: `Your first one takes a minute`,
     lead: `<p style="margin:0 0 12px">You're in, but the feed doesn't know what you
-      think yet. The quickest way to start is a <strong>take</strong> — a team and
-      a sentence. No odds, no fixture, and it never touches your record.</p>
+      think yet. The quickest way to start is a <strong>take</strong> — a team or
+      a player, and a sentence. No odds, no fixture, and it never touches your
+      record.</p>
       <p style="margin:0 0 12px">A <strong>pick</strong> is the other kind: a call
       the final score settles, and that one counts.</p>`,
-    textLead: `The quickest way to start is a take — a team and a sentence. No odds, and it never touches your record. A pick is the other kind: the final score settles it, and that one counts.`,
+    textLead: `The quickest way to start is a take — a team or a player, and a sentence. No odds, and it never touches your record. A pick is the other kind: the final score settles it, and that one counts. Either works on a team or a player.`,
   },
   {
     subject: `Nobody grades their own, @{u}`,
@@ -85,7 +86,8 @@ const ANGLES = [
       reflection of nothing having been posted yet. Five settled picks is all it
       takes to appear on the leaderboard.</p>
       <p style="margin:0 0 12px">Or post a take and skip the record entirely —
-      it's an opinion with a cashtag on it, and it shows up on that team's page.</p>`,
+      it's an opinion with a cashtag on it — a team or a player — and it shows
+      up on their page.</p>`,
     textLead: `Your record is empty. Five settled picks puts you on the leaderboard. Or post a take and skip the record entirely — an opinion with a cashtag on it.`,
   },
   {
@@ -94,9 +96,9 @@ const ANGLES = [
     lead: `<p style="margin:0 0 12px">This is the last reminder — the account stays,
       the feed stays, and we'll leave you to it.</p>
       <p style="margin:0 0 12px">If you ever do want to put something up, it's one
-      team and one sentence, and there's a walkthrough that points at each field
-      as you go.</p>`,
-    textLead: `This is the last reminder. The account stays and we'll leave you to it. If you ever want to post, it's one team and one sentence, and there's a walkthrough.`,
+      team or player and one sentence, and there's a walkthrough that points at
+      each field as you go.</p>`,
+    textLead: `This is the last reminder. The account stays and we'll leave you to it. If you ever want to post, it's one team or player and one sentence, and there's a walkthrough.`,
   },
 ]
 
