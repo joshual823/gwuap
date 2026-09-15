@@ -4646,6 +4646,26 @@ history, which is the thing that makes every narrow revoke in 040, 047
 and 055 mean anything. Confirmed it fails with 056 removed — a guard that
 cannot fail is worse than none.
 
+**Verified live, 15 Sep.** All eleven private columns now answer
+`42501 permission denied` to the anon key — `last_seen_at`, `is_admin`,
+both nudge pairs, `welcomed_at`, `push_enabled`, `email_notifications`,
+`preferred_leagues`, `watchlist_autoclean`. The nine public ones still
+read, and so do the three queries most likely to have broken: the feed's
+author join, search's `is_banned` filter, and the follow-list join.
+Signed out, `/`, `/feed`, `/squads`, `/search`, `/profile/gwuap`,
+`/leaderboard`, `/signup`, `/login` and `/privacy` all return 200 with
+real content and no error shell.
+
+The notifier is unaffected — it uses the service role, which ignores
+grants — and Actions run #242 at 16:47 went green on `575abf0`, the
+first run of the first-post campaign against migration 055's columns.
+
+One side effect worth knowing: **the fix removed our own cheapest way to
+check on it.** `first_post_nudge_count` can no longer be read with the
+anon key, so "did an email actually go out" now needs the Actions log or
+Resend. That is the correct trade, but it is why the check above is
+written as "permission denied", which is still observable from outside.
+
 **The method worth keeping.** This was found by checking the *effect*
 rather than the *statement*: reading a supposedly-private column back
 with the key an attacker would use. "The migration ran without error" and
