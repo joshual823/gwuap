@@ -4584,6 +4584,31 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### Two definitions, said plainly (15 Sep 2026)
+
+Josh's wording, and it is better than what was there: **a take is an
+opinion on a player or team; a pick is what you think the outcome of a
+game or match will be.** The old copy defined a take by its *mechanics*
+("a team or a player and a sentence — no odds, and it never touches your
+record") and a pick by its *consequence* ("a call the final score
+settles"), which describes what happens to each rather than what either
+one is. Somebody who has never posted needs the second thing first.
+
+Applied identically in the tour's first step, the welcome card, the
+welcome email and the first reminder, so the sentence a new member reads
+is the same wherever they meet it.
+
+**The card became a list.** The two kinds were a paragraph you had to
+read your way through to tell apart; they are now two `welcome-points`
+rows, which is the existing style for exactly this and makes the
+difference visible at a glance instead of on a second read.
+
+**Every tour card was cut back** at the same time. They had grown to
+three and four sentences — the direction step was explaining Neutral,
+Trending and the ticker in one breath — and a coach mark that takes
+longer to read than the field takes to fill is worse than no coach mark.
+One or two short sentences each now.
+
 ### A cashtag is a team *or a player* (15 Sep 2026)
 
 All the onboarding copy said "a team". That is wrong for a whole

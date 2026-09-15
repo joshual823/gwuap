@@ -63,16 +63,19 @@ export default function FirstPostModal() {
         </div>
 
         <h2>Post your first pick or take today</h2>
-        <p>
-          Thanks for joining. The feed is worth more with you in it — and the
-          quickest way in is a <strong>take</strong>: a <strong>team or a player</strong>{' '}
-          and a sentence, no odds, and it never touches your record. A{' '}
-          <strong>pick</strong> is the other kind, settled by the final score —
-          also on a team or a player.
-        </p>
+        <p>Thanks for joining. There are two ways in, and both take a minute:</p>
+
+        {/* A list rather than a paragraph: these are two definitions being
+            told apart, and the thing a new member needs is to see the
+            difference at a glance, not read their way to it. */}
+        <ul className="welcome-points">
+          <li><strong>Take</strong> — your opinion on a player or team.</li>
+          <li><strong>Pick</strong> — what you think the outcome of a game or
+            match will be. This one counts toward your record.</li>
+        </ul>
+
         <p className="welcome-second">
-          Either takes about a minute, and the walkthrough points at each field
-          as you go.
+          We&apos;ll point at each field as you go.
         </p>
 
         <button type="button" className="btn welcome-cta" onClick={start}>

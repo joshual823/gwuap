@@ -33,59 +33,56 @@ const TOUR_STEPS: TourStep[] = [
     target: 'kind',
     title: 'Take or pick?',
     body: (
-      <>Both are about a <strong>team or a player</strong>. A <strong>take</strong>{' '}
-      is one of those and an opinion — fastest way to post, and it never touches
-      your record. A <strong>pick</strong> is a call the final score settles, and
-      it counts. Start with a take.</>
+      <>A <strong>take</strong> is your opinion on a player or team. A{' '}
+      <strong>pick</strong> is what you think the outcome of a game or match
+      will be — and it counts toward your record. Start with a take.</>
     ),
   },
   {
     target: 'bettype',
     title: 'What kind of pick',
-    body: <>Moneyline is just who wins. The others need a number from the book,
-      which the fixture list below fills in for you.</>,
+    body: <>Moneyline is just who wins. The rest need a number from the book —
+      tap a fixture below and it fills itself in.</>,
   },
   {
     target: 'league',
     title: 'Which league',
-    body: <>This decides the teams and players you can tag, and how the pick
-      gets graded.</>,
+    body: <>Sets which teams and players you can tag, and how the pick gets
+      graded.</>,
   },
   {
     target: 'cashtag',
     title: "Who it's about",
     body: (
-      <>Start typing a team or player and choose from the list — it becomes a
-      <strong> $cashtag</strong>, so your post shows up on their page and in
-      Trending. Tennis and the other individual sports are the player; the rest
-      are the team.</>
+      <>Type a team or player and choose from the list. It becomes a{' '}
+      <strong>$cashtag</strong>, so your post shows up on their page.</>
     ),
   },
   {
     target: 'direction',
     title: 'Which way',
-    body: <>Backing them or fading them — and a take can sit on the fence
-      with <strong>Neutral</strong>, because you&#39;re offering a read rather
-      than a wager. It drives Trending and the ticker, so there is no default:
-      say which.</>,
+    body: <>Backing them or fading them — a take can also be Neutral. There is
+      no default, so say which.</>,
   },
   {
     target: 'caption',
     title: 'Say why',
-    body: <>The part people actually reply to. <strong>@</strong> brings someone
-      in, <strong>$</strong> mentions another team.</>,
+    body: (
+      <>The part people reply to. <strong>@</strong> brings someone in,{' '}
+      <strong>$</strong> tags another team or player.</>
+    ),
   },
   {
     target: 'money',
     title: 'Odds are optional',
-    body: <>Without them the pick still settles as a win or a loss — there&#39;s
-      just no money on it. You can skip this.</>,
+    body: <>Skip it and the pick still settles as a win or a loss — there is
+      just no money on it.</>,
   },
   {
     target: 'submit',
     title: "That's it — post it",
-    body: <>It lands in the feed straight away. Nothing can be edited once the
-      game starts, which is what makes a record here worth reading.</>,
+    body: <>It lands in the feed straight away, and nothing can be edited once
+      the game starts.</>,
   },
 ]
 

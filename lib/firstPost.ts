@@ -61,12 +61,11 @@ const ANGLES = [
     subject: `Post your first take, @{u}`,
     heading: `Your first one takes a minute`,
     lead: `<p style="margin:0 0 12px">You're in, but the feed doesn't know what you
-      think yet. The quickest way to start is a <strong>take</strong> — a team or
-      a player, and a sentence. No odds, no fixture, and it never touches your
-      record.</p>
-      <p style="margin:0 0 12px">A <strong>pick</strong> is the other kind: a call
-      the final score settles, and that one counts.</p>`,
-    textLead: `The quickest way to start is a take — a team or a player, and a sentence. No odds, and it never touches your record. A pick is the other kind: the final score settles it, and that one counts. Either works on a team or a player.`,
+      think yet. Start with a <strong>take</strong>: your opinion on a player or
+      team. No odds, no fixture, and it never touches your record.</p>
+      <p style="margin:0 0 12px">A <strong>pick</strong> is the other kind — what
+      you think the outcome of a game or match will be, and that one counts.</p>`,
+    textLead: `Start with a take: your opinion on a player or team. No odds, and it never touches your record. A pick is the other kind — what you think the outcome of a game or match will be, and that one counts.`,
   },
   {
     subject: `Nobody grades their own, @{u}`,
@@ -86,9 +85,8 @@ const ANGLES = [
       reflection of nothing having been posted yet. Five settled picks is all it
       takes to appear on the leaderboard.</p>
       <p style="margin:0 0 12px">Or post a take and skip the record entirely —
-      it's an opinion with a cashtag on it — a team or a player — and it shows
-      up on their page.</p>`,
-    textLead: `Your record is empty. Five settled picks puts you on the leaderboard. Or post a take and skip the record entirely — an opinion with a cashtag on it.`,
+      your opinion on a player or team, and it shows up on their page.</p>`,
+    textLead: `Your record is empty. Five settled picks puts you on the leaderboard. Or post a take and skip the record entirely — your opinion on a player or team.`,
   },
   {
     subject: `Last one from us, @{u}`,

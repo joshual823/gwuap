@@ -42,11 +42,14 @@ check('plain text carries the link', first.text.includes('/post/new?tour=1'), tr
 // "team" is wrong for a whole category of post.
 console.log('\nboth kinds work on a team or a player')
 check('the first email says so in HTML',
-  /team or\s+a player/.test(renderFirstPost({ username: 'blocca', sent: 0 }).html), true)
+  /player or\s+team/.test(renderFirstPost({ username: 'blocca', sent: 0 }).html), true)
 check('and in plain text',
-  renderFirstPost({ username: 'blocca', sent: 0 }).text.includes('team or a player'), true)
+  renderFirstPost({ username: 'blocca', sent: 0 }).text.includes('player or team'), true)
 check('the last one says it too',
   renderFirstPost({ username: 'blocca', sent: 3 }).text.includes('team or player'), true)
+// The other half of the pair: a pick is about the result, not the side.
+check('and says what a pick is',
+  renderFirstPost({ username: 'blocca', sent: 0 }).text.includes('outcome of a game or match'), true)
 
 console.log('\na different angle each time')
 const subjects = [0, 1, 2, 3].map(sent => renderFirstPost({ username: 'blocca', sent }).subject)
