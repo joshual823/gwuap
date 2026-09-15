@@ -58,9 +58,36 @@ grant select, insert, update on public.presence to authenticated;
 
 -- Carry the existing stamps over before the column goes. Account
 -- creation is the honest fallback, same as 047 used for the backfill.
-insert into public.presence (user_id, last_seen_at)
-  select id, coalesce(last_seen_at, created_at) from public.profiles
-  on conflict (user_id) do nothing;
+--
+-- Guarded, because "safe to re-run" has to be true rather than claimed.
+-- The first version read `profiles.last_seen_at` unguarded, so a second
+-- run — after the drop at the bottom had already taken that column —
+-- failed with 42703, and Postgres helpfully pointed at the `last_seen_at`
+-- in `presence` to explain why it couldn't use that one instead. Every
+-- other statement in this file was already idempotent; this was the one
+-- that made the whole thing a one-shot.
+--
+-- Columns are aliased for the same reason: in an INSERT ... SELECT the
+-- target and the source can both own a name, and leaving it to be
+-- resolved is how the error above reads as a puzzle.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'profiles'
+       and column_name = 'last_seen_at'
+  ) then
+    insert into public.presence (user_id, last_seen_at)
+      select p.id, coalesce(p.last_seen_at, p.created_at) from public.profiles p
+      on conflict (user_id) do nothing;
+  else
+    -- Already migrated once. Anyone added since gets a starting stamp;
+    -- everyone else keeps the one they have.
+    insert into public.presence (user_id, last_seen_at)
+      select p.id, p.created_at from public.profiles p
+      on conflict (user_id) do nothing;
+  end if;
+end $$;
 
 create index if not exists presence_last_seen_idx on public.presence (last_seen_at);
 
