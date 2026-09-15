@@ -103,8 +103,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let unread = 0
   let inbox = 0
   if (user) {
-    const [{ data: profile }, { count }, { count: unreadMsgs }, { count: requests }] = await Promise.all([
-      supabase.from('profiles').select('username, is_admin, last_seen_at').eq('id', user.id).single(),
+    const [{ data: profile }, { data: seenRow }, { count }, { count: unreadMsgs }, { count: requests }] = await Promise.all([
+      supabase.from('profiles').select('username, is_admin').eq('id', user.id).single(),
+      // Presence lives in its own table so RLS can say "your row only";
+      // a column grant cannot. See 057.
+      supabase.from('presence').select('last_seen_at').eq('user_id', user.id).maybeSingle(),
       supabase.from('notifications')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
@@ -132,11 +135,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       // Stamped at most every few hours rather than on every render, and
       // never awaited: this is bookkeeping, and a page should not be
       // slower because of it.
-      const seen = profile.last_seen_at ? Date.parse(profile.last_seen_at) : 0
+      const seen = seenRow?.last_seen_at ? Date.parse(seenRow.last_seen_at) : 0
       if (Date.now() - seen > SEEN_STALE_MS) {
-        void supabase.from('profiles')
-          .update({ last_seen_at: new Date().toISOString() })
-          .eq('id', user.id)
+        // Upsert rather than update: a member who signed up before 057
+        // has a row from its backfill, but one who joins after it has
+        // none until their first page render.
+        void supabase.from('presence')
+          .upsert({ user_id: user.id, last_seen_at: new Date().toISOString() })
           .then(() => undefined)
       }
     }

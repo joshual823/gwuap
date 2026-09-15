@@ -4806,6 +4806,46 @@ empty `?`.
 hardcode their own path. They are correct today because none of them
 reads a query parameter; each becomes this bug the day one does.
 
+### Presence out of profiles (15 Sep 2026)
+
+**PUSH FIRST, THEN RUN MIGRATION 057 — the reverse of the usual order.**
+The new code reads a `presence` table that does not exist yet, and a
+missing table returns an error rather than throwing: `seenRow` is null,
+the stamp is skipped, every page still renders. The old code against the
+*new* schema is the bad way round — it selects `profiles.last_seen_at`,
+which 057 drops, and that query also carries `username` and `is_admin`,
+so the whole header falls back to logged-out until the deploy lands.
+
+056 closed the anon half of this and said the other half was still open:
+a signed-in member could read when any other member was last at their
+computer.
+
+**Why not another column grant.** Column privileges are not row-aware.
+`authenticated` has to read its *own* `last_seen_at` — that is how the
+layout decides whether the stamp is stale enough to rewrite — so
+revoking the column takes the owner's access along with everybody
+else's. There is no grant that means "your row only". RLS is exactly
+that and works on tables, so the column became a table.
+
+**The alternative, and why not.** A security-definer view over `profiles`
+filtered to `auth.uid()` would also have worked and would have covered
+`is_admin` and the nudge counters at the same time. It needs
+`authenticated`'s table-level SELECT dropped and every column enumerated
+across nine files that read them, with whole-query failure as the
+penalty for missing one. This touches three and is verifiable from
+outside. **`is_admin` stays readable and is a deliberate accept** — the
+admin's username is public, so it names somebody already named.
+
+The notifier now does two reads where it did one: presence ordered by
+`last_seen_at` for who has been away longest, then the profiles for
+those ids. The service role ignores the RLS that keeps members out of
+each other's rows, which is what made the split safe for the come-back
+schedule.
+
+The layout **upserts** rather than updates: 057 backfills a row for
+every account that exists when it runs, but somebody who joins after it
+has none until their first render.
+
 ### Three migrations' worth of revokes that never did anything (15 Sep 2026)
 
 **MIGRATION 056 MUST RUN** — and unlike most, this one is a live data

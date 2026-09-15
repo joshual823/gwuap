@@ -271,20 +271,39 @@ export async function GET(req: Request) {
   // and a mail a day is how a young sending domain earns a spam
   // reputation it can't undo. See lib/nudge.ts.
   let nudged = 0
-  const { data: away } = await supabase
-    .from('profiles')
-    .select('id, username, last_seen_at, nudge_count, first_post_nudge_count, email_notifications')
-    .lt('nudge_count', MAX_NUDGES)
-    .not('last_seen_at', 'is', null)
-    .eq('is_bot', false)
-    .order('last_seen_at', { ascending: true })
-    .limit(50)
 
-  const dueToComeBack = (away ?? []).filter((p: any) => {
-    if (p.email_notifications === false) return false
-    const days = (Date.now() - Date.parse(p.last_seen_at)) / 86_400_000
-    return nudgeDue(days, p.nudge_count ?? 0)
-  })
+  /* Presence moved out of profiles in 057, so this is two reads rather
+     than one: who has been away longest, then who those people are.
+     The service role ignores the RLS that keeps members out of each
+     other's rows, which is the whole reason that split was safe.
+
+     Ordered and limited on the presence side, because that is the
+     column the schedule actually turns on. */
+  const { data: seenRows } = await supabase
+    .from('presence')
+    .select('user_id, last_seen_at')
+    .order('last_seen_at', { ascending: true })
+    .limit(100)
+
+  const seenAt = new Map<string, string>()
+  for (const row of seenRows ?? []) seenAt.set((row as any).user_id, (row as any).last_seen_at)
+
+  const { data: away } = seenAt.size > 0
+    ? await supabase
+        .from('profiles')
+        .select('id, username, nudge_count, first_post_nudge_count, email_notifications')
+        .in('id', [...seenAt.keys()])
+        .lt('nudge_count', MAX_NUDGES)
+        .eq('is_bot', false)
+    : { data: [] }
+
+  const dueToComeBack = (away ?? []).map((p: any) => ({ ...p, last_seen_at: seenAt.get(p.id) }))
+    .filter((p: any) => {
+      if (p.email_notifications === false) return false
+      if (!p.last_seen_at) return false
+      const days = (Date.now() - Date.parse(p.last_seen_at)) / 86_400_000
+      return nudgeDue(days, p.nudge_count ?? 0)
+    })
 
   /**
    * One campaign at a time per person.
