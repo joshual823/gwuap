@@ -4584,6 +4584,38 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### The login round trip ate the walkthrough (15 Sep 2026)
+
+Found by trying to walk the tour on the real form: `/post/new?tour=1`
+while signed out redirected to **`/login?next=/post/new`**. Everything
+after the `?` was gone, so logging in landed on a bare composer with no
+walkthrough.
+
+**Why it matters more than it looks.** That is the exact path the welcome
+email's "Show me how" takes. Email is read on whichever device is to
+hand, so arriving *not signed in* is the normal case there, not the edge
+one — the button most likely to be pressed by somebody who has never seen
+the composer was the one guaranteed to drop the guidance. The same
+redirect also lost the `league` + `headline` pair that arrives from
+posting about a news story.
+
+The gate was `redirect('/login?next=/post/new')` — a hardcoded string, so
+there was never anything to carry the query through. It now rebuilds the
+path from `searchParams` and encodes it, because `next=/post/new?tour=1`
+unencoded parses as two parameters and `next` arrives truncated: the same
+bug one layer down. `/login` already decodes via `URLSearchParams.get`
+and guards on `startsWith('/')`, so nothing there needed changing.
+
+Verified all three shapes against a local server, and decoded them back
+through the login page's own guard: `?tour=1` and the news-story pair
+both survive, and the no-params case stays clean rather than gaining an
+empty `?`.
+
+**Nine other pages share the pattern** — `/challenges`, `/messages`,
+`/vent`, `/watchlist`, `/squads/new`, `/challenge/new` and the rest all
+hardcode their own path. They are correct today because none of them
+reads a query parameter; each becomes this bug the day one does.
+
 ### Three migrations' worth of revokes that never did anything (15 Sep 2026)
 
 **MIGRATION 056 MUST RUN** — and unlike most, this one is a live data
