@@ -30,6 +30,29 @@ export const SITE_PITCH =
   'your picks, chat with sports fans, and start your own personal squad.'
 
 /**
+ * The homepage line. Shorter than SITE_PITCH, and deliberately so.
+ *
+ * **It matches the ads.** The X creatives say JOIN THE NEW WAVE in the
+ * largest type on the image, and until this existed the first line a
+ * visitor met after clicking one promised something else in different
+ * words. Saying back what the ad said is the cheapest conversion lever
+ * there is, and the only one that costs nothing to pull.
+ *
+ * **On the homepage the long pitch was redundant anyway.** Directly
+ * under it `WhatThisIs` already says "post a pick, the final score
+ * settles it" and "free to join, we never ask for a card" — so the
+ * positioning line was the third explanation in a row. This trades
+ * repetition for a call to action, not information for brevity.
+ *
+ * SITE_PITCH is still the right line for the meta description and for
+ * /signup: a search result has no page around it to lean on, and
+ * somebody who landed straight on the form from an ad has read nothing
+ * else. Two lines because there are two jobs.
+ */
+export const SITE_HEADLINE =
+  'Gwuap — the social media website for sports fans. Sign up today to join the new wave.'
+
+/**
  * Where support goes. Email rather than an in-app form on purpose: it
  * still works when the site doesn't, which is when people most need to
  * reach someone, and it lands somewhere already read every day.

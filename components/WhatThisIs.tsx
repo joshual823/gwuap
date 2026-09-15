@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { SITE_PITCH } from '@/lib/brand'
+import { SITE_HEADLINE } from '@/lib/brand'
 
 /**
  * What the site is, before the scores.
@@ -29,10 +29,14 @@ export default function WhatThisIs() {
     <section className="what-is">
       {/* The positioning line first, because a stranger needs to know
           what kind of site this is before any claim about grading means
-          anything. Same sentence as the meta description and the signup
-          page, on purpose — it's said identically everywhere until
-          enough people recognise the name. */}
-      <p className="what-is-pitch">{SITE_PITCH}</p>
+          anything.
+
+          The short version here, not SITE_PITCH: this page is where the
+          paid clicks land, the creatives say JOIN THE NEW WAVE, and the
+          two lines below already carry the detail the long one repeats.
+          The meta description and /signup still use the long one — see
+          the note on SITE_HEADLINE. */}
+      <h1 className="what-is-pitch">{SITE_HEADLINE}</h1>
       <p className="what-is-lead">
         <strong>Post a pick, the final score settles it.</strong> Nobody grades
         their own, and nothing can be edited once a game starts.

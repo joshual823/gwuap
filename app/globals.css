@@ -1743,7 +1743,18 @@ select.field:invalid { font-weight: 500; color: var(--ink-dim); }
 /* The positioning line, said identically on the feed, the signup form
    and the squads landing. Quiet by design: it's there to be recognised
    after the fifth time, not to shout on the first. */
-.what-is-pitch, .signup-pitch {
+/* The homepage heading, and until 15 Sep the page had no <h1> at all.
+   It is no longer the long positioning line repeated for recognition —
+   it is short and ends in the ask, so setting it as the smallest dimmest
+   text on the card was giving a call to action the weight of a footnote.
+   /signup keeps the quiet treatment below: the long line still runs
+   there, above a form, where it explains rather than calls. */
+.what-is-pitch {
+  margin: 0 0 10px;
+  font-size: 17px; line-height: 1.3; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--ink);
+}
+.signup-pitch {
   font-size: 13.5px; line-height: 1.55; color: var(--ink-dim); margin: 0 0 12px;
 }
 

@@ -4584,6 +4584,37 @@ Take, *of 6* on Pick. What was missing was only that every piece of copy
 said "pick", so the welcome card now says **pick or take** and names the
 difference.
 
+### The homepage gets a heading, and it echoes the ad (15 Sep 2026)
+
+Josh's line: **"Gwuap — the social media website for sports fans. Sign up
+today to join the new wave."** Shorter than `SITE_PITCH`, and right for
+this page for two reasons better than brevity.
+
+**It matches the creatives.** The X images say JOIN THE NEW WAVE in the
+largest type on them. Until now the first line a visitor met after
+clicking one promised something else in different words — "track your
+picks, chat with sports fans, start your own personal squad". Saying back
+what the ad said is the cheapest conversion lever there is.
+
+**On this page the long line was redundant.** `WhatThisIs` already
+follows it with "post a pick, the final score settles it" and "free to
+join, we never ask for a card". The positioning line was the third
+explanation in a row, so this trades repetition for an ask rather than
+information for brevity.
+
+**Two constants, because there are two jobs.** `SITE_HEADLINE` is the
+homepage; `SITE_PITCH` stays on the meta description and `/signup`. A
+search result has no page around it to lean on, and somebody who landed
+straight on the form from an ad has read nothing else — "join the new
+wave" tells neither of them what the site does.
+
+**The homepage had no `<h1>` at all**, which this turned up. It does now,
+and the styling moved with it: `.what-is-pitch` was 13.5px `--ink-dim`,
+shared with `.signup-pitch` and quiet by design — correct for a
+positioning line repeated for recognition, wrong for a sentence that ends
+in a call to action. The two rules are now separate and only the homepage
+one is a heading.
+
 ### Two definitions, said plainly (15 Sep 2026)
 
 Josh's wording, and it is better than what was there: **a take is an
