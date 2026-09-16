@@ -4806,6 +4806,72 @@ empty `?`.
 hardcode their own path. They are correct today because none of them
 reads a query parameter; each becomes this bug the day one does.
 
+### A signups campaign, and what the compute fix actually bought (16 Sep 2026)
+
+**Two X campaigns now, $40/day between them, which is the ceiling Josh
+set.**
+
+| Campaign | Objective | Daily |
+|---|---|---|
+| `Signups — Sep 2026` (42466353) | **Sales** | $15 |
+| `Traffic` (42400139) | Website traffic | $25 |
+
+Josh turned the signup *ad group* inside Traffic off himself, so nothing
+is doubled up. X calls its conversions objective **Sales** — "drive
+purchases, sign-ups, or other conversions" — which is also why the
+dashboard has been showing a "Purchases" column all along.
+
+**A correction worth recording: the pixel was never at zero.** It has
+been said repeatedly here that X had no signup conversions. Events
+Manager shows a **Sign Up** event of type Lead, last recorded **11 Sep**,
+alongside Landing page views and Site visits, both Active and firing.
+The claim was wrong and it shaped two earlier decisions.
+
+**But X marks Sign Up "Dormant"**, which is its own word for "this has
+not fired recently enough to optimise against". It was selected anyway:
+it is the event Josh asked to optimise for, and substituting it would
+have been overriding the same decision twice. The check is concrete —
+at 48 hours, if the campaign has near-zero impressions, that is the
+dormant-event failure that killed Reddit's first Conversions campaign,
+and the fix is one dropdown: switch the conversion event to **Landing
+page views**, which is Active and fires on every `/signup` visit.
+
+Targeting is an exact clone of the delivering group: US, all 23 sports
+interests, @espn @ESPNNFL @ESPNNBA @ESPNCFB @MLB, **Optimize targeting
+off** — it defaulted ON for the third time, and @ESPNBET was skipped for
+the third time. The existing signup post was reused rather than
+duplicated, so it keeps its engagement.
+
+**The dashboard takes about ninety seconds to load.** Two sessions were
+nearly abandoned believing X was down — a fresh tab, hard reloads, and
+`ads.twitter.com` all showed the same skeleton, and not one request went
+to X's own API while every third-party pixel on the page returned 200.
+It is simply very slow. Wait longer than feels reasonable before
+concluding anything.
+
+### What the tennis fix actually bought
+
+Measured on a clean hour with the change two hours live, rather than on
+a window that straddled the deploy:
+
+| | Before | After |
+|---|---|---|
+| `/feed` Active CPU per render | 364–459ms | **277ms** |
+| Account Active CPU P75 | 459ms | **280ms** |
+| Monthly run-rate | ~6h, over the 4h cap | **~3.6h, under it** |
+
+So: a real cut of roughly 40%, and it moved from over the limit to under
+it — but **not comfortably under**, and the first two readings looked
+like no change at all because the 12h and 6h windows were mostly
+pre-deploy. Worth saying plainly: this is an improvement, not a fix with
+headroom.
+
+The remaining 277ms is not tennis. The next candidates are the things
+that run per render regardless: `attachPostMeta`, `fetchNewsMixed` at 60
+items, the 150-row `FEED_WINDOW` query, and server-rendering fifty
+`PostCard`s. And the demand side is still untouched — **65 renders an
+hour for a site with about ten members**, nearly all of it machines.
+
 ### 95% of the compute bill was one uncacheable fetch (16 Sep 2026)
 
 Vercel warned that a limit was close. Only one metric was anywhere near
