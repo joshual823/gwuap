@@ -35,6 +35,15 @@ check('scoreless league does not lead', boxing[0] !== 'Boxing', true)
 check('scoreless league still gets a rail', boxing.length, RAIL_LEAGUES.length)
 check('every rail league has a feed', boxing.every(l => LEAGUES_WITH_SCORES.includes(l)), true)
 
+// Tennis came out of the default rail on 16 Sep: its two ESPN
+// scoreboards straddle Next's 2MB cache ceiling, so above it nothing is
+// cached and every render re-parses megabytes. It has to stay reachable
+// for somebody who actually follows it.
+console.log('\ntennis is off the default rail but not out of the product')
+check('not fetched by default', railLeaguesFor([]).includes('Tennis'), false)
+check('still leads for someone who follows it', railLeaguesFor(['Tennis'])[0], 'Tennis')
+check('and still has a scoreboard', LEAGUES_WITH_SCORES.includes('Tennis'), true)
+
 console.log('\nnewsLeaguesFor')
 check('no preference = Top', newsLeaguesFor([]), ['Top'])
 check('preference used as-is', newsLeaguesFor(['NFL','NBA']), ['NFL','NBA'])

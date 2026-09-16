@@ -92,8 +92,12 @@ const SCOREBOARDS: Record<string, string[]> = {
   'College Football': ['football/college-football'],
   'College Basketball': ['basketball/mens-college-basketball'],
   'UFC': ['mma/ufc'],
-  // One endpoint only: the ATP scoreboard already carries the women's
-  // and mixed groupings, so adding tennis/wta returns everything twice.
+  // Both endpoints are needed and the comment that used to sit here said
+  // the opposite — that the ATP scoreboard already carried the women's
+  // groupings and that tennis/wta duplicated them. Checked on 16 Sep:
+  // 625 competitions in atp, 270 in wta, and **not one id in common**.
+  // Acting on that comment would have quietly dropped every women's
+  // match from the scores, the watchlist and the $ autocomplete.
   'Tennis': ['tennis/atp', 'tennis/wta'],
   'Golf': ['golf/pga'],
   'Soccer': ['soccer/eng.1', 'soccer/usa.1', 'soccer/uefa.champions', 'soccer/esp.1'],
@@ -146,7 +150,23 @@ export type GameDetail = {
 }
 
 /** Leagues shown in the feed rail — kept small so it's a handful of cached fetches. */
-export const RAIL_LEAGUES = ['NFL', 'College Football', 'MLB', 'NBA', 'NHL', 'Tennis']
+/**
+ * What the home rail fetches when nobody has said what they follow.
+ *
+ * **Tennis is deliberately not here**, and it is the only league that has
+ * ever been removed. ESPN's two tennis scoreboards are 1.7MB and 0.5MB
+ * and drift over Next's 2MB data-cache ceiling — above it the response
+ * is silently not cached at all, so every render re-downloads and
+ * re-parses the lot. On 16 Sep that was 95% of the whole account's
+ * compute: `/feed` at 364ms of CPU a render, against about 20ms for
+ * everything else on the page.
+ *
+ * It is removed from the *default*, not from the product. `railLeaguesFor`
+ * puts a member's own leagues first, so somebody who follows Tennis still
+ * gets it; /scores still carries it in full. What stopped is fetching two
+ * megabytes of tennis for every crawler that touches the homepage.
+ */
+export const RAIL_LEAGUES = ['NFL', 'College Football', 'MLB', 'NBA', 'NHL']
 
 export const LEAGUES_WITH_SCORES = Object.keys(SCOREBOARDS)
 
@@ -392,7 +412,16 @@ function parseMarkets(odds: any, awayCode: string, homeCode: string): Market[] {
  * lost on a cold start, which is fine — it exists to absorb a flood, not
  * to be a source of truth.
  */
-const MEMO_MS = 60_000
+/**
+ * Raised from 60s to five minutes on 16 Sep.
+ *
+ * Sixty seconds was almost exactly the interval at which something was
+ * polling the homepage, so the memo expired just in time for every
+ * request to miss it — the one cadence at which a cache does nothing but
+ * cost memory. A scoreboard rail does not need minute-fresh data; the
+ * game pages, which do, read their own endpoints.
+ */
+const MEMO_MS = 5 * 60_000
 const memo = new Map<string, { at: number; games: Game[] }>()
 
 async function fetchPath(

@@ -4806,6 +4806,60 @@ empty `?`.
 hardcode their own path. They are correct today because none of them
 reads a query parameter; each becomes this bug the day one does.
 
+### 95% of the compute bill was one uncacheable fetch (16 Sep 2026)
+
+Vercel warned that a limit was close. Only one metric was anywhere near
+it — **Fluid Active CPU at 1h45m of 4h**, 44%, while everything else sat
+at 12% or less. Transfer was 1%.
+
+Observability named the culprit in one line: **`/feed`, 988 invocations,
+6m Active CPU** — out of about 6m20s for the entire account. Every other
+route together was rounding error. That is **364ms of CPU per render**.
+
+The logs said why, in a warning that had been scrolling past for days:
+
+    Failed to set Next.js data cache for
+    .../tennis/atp/scoreboard, items over 2MB can not be cached (2341777 bytes)
+
+**Next silently declines to cache any response over 2MB.** ESPN's ATP
+scoreboard sits right on that line — 1.67MB when measured on 16 Sep,
+2.34MB earlier the same day — so `revalidate: 60` did nothing whenever it
+drifted over, and every single render re-downloaded and re-parsed
+megabytes of JSON. Intermittently, which is why it never looked like a
+pattern.
+
+`lib/scores.ts` already had a memo written for exactly this problem, and
+it was being defeated by a coincidence: **`MEMO_MS` was 60 seconds and
+something polls the homepage every ~60 seconds.** The memo expired just
+in time for each request to miss it — the one cadence at which a cache
+costs memory and returns nothing. Now five minutes.
+
+**Tennis came out of the default rail.** Not out of the product:
+`railLeaguesFor` puts a member's own leagues first, so somebody who
+follows tennis still gets it, and /scores, the watchlist and the game
+pages are untouched. What stopped is fetching two megabytes of tennis for
+every crawler that touches the homepage. The default rail went from
+**3.36MB to 1.13MB**, and nothing left in it is near the 2MB ceiling, so
+it all caches properly now.
+
+`/api/playing` kept tennis and no longer borrows `RAIL_LEAGUES`. It runs
+when somebody types `$` into a caption — rare, deliberate, and the one
+place a tennis player most needs to be offerable.
+
+**A comment in `SCOREBOARDS` would have caused a real regression if
+trusted.** It said the ATP scoreboard already carried the women's
+groupings and that `tennis/wta` duplicated them. Checked: 625
+competitions in atp, 270 in wta, **not one id in common**. Acting on it
+would have silently dropped every women's match from the scores, the
+watchlist and the autocomplete. The comment is now the measurement.
+
+**The shape of this is worth remembering.** The site has about ten members
+and PostHog counted 38 visitors that day, against 988 homepage renders in
+twelve hours at a flat one-a-minute — so nearly all of the compute was
+spent rendering the feed for machines. A warning about a *limit* turned
+out to be a question about *what the homepage does per request*, and the
+answer had been printing itself in the logs the whole time.
+
 ### "Where can I watch this match?" (15 Sep 2026)
 
 The Live room existed to embed a stream. That was the wrong shape, and

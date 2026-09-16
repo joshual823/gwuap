@@ -1,5 +1,16 @@
 import { fetchGamesWindow, RAIL_LEAGUES } from '@/lib/scores'
 
+/**
+ * The leagues this offers, which is the home rail plus tennis.
+ *
+ * It used to just be RAIL_LEAGUES, and tennis came out of that on
+ * 16 Sep because two megabytes of it was being fetched for every crawler
+ * that touched the homepage. None of that reasoning applies here: this
+ * runs when somebody types `$` into a caption, so it is rare, deliberate,
+ * and the one place a tennis player most needs to be offerable.
+ */
+const PLAYING_LEAGUES = [...RAIL_LEAGUES, 'Tennis']
+
 export const dynamic = 'force-dynamic'
 
 /**
@@ -19,7 +30,7 @@ export async function GET(request: Request) {
     .replace(/^\$/, '').trim().toUpperCase()
 
   const batches = await Promise.all(
-    RAIL_LEAGUES.map(l => fetchGamesWindow(l, 0, 2).catch(() => [])),
+    PLAYING_LEAGUES.map(l => fetchGamesWindow(l, 0, 2).catch(() => [])),
   )
 
   type Row = { code: string; label: string; state: string; rank: number }
