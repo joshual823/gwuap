@@ -5199,3 +5199,34 @@ the two campaigns are currently indistinguishable in what they buy.**
 The next decision point is not another impressions check — it is whether
 the signup page converts at all, which needs several hundred clicks
 before it is a question the numbers can answer.
+
+### Both campaigns paused (18 Sep 2026)
+
+Josh paused paid spend after the 48-hour check. `Signups — Sep 2026`
+(42466353) and `Traffic` (42400139) are both **Paused** — nothing is
+spending on X, and Reddit was already off.
+
+**Final state of the paid experiment as it stands:**
+
+- **$198.11 spent** across both campaigns, **90,932 impressions, 192
+  link clicks, 0 recorded signups.**
+- Of those 192 clicks, roughly **89 landed on a 404** before 15 Sep — the
+  missing `?` in the ad URLs. Those are not evidence of anything about
+  the site.
+- The **~103 clicks that actually reached the site** produced **one
+  signup** (15 Sep, the day of the fix). That is the only honest
+  denominator, and it is far too small to call a conversion rate.
+
+**The toggle needs two clicks.** The first click on the On/Off control
+only raises its "Pause" tooltip; the second one actually flips it. Both
+campaigns did this, and a single click leaves the campaign Active while
+looking like the click landed. Screenshot the row and read the
+**Delivery status** column — "Paused" there is the confirmation, not the
+toggle's colour.
+
+**What to resume into, when that happens.** Not the same setup. The
+clicks were real and the landing page was the thing that hadn't been
+fixed yet on most of them; the first-post tour, the welcome card, the
+reminder emails and the short homepage headline all landed *after* the
+bulk of the spend. Whatever runs next is testing a site those 192 clicks
+never saw.
