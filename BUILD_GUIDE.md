@@ -5152,3 +5152,50 @@ and the counts in YOU ARE HERE re-read from the live database rather than
 remembered. Update this file as we make new decisions so it stays the
 source of truth — and re-read the numbers rather than trusting the ones
 above, which is how they went 19 migrations stale.*
+
+### The 48-hour check: it delivered, and that settles the wrong question (18 Sep 2026)
+
+The check written down two days ago had one trigger: **near-zero
+impressions on `Signups — Sep 2026` means the dormant `Sign Up` event
+starved the campaign**, and the fix is one dropdown.
+
+**It did not happen. 17,516 impressions, $33.68 spent, in about two
+days.** That is a campaign delivering at its budget. No dropdown, no
+event change — the dormant label did not stop X from serving the ads.
+
+| Sep 12–18 | Signups (42466353) | Traffic (42400139) |
+|---|---|---|
+| Impressions | 17,516 | 73,353 |
+| Spend | $33.68 | $164.35 |
+| Link clicks | 30 | 162 |
+| CTR | 0.171% | 0.221% |
+| Cost per click | $1.12 | $1.01 |
+
+**Purchases: 0.** Checked against the database rather than the pixel,
+because the pixel has been wrong here before: `profiles` holds **9
+accounts, none created since the campaign launched on 16 Sep**. One
+account arrived on 15 Sep — the day the 404 was fixed, before this
+campaign existed. The pixel and the table agree, which is the first time
+they have been checked against each other.
+
+**The landing URLs resolve.** All three shapes — `/signup` bare,
+`/signup` with the UTM triple, and `/` with it — return 200. The
+disconnected-funnel failure that wasted the first 89 clicks is not
+repeating.
+
+**What 30 clicks and 0 signups does and does not mean.** It does not
+mean the signup page is broken. At a 5% signup rate, zero out of 30 has
+about a 21% chance of happening anyway — the sample is too small to
+conclude anything, and saying otherwise would repeat the pooling error
+made on 14 Sep. What it does mean is that **the Sales objective is
+currently buying nothing that Traffic wasn't already buying**: $1.12 a
+click against $1.01, slightly worse CTR. A conversions campaign with
+zero recorded conversions has no signal to optimise against, so it is
+serving broadly and charging a small premium for the privilege. It
+cannot start doing its actual job until the event fires.
+
+So the honest state is: **delivery confirmed, conversion unproven, and
+the two campaigns are currently indistinguishable in what they buy.**
+The next decision point is not another impressions check — it is whether
+the signup page converts at all, which needs several hundred clicks
+before it is a question the numbers can answer.
